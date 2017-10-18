@@ -1,0 +1,2 @@
+reference_files - contains generated audio files serving as a reference for testing the supported audio files sources of ni-media
+user_files - contains user audio files that are tested against open, seek and read for all supported file extensions
