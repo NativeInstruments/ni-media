@@ -50,6 +50,7 @@ ostream::ostream( AudioSink sink )
 }
 
 template ostream::ostream( wav_file_sink );
+template ostream::ostream( aiff_file_sink );
 
 //----------------------------------------------------------------------------------------------------------------------
 

@@ -3,6 +3,7 @@
 #-----------------------------------------------------------------------------------------------------------------------
 
 option( NIMEDIA_ENABLE_AIFF_DECODING "Enable ni-media aiff decoding" ON )
+option( NIMEDIA_ENABLE_AIFF_ENCODING "Enable ni-media aiff encoding" ON )
 option( NIMEDIA_ENABLE_FLAC_DECODING "Enable ni-media flac decoding" ON )
 option( NIMEDIA_ENABLE_OGG_DECODING  "Enable ni-media ogg decoding" ON )
 
@@ -25,6 +26,14 @@ option( NIMEDIA_ENABLE_WAV_ENCODING  "Enable ni-media wav encoding" ON )
 
 if( NOT NIMEDIA_ENABLE_AIFF_DECODING )
   set( COMPILE_WITH_AIFF_DECODING   DONT_COMPILE)
+endif()
+
+if( NOT NIMEDIA_ENABLE_AIFF_ENCODING )
+  set( COMPILE_WITH_AIFF_ENCODING   DONT_COMPILE)
+endif()
+
+if( NOT NIMEDIA_ENABLE_AIFF_DECODING AND NOT NIMEDIA_ENABLE_AIFF_ENCODING )
+  set( COMPILE_WITH_AIFF              DONT_COMPILE)
 endif()
 
 if( NOT NIMEDIA_ENABLE_FLAC_DECODING )
@@ -190,8 +199,10 @@ add_src_group (FILES_All media_audio FILES_media_audio)
 
 
 add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_ifstream_info.h"  ${COMPILE_WITH_AIFF_DECODING} )
-add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_specific_info.h"  ${COMPILE_WITH_AIFF_DECODING} )
-add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_chunks.h"         ${COMPILE_WITH_AIFF_DECODING} )
+add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_ofstream_info.h"  ${COMPILE_WITH_AIFF_ENCODING} )
+add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_specific_info.h"  ${COMPILE_WITH_AIFF} )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_chunks.h"         ${COMPILE_WITH_AIFF} )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_ofstream.cpp"     ${COMPILE_WITH_AIFF_ENCODING} WITH_PUBLIC_HEADER )
 add_src_group (FILES_All media_audio_aiff FILES_media_audio_aiff)
 
 
@@ -222,6 +233,8 @@ add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/wma_file_sour
 add_src_group (FILES_All media_audio_source FILES_media_audio_source)
 
 add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/container_sink.h"                               )
+add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/aiff_file_sink.h"    ${COMPILE_WITH_AIFF_ENCODING} )
+add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/aiff_sink.h"        ${COMPILE_WITH_AIFF_ENCODING} )
 add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/wav_file_sink.h"    ${COMPILE_WITH_WAV_ENCODING} )
 add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/wav_sink.h"        ${COMPILE_WITH_WAV_ENCODING} )
 add_src_group (FILES_All media_audio_sink FILES_media_audio_sink)

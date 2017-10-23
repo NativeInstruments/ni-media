@@ -22,39 +22,59 @@
 
 #pragma once
 
-#include <ni/media/audio/fstream_info.h>
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/ostream_info.h>
+#include <ni/media/audio/aiff/aiff_chunks.h>
+#include <ni/media/audio/aiff/aiff_ofstream_info.h>
+#include <ni/media/iostreams/device/subview.h>
+#include <ni/media/iostreams/write_obj.h>
 
-namespace audio
+
+namespace detail
 {
 
-class ofstream_info : public fstream_info, public ostream_info
+template <class Sink>
+auto write_aiff_header( Sink& sink )
 {
+}
+
+template <class Sink>
+auto close_aiff( Sink& sink )
+{
+}
+
+} // namespace detail
+
+template <class Sink>
+class aiff_sink : public boostext::iostreams::subview_sink<Sink>
+{
+    using base_type   = boostext::iostreams::subview_sink<Sink>;
+    using offset_type = typename base_type::offset_type;
+
 public:
-    enum class container_type
+    using info_type = audio::aiff_ofstream_info;
+
+    template <class... Args>
+    explicit aiff_sink( info_type info, Args&&... args )
+    : base_type( std::forward<Args>( args )... )
+    , m_info( info )
     {
-        aiff,
-        wav
-    };
+        detail::write_aiff_header( *this );
+        auto pos = this->tell();
+        this->set_view( pos );
+    }
 
-    enum class codec_type
+    void close()
     {
-        aiff,
-        wav
-    };
+        this->set_view( 0 );
+        detail::close_aiff( *this );
+        base_type::close();
+        m_info = info_type();
+    }
 
-    void codec( codec_type value );
-    auto codec() const -> codec_type;
-
-    void container( container_type value );
-    auto container() const -> container_type;
+    auto info() const -> info_type
+    {
+        return m_info;
+    }
 
 private:
-    container_type m_container;
-    codec_type     m_codec;
+    info_type m_info;
 };
-
-} // namespace audio
-
-//----------------------------------------------------------------------------------------------------------------------

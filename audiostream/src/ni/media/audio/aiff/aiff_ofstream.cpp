@@ -20,7 +20,26 @@
 // SOFTWARE.
 //
 
-#pragma once
-
+#include <ni/media/audio/aiff/aiff_ofstream.h>
 #include <ni/media/audio/sink/aiff_file_sink.h>
-#include <ni/media/audio/sink/wav_file_sink.h>
+
+namespace audio
+{
+
+//----------------------------------------------------------------------------------------------------------------------
+
+aiff_ofstream::aiff_ofstream( const std::string& file, const info_type& info )
+: base_t( aiff_file_sink( info, file ) )
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+const aiff_ofstream::info_type& aiff_ofstream::info() const
+{
+    return static_cast<const info_type&>( base_t::info() );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+} // namespace audio

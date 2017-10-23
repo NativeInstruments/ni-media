@@ -39,7 +39,7 @@ namespace detail
 {
 
 template <class Sink>
-auto writeWavHeader( Sink& sink )
+auto write_wav_header( Sink& sink )
 {
     // write the riff tag
     auto curChunk = little_endian_fourcc( "RIFF" );
@@ -104,7 +104,7 @@ auto writeWavHeader( Sink& sink )
 }
 
 template <class Sink>
-auto close( Sink& sink )
+auto close_wav( Sink& sink )
 {
     // grab the full file size
     uint32_t fileSize = static_cast<uint32_t>( sink.tell() );
@@ -141,7 +141,7 @@ public:
     : base_type( std::forward<Args>( args )... )
     , m_info( info )
     {
-        detail::writeWavHeader( *this );
+        detail::write_wav_header( *this );
         auto pos = this->tell();
         this->set_view( pos );
     }
@@ -149,7 +149,7 @@ public:
     void close()
     {
         this->set_view( 0 );
-        detail::close( *this );
+        detail::close_wav( *this );
         base_type::close();
         m_info = info_type();
     }

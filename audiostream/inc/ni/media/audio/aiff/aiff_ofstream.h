@@ -22,5 +22,25 @@
 
 #pragma once
 
-#include <ni/media/audio/sink/aiff_file_sink.h>
-#include <ni/media/audio/sink/wav_file_sink.h>
+#include <ni/media/audio/aiff/aiff_ofstream_info.h>
+#include <ni/media/audio/ofstream.h>
+
+namespace audio
+{
+
+class aiff_ofstream : public ofstream
+{
+    using base_t = ofstream;
+
+public:
+    using info_type = aiff_ofstream_info;
+
+    aiff_ofstream()                  = default;
+    aiff_ofstream( aiff_ofstream&& ) = default;
+
+    aiff_ofstream( const std::string& file, const info_type& info );
+
+    const info_type& info() const override;
+};
+
+} // namespace audio
