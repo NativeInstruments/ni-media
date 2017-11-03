@@ -22,10 +22,11 @@
 
 #pragma once
 
+#include <ni/media/audio/ifstream_info.h>
+
 #include <AudioToolbox/ExtendedAudioFile.h>
 
-#include <ni/media/audio/source/mp4_file_source.h>
-
+#include <boost/iostreams/positioning.hpp>
 
 class core_audio_file_source
 {
