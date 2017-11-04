@@ -25,4 +25,4 @@ before_script:
   - (mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DNIMEDIA_TESTS=ON)
 
 script:
-  - (cd build && cmake --build . --target RUN_TESTS)
+  - (cd build && cmake --build . --target test)
