@@ -18,6 +18,7 @@ before_install:
       make;
       cp -r ../googletest/include/gtest /usr/local/include;
       cp googlemock/gtest/lib*.a /usr/local/lib;
+      cd $TRAVIS_BUILD_DIR;
     fi
 
 before_script:
