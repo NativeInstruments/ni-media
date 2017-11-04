@@ -6,7 +6,8 @@ compiler:
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update && brew install libogg libvorbis flac;
+      brew update && brew install git-lfs libogg libvorbis flac;
+      git lfs install;
       mkdir gtest;
       cd gtest;
       wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz;
@@ -22,6 +23,7 @@ before_install:
     fi
 
 before_script:
+  - git lfs pull
   - (mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DNIMEDIA_TESTS=ON)
 
 script:
