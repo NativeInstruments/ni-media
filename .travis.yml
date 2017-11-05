@@ -37,9 +37,11 @@ before_script:
   - git lfs pull
   - mkdir build
   - cd build
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]
+    then
       cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_OSX_ARCHITECTURES=$ARCH
-    elif [ "$TRAVIS_OS_NAME" = "linux" ]; then
+    elif [ "$TRAVIS_OS_NAME" = "linux" ]
+    then
       cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
     fi
 script:
