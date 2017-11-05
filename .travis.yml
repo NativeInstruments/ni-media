@@ -18,7 +18,9 @@ matrix:
       
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update && brew install git-lfs libogg libvorbis flac;
+      brew update;
+      brew install git-lfs;
+      brew install libogg libvorbis flac --universal;
       mkdir gtest;
       cd gtest;
       wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz;
