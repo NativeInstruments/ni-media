@@ -20,6 +20,7 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       brew update;
       brew install git-lfs;
+      brew install boost --universal;
       brew install libogg libvorbis flac --universal;
       mkdir gtest;
       cd gtest;
