@@ -21,6 +21,7 @@ before_install:
       brew update;
       brew install git-lfs;
       brew install boost --universal;
+      PATH=`brew --prefix boost`:${PATH}
       brew install libogg libvorbis flac --universal;
       mkdir gtest;
       cd gtest;
