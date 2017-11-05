@@ -7,12 +7,12 @@ git:
 matrix:
   include:
     - os: osx
-      env: CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=x86_64 -DFAKE_ARG"
+      env: CONFIG=Release ARCH=x86_64
       osx_image: xcode7.3
       compiler: clang
       
     - os: osx
-      env: CMAKE_ARGS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=i386 -DFAKE_ARG'
+      env: CONFIG=Release ARCH=i386
       osx_image: xcode7.3
       compiler: clang
       
@@ -35,8 +35,12 @@ before_install:
 
 before_script:
   - git lfs pull
-  - printf '%q\n' "cmake .. ${CMAKE_ARGS[@]}"
-  - (mkdir build && cd build && cmake .. "${CMAKE_ARGS[@]}")
-
+  - mkdir build
+  - cd build
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_OSX_ARCHITECTURES=$ARCH
+    elif [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
+    fi
 script:
   - (cd build && cmake --build . && cmake --build . --target test)
