@@ -5,8 +5,8 @@ compiler:
   - clang
   
 git:
-  - depth: 3
-  - lfs_skip_smudge: true
+  depth: 3
+  lfs_skip_smudge: true
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
