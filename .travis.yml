@@ -44,4 +44,6 @@ before_script:
     fi
     
 script:
-  - (cd build && cmake --build . && git lfs pull && cmake --build . --target test)
+  - cmake --build . 
+  - git lfs pull
+  - cmake --build . --target test
