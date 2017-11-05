@@ -7,12 +7,12 @@ git:
 matrix:
   include:
     - os: osx
-      env: CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=x86_64"
+      env: CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=x86_64 -DFAKE_ARG"
       osx_image: xcode7.3
       compiler: clang
       
     - os: osx
-      env: CMAKE_ARGS=\(-DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=i386\)
+      env: CMAKE_ARGS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=i386 -DFAKE_ARG'
       osx_image: xcode7.3
       compiler: clang
       
