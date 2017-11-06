@@ -10,7 +10,7 @@ find_library(Vorbisenc_LIBRARIES NAMES vorbisenc)
 find_package_handle_standard_args(Vorbis DEFAULT_MSG Vorbis_INCLUDE_DIRS Vorbis_LIBRARIES Vorbisfile_LIBRARIES Vorbisenc_LIBRARIES)
 mark_as_advanced(Vorbis_INCLUDE_DIRS Vorbis_LIBRARIES Vorbisfile_LIBRARIES Vorbisenc_LIBRARIES)
 
-if( Vorbis_FOUND )
+if( VORBIS_FOUND )
   if( NOT TARGET vorbis )
     add_library(vorbis UNKNOWN IMPORTED)
     set_target_properties(vorbis PROPERTIES
