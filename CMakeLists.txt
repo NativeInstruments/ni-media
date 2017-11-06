@@ -30,6 +30,23 @@ include(ni_add_gtest)
 if( NIMEDIA_TESTS )
   enable_testing()
   find_package(GTest REQUIRED)
+  # Workaroud: cmake < 3.6 does not create an imported target for GTest
+  if(NOT TARGET GTest::GTest)
+      add_library(GTest::GTest UNKNOWN IMPORTED)
+      set_target_properties(GTest::GTest PROPERTIES
+          INTERFACE_LINK_LIBRARIES "Threads::Threads")
+      if(GTEST_INCLUDE_DIRS)
+          set_target_properties(GTest::GTest PROPERTIES
+              INTERFACE_INCLUDE_DIRECTORIES "${GTEST_INCLUDE_DIRS}")
+      endif()
+      if(EXISTS "${GTEST_LIBRARY}")
+          set_target_properties(GTest::GTest PROPERTIES
+              IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
+              IMPORTED_LOCATION "${GTEST_LIBRARY}")
+      endif()
+  endif()
+
+
 endif()
 
 add_subdirectory( pcm )
