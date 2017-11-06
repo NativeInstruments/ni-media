@@ -44,6 +44,26 @@ if( NIMEDIA_TESTS )
               IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
               IMPORTED_LOCATION "${GTEST_LIBRARY}")
       endif()
+
+      if( LINUX )
+
+          set( THREADS_PREFER_PTHREAD_FLAG ON )
+          find_package( Threads REQUIRED )
+
+          if(THREADS_FOUND AND NOT TARGET Threads::Threads)
+            add_library(Threads::Threads INTERFACE IMPORTED)
+
+            if(THREADS_HAVE_PTHREAD_ARG)
+              set_property(TARGET Threads::Threads PROPERTY INTERFACE_COMPILE_OPTIONS "-pthread")
+            endif()
+
+            if(CMAKE_THREAD_LIBS_INIT)
+              set_property(TARGET Threads::Threads PROPERTY INTERFACE_LINK_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
+            endif()
+          endif()
+
+      endif()
+
   endif()
 
 
