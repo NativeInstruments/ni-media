@@ -34,7 +34,7 @@ before_install:
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       brew update && brew install git-lfs libogg libvorbis flac
-    elif[ "$TRAVIS_OS_NAME" = "linux" ]; then
+    else
       wget http://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.bz2;
       tar -xvjf boost_1_63_0.tar.bz2 | tail -n 50;
       cd boost_1_63_0;
