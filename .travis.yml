@@ -58,7 +58,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_ENABLE_FLAC_DECODING=OFF -DNIMEDIA_ENABLE_OGG_DECODING=OFF
+  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_ENABLE_FLAC_DECODING=OFF
     
 script:
   - cmake --build . 
