@@ -7,42 +7,37 @@ git:
 matrix:
   include:
     - os: osx
-      env: CONFIG=Release ARCH=x86_64
+      env: CONFIG=Release
       osx_image: xcode7.3
       compiler: clang
       
-    - os: osx
-      env: CONFIG=Release ARCH=i386
-      osx_image: xcode7.3
-      compiler: clang
       
 before_install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update;
-      brew install git-lfs;
-      brew install boost --universal;
-      PATH=`brew --prefix boost`:${PATH}
-      brew install libogg libvorbis flac --universal;
-      mkdir gtest;
-      cd gtest;
-      wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz;
-      tar -xzvf release-1.8.0.tar.gz;
-      cd googletest-release-1.8.0;
-      mkdir build;
-      cd build;
-      cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=$ARCH;
-      cmake --build .;
-      cp -r ../googletest/include/gtest /usr/local/include;
-      cp googlemock/gtest/lib*.a /usr/local/lib;
-      cd $TRAVIS_BUILD_DIR;
+  - |
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      brew update && brew install git-lfs libogg libvorbis flac
+    elif [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      brew update && brew install git-lfs libogg libvorbis flac
     fi
+  - mkdir gtest;
+  - cd gtest;
+  - wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz;
+  - tar -xzvf release-1.8.0.tar.gz;
+  - cd googletest-release-1.8.0;
+  - mkdir build;
+  - cd build;
+  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release;
+  - cmake --build .;
+  - cp -r ../googletest/include/gtest /usr/local/include;
+  - cp googlemock/gtest/lib*.a /usr/local/lib;
+  - cd $TRAVIS_BUILD_DIR;
 
 before_script:
   - mkdir build
   - cd build
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_OSX_ARCHITECTURES=$ARCH
+      cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
     elif [ "$TRAVIS_OS_NAME" = "linux" ]; then
       cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
     fi
