@@ -49,7 +49,7 @@ before_install:
   - cd googletest-release-1.8.0;
   - mkdir build;
   - cd build;
-  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DNIMEDIA_ENABLE_FLAC_DECODING=OFF;
+  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release;
   - cmake --build .;
   - sudo cp -r ../googletest/include/gtest /usr/local/include;
   - sudo cp googlemock/gtest/lib*.a /usr/local/lib;
