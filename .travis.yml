@@ -22,7 +22,7 @@ matrix:
           - cmake
           - flac
           - libvorbis-dev
-          - libogg
+          - libogg-dev
       
       
 before_install:
