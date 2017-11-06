@@ -28,6 +28,8 @@
 #include <iterator> // std::iterator_traits
 #include <type_traits>
 
+#include <boost/core/ignore_unused.hpp>
+
 namespace pcm
 {
 
@@ -38,8 +40,7 @@ namespace detail
 template <class T>
 bool equal_format( const T& lhs, const T& rhs )
 {
-    (void) lhs;
-    (void) rhs;
+    boost::ignore_unused( lhs, rhs );
     assert(::pcm::format( lhs ) == ::pcm::format( rhs ) );
     return true;
 }
