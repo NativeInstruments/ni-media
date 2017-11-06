@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <boost/core/ignore_unused.hpp>
-
 #include <array>
 #include <tuple>
 #include <utility>
@@ -37,7 +35,7 @@ namespace detail
 template <typename Type, typename Tuple, std::size_t... Indices>
 auto tuple_to_array_impl( Tuple&& tuple, std::index_sequence<Indices...> ) -> std::array<Type, sizeof...( Indices )>
 {
-    boost::ignore_unused( tuple );
+    (void) tuple;
     using namespace std;
     return {{static_cast<Type>( get<Indices>( forward<Tuple>( tuple ) ) )...}};
 }
@@ -45,7 +43,7 @@ auto tuple_to_array_impl( Tuple&& tuple, std::index_sequence<Indices...> ) -> st
 template <typename Type, typename Tuple>
 auto tuple_to_array( Tuple&& tuple )
 {
-    boost::ignore_unused( tuple );
+    (void) tuple;
     using namespace std;
     return tuple_to_array_impl<Type>( forward<Tuple>( tuple ),
                                       make_index_sequence<tuple_size<decay_t<Tuple>>::value>() );
