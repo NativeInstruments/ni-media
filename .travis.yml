@@ -22,9 +22,12 @@ matrix:
           packages:
           - g++-5
           - cmake
+          - libboost-iostreams1.53-dev
+          - libboost-filesystem1.53-dev
           - flac
           - libvorbis-dev
           - libogg-dev
+          
       
       
 before_install:
