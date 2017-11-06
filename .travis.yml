@@ -22,9 +22,10 @@ matrix:
           packages:
           - g++-5
           - cmake
-          - flac
-          - libvorbis-dev
           - libogg-dev
+          - libvorbis-dev
+          - libflac++-dev
+
       env: MATRIX_EVAL="CONFIG=Release && CXX=g++-5"
           
       
