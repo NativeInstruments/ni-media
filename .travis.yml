@@ -1,4 +1,6 @@
 language: cpp
+sudo: required
+dist: trusty
   
 git:
   depth: 3
@@ -39,8 +41,8 @@ before_install:
   - cd build;
   - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release;
   - cmake --build .;
-  - cp -r ../googletest/include/gtest /usr/local/include;
-  - cp googlemock/gtest/lib*.a /usr/local/lib;
+  - sudo cp -r ../googletest/include/gtest /usr/local/include;
+  - sudo cp googlemock/gtest/lib*.a /usr/local/lib;
   - cd $TRAVIS_BUILD_DIR;
 
 before_script:
