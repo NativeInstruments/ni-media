@@ -9,12 +9,12 @@ git:
 matrix:
   include:
     - os: osx
-      env: CONFIG=Release
       osx_image: xcode7.3
       compiler: clang
+      env: MATRIX_EVAL="CONFIG=Release" 
       
     - os: linux
-      env: CONFIG=Release
+      compiler: gcc
       addons:
         apt:
           sources:
@@ -27,10 +27,12 @@ matrix:
           - flac
           - libvorbis-dev
           - libogg-dev
+      env: MATRIX_EVAL="CONFIG=Release && CXX=g++-5"
           
       
       
 before_install:
+  - eval "${MATRIX_EVAL}"
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       brew update && brew install git-lfs libogg libvorbis flac
