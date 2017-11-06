@@ -1,6 +1,6 @@
 
 find_package(Boost REQUIRED)
- # Workaroud: cmake < 3.6 does not create an imported target Boost::boost
+ # Workaroud: older cmake versions do not create an imported target Boost::boost
 if(NOT TARGET Boost::boost)
   add_library(Boost::boost INTERFACE IMPORTED)
   if(Boost_INCLUDE_DIRS)

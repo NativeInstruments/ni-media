@@ -30,7 +30,7 @@ include(ni_add_gtest)
 if( NIMEDIA_TESTS )
   enable_testing()
   find_package(GTest REQUIRED)
-  # Workaroud: cmake < 3.6 does not create an imported target for GTest
+  # Workaroud: older cmake versions do not create an imported target for GTest
   if(NOT TARGET GTest::GTest)
       add_library(GTest::GTest UNKNOWN IMPORTED)
       set_target_properties(GTest::GTest PROPERTIES
