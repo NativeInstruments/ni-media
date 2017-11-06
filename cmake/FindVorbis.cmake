@@ -11,9 +11,9 @@ find_package_handle_standard_args(Vorbis DEFAULT_MSG Vorbis_INCLUDE_DIRS Vorbis_
 mark_as_advanced(Vorbis_INCLUDE_DIRS Vorbis_LIBRARIES Vorbisfile_LIBRARIES Vorbisenc_LIBRARIES)
 
 if( VORBIS_FOUND )
-  if( NOT TARGET vorbis )
-    add_library(vorbis UNKNOWN IMPORTED)
-    set_target_properties(vorbis PROPERTIES
+  if( NOT TARGET Vorbis::vorbis )
+    add_library(Vorbis::vorbis UNKNOWN IMPORTED)
+    set_target_properties(Vorbis::vorbis PROPERTIES
       IMPORTED_LINK_INTERFACE_LANGUAGES "C"
       IMPORTED_LOCATION ${Vorbis_LIBRARIES}
       INTERFACE_INCLUDE_DIRECTORIES "${Vorbis_INCLUDE_DIRS};${Ogg_INCLUDE_DIRS}"
@@ -23,9 +23,9 @@ if( VORBIS_FOUND )
 
   # TODO: make vorbisfile and vorbisenc optional components
 
-  if( NOT TARGET vorbisfile )
-    add_library(vorbisfile UNKNOWN IMPORTED)
-    set_target_properties(vorbisfile PROPERTIES
+  if( NOT TARGET Vorbis::vorbisfile )
+    add_library(Vorbis::vorbisfile UNKNOWN IMPORTED)
+    set_target_properties(Vorbis::vorbisfile PROPERTIES
       IMPORTED_LINK_INTERFACE_LANGUAGES "C"
       IMPORTED_LOCATION ${Vorbisfile_LIBRARIES}
       INTERFACE_INCLUDE_DIRECTORIES "${Vorbis_INCLUDE_DIRS};${Ogg_INCLUDE_DIRS}"
@@ -34,9 +34,9 @@ if( VORBIS_FOUND )
   endif()
 
 
-  if( NOT TARGET vorbisenc )
-    add_library(vorbisenc UNKNOWN IMPORTED)
-    set_target_properties(vorbisenc PROPERTIES
+  if( NOT TARGET Vorbis::vorbisenc )
+    add_library(Vorbis::vorbisenc UNKNOWN IMPORTED)
+    set_target_properties(Vorbis::vorbisenc PROPERTIES
       IMPORTED_LINK_INTERFACE_LANGUAGES "C"
       IMPORTED_LOCATION ${Vorbisenc_LIBRARIES}
       INTERFACE_INCLUDE_DIRECTORIES "${Vorbis_INCLUDE_DIRS};${Ogg_INCLUDE_DIRS}"

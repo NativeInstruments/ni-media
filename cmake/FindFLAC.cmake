@@ -11,9 +11,9 @@ find_package_handle_standard_args(FLAC DEFAULT_MSG FLAC_INCLUDE_DIRS FLAC_LIBRAR
 mark_as_advanced(FLAC_INCLUDE_DIRS FLAC_LIBRARIES FLACPP_INCLUDE_DIRS FLACPP_LIBRARIES)
 
 if( FLAC_FOUND ) 
-  if(  NOT TARGET flac )
-  add_library(flac UNKNOWN IMPORTED)
-  set_target_properties(flac PROPERTIES
+  if(  NOT TARGET FLAC::flac )
+    add_library(FLAC::flac UNKNOWN IMPORTED)
+    set_target_properties(FLAC::flac PROPERTIES
     IMPORTED_LINK_INTERFACE_LANGUAGES "C"
     IMPORTED_LOCATION ${FLAC_LIBRARIES}
     INTERFACE_INCLUDE_DIRECTORIES "${FLAC_INCLUDE_DIRS};${Ogg_INCLUDE_DIRS}"
@@ -23,9 +23,9 @@ if( FLAC_FOUND )
 
   # TODO: make flacpp an optional component
 
-  if( NOT TARGET flacpp )
-    add_library(flacpp UNKNOWN IMPORTED)
-    set_target_properties(flacpp PROPERTIES
+  if( NOT TARGET FLAC::flacpp )
+    add_library(FLAC::flacpp UNKNOWN IMPORTED)
+    set_target_properties(FLAC::flacpp PROPERTIES
       IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
       IMPORTED_LOCATION ${FLACPP_LIBRARIES}
       INTERFACE_INCLUDE_DIRECTORIES "${FLACPP_INCLUDE_DIRS};${FLAC_INCLUDE_DIRS};${Ogg_INCLUDE_DIRS}"

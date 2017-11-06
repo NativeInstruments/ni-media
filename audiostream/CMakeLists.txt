@@ -129,13 +129,13 @@ if( NIMEDIA_ENABLE_FLAC_DECODING )
 
   find_package(FLAC REQUIRED)
 
-  if ( NOT TARGET flacpp )
+  if ( NOT TARGET FLAC::flacpp )
     message(FATAL_ERROR
       "You are building ni-media with FLAC decoding support but the required flacpp library was not found\n"
       "Make sure library can be found or disable FLAC decoding by setting:\n"
       " * NIMEDIA_ENABLE_FLAC_DECODING = OFF\n")
   endif()
-  list(APPEND codec_libraries flacpp)
+  list(APPEND codec_libraries FLAC::flacpp)
 endif()
 
 
@@ -143,13 +143,13 @@ if ( NIMEDIA_ENABLE_OGG_DECODING )
 
   find_package(Vorbis REQUIRED)
 
-  if ( NOT TARGET vorbisfile)
+  if ( NOT TARGET Vorbis::vorbisfile)
     message(FATAL_ERROR
       "You are building ni-media with OGG decoding support but the required vorbisfile library was not found\n"
       "Make sure vorbisfile can be found or disable OGG decoding by setting:\n"
       " * NIMEDIA_ENABLE_OGG_DECODING = OFF\n")
   endif()
-  list(APPEND codec_libraries vorbisfile)
+  list(APPEND codec_libraries Vorbis::vorbisfile)
 endif()
 
 
