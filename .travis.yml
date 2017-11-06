@@ -58,12 +58,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - |
-    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
-    elif [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
-    fi
+  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_ENABLE_FLAC_DECODING=OFF
     
 script:
   - cmake --build . 
