@@ -1,4 +1,4 @@
-# NI MEDIA
+# NI MEDIA https://travis-ci.org/marcrambo/ni-media.svg?branch=master
 
 NI Media is a library for reading from / writing to audio streams developed at [Native Instruments](https://www.native-instruments.com).
 
