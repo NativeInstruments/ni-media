@@ -5,10 +5,8 @@ find_path(Vorbis_INCLUDE_DIRS vorbis/vorbisfile.h)
 find_library(Vorbis_LIBRARIES NAMES vorbis)
 
 
-find_package_handle_standard_args(Vorbis DEFAULT_MSG Vorbis_INCLUDE_DIRS Vorbis_LIBRARIES)
-mark_as_advanced(Vorbis_INCLUDE_DIRS Vorbis_LIBRARIES )
 
-if( Vorbis_FOUND AND NOT TARGET vorbis )
+if( Vorbis_LIBRARIES AND NOT TARGET vorbis )
   add_library(vorbis UNKNOWN IMPORTED)
   set_target_properties(vorbis PROPERTIES
     IMPORTED_LINK_INTERFACE_LANGUAGES "C"
@@ -20,10 +18,9 @@ endif()
 
 
 find_library(Vorbisfile_LIBRARIES NAMES vorbisfile)
-find_package_handle_standard_args(Vorbis DEFAULT_MSG Vorbisfile_LIBRARIES)
-mark_as_advanced(Vorbisfile_LIBRARIES)
 
-if( Vorbisfile_FOUND AND NOT TARGET vorbisfile )
+
+if( Vorbisfile_LIBRARIES AND NOT TARGET vorbisfile )
   add_library(vorbisfile UNKNOWN IMPORTED)
   set_target_properties(vorbisfile PROPERTIES
     IMPORTED_LINK_INTERFACE_LANGUAGES "C"
@@ -35,10 +32,8 @@ endif()
 
 
 find_library(Vorbisenc_LIBRARIES NAMES vorbisenc)
-find_package_handle_standard_args(Vorbis DEFAULT_MSG Vorbisenc_LIBRARIES)
-mark_as_advanced(Vorbisenc_LIBRARIES)
 
-if( Vorbisenc_FOUND AND NOT TARGET vorbisenc )
+if( Vorbisenc_LIBRARIES AND NOT TARGET vorbisenc )
   add_library(vorbisenc UNKNOWN IMPORTED)
   set_target_properties(vorbisenc PROPERTIES
     IMPORTED_LINK_INTERFACE_LANGUAGES "C"
@@ -48,3 +43,5 @@ if( Vorbisenc_FOUND AND NOT TARGET vorbisenc )
 	)
 endif()
 
+find_package_handle_standard_args(Vorbis DEFAULT_MSG Vorbis_INCLUDE_DIRS Vorbis_LIBRARIES Vorbisfile_LIBRARIES Vorbisenc_LIBRARIES)
+mark_as_advanced(Vorbis_INCLUDE_DIRS Vorbis_LIBRARIES Vorbisfile_LIBRARIES Vorbisenc_LIBRARIES)
