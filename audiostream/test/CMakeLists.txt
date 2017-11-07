@@ -120,6 +120,6 @@ target_compile_definitions  ( audiostream_test PRIVATE "NI_MEDIA_OUTPUT_FILES_PA
 
 file(MAKE_DIRECTORY ${output_files_path})
 
-if(NOT NI_BUILDSERVER)
+if(NIMEDIA_AUDIOSTREAM_TESTS_WITH_USER_FILES)
   target_compile_definitions  ( audiostream_test PRIVATE "NI_MEDIA_RUN_USER_FILE_TESTS=1" )
 endif()
