@@ -72,7 +72,7 @@ endif()
 foreach( target audiostream audiostream_test pcm pcm_test )
   if( TARGET ${target} )
     set_property( TARGET ${target} PROPERTY FOLDER ni-media )
-    #set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
+    set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
   endif()
 endforeach()
 
