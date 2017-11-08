@@ -1,0 +1,39 @@
+
+shallow_clone: true
+
+image:
+  - Visual Studio 2015
+  - Visual Studio 2017
+
+environment:
+  matrix:
+    - GENERATOR: Visual Studio 14 2015 Win64
+      CONFIG: Release
+      VCPKG_TARGET_TRIPLET: x64-windows-static
+
+    - GENERATOR: Visual Studio 15 2017 Win64
+      CONFIG: Release
+      VCPKG_TARGET_TRIPLET: x64-windows-static
+
+install:
+  - git clone https://github.com/Microsoft/vcpkg.git
+  - cd vcpkg
+  - .\bootstrap-vcpkg.bat
+  - .\vcpkg integrate install
+  - .\vcpkg install boost:%VCPKG_TARGET_TRIPLET%
+  - .\vcpkg install gtest:%VCPKG_TARGET_TRIPLET%
+  - .\vcpkg install libOgg:%VCPKG_TARGET_TRIPLET%
+  - .\vcpkg install libFlac:%VCPKG_TARGET_TRIPLET%
+  - .\vcpkg install libVorbis:%VCPKG_TARGET_TRIPLET%
+  - cd ..
+
+build_script:
+  - mkdir build
+  - cd build
+  - cmake .. -G "%GENERATOR%" "-DNIMEDIA_STATIC_RUNTIME=ON" "-DCMAKE_TOOLCHAIN_FILE=..\vcpkg\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%"
+  - cmake --build . --config %CONFIG%
+
+test_script:
+  - cmake --build . --target RUN_TESTS --config %CONFIG%
+
+
