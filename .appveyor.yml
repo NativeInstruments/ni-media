@@ -25,7 +25,6 @@ install:
   - vcpkg install libOgg:%VCPKG_TARGET_TRIPLET%
   - vcpkg install libFlac:%VCPKG_TARGET_TRIPLET%
   - vcpkg install libVorbis:%VCPKG_TARGET_TRIPLET%
-  - cd ..
 
 build_script:
   - mkdir build
