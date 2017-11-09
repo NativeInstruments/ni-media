@@ -4,6 +4,9 @@ shallow_clone: true
 image:
   - Visual Studio 2017
 
+init:
+  - git lfs install
+
 platform:
   - x64
 
@@ -14,7 +17,6 @@ environment:
       VCPKG_TARGET_TRIPLET: x64-windows-static
 
 install:
-  - git lfs install
   - vcpkg install boost:%VCPKG_TARGET_TRIPLET%
   - vcpkg install gtest:%VCPKG_TARGET_TRIPLET%
   - vcpkg install libOgg:%VCPKG_TARGET_TRIPLET%
