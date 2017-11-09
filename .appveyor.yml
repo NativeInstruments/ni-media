@@ -9,19 +9,12 @@ platform:
 
 environment:
   matrix:
-    - GENERATOR: Visual Studio 14 2015 Win64
-      CONFIG: Release
-      VCPKG_TARGET_TRIPLET: x64-windows-static
-      BOOST_ROOT: C:\Libraries\boost_1_64_0
-      #BOOST_INCLUDEDIR: C:\Libraries\boost_1_64_0\boost\
-      BOOST_LIBRARYDIR: C:\Libraries\boost_1_64_0\lib64-msvc-14.0\
-
     - GENERATOR: Visual Studio 15 2017 Win64
       CONFIG: Release
       VCPKG_TARGET_TRIPLET: x64-windows-static
       BOOST_ROOT: C:\Libraries\boost_1_64_0
       #BOOST_INCLUDEDIR: C:\Libraries\boost_1_64_0\boost\
-      BOOST_LIBRARYDIR: C:\Libraries\boost_1_64_0\lib64-msvc-15.0\
+      BOOST_LIBRARYDIR: C:\Libraries\boost_1_64_0\lib64-msvc-14.1\
 
 install:
   - vcpkg install gtest:%VCPKG_TARGET_TRIPLET%
