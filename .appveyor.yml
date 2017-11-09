@@ -14,6 +14,7 @@ environment:
       VCPKG_TARGET_TRIPLET: x64-windows-static
 
 install:
+  - git lfs install
   - git lfs pull
   - vcpkg install boost:%VCPKG_TARGET_TRIPLET%
   - vcpkg install gtest:%VCPKG_TARGET_TRIPLET%
