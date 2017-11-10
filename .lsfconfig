@@ -1,2 +1,4 @@
 [filter "lfs"]
-	smudge = git-lfs smudge --skip %f
+	clean = git-lfs clean %f
+    smudge = git-lfs smudge --skip %f
+    required = true
