@@ -12,6 +12,7 @@ environment:
     - GENERATOR: Visual Studio 15 2017 Win64
       CONFIG: Release
       VCPKG_TARGET_TRIPLET: x64-windows-static
+      GIT_LFS_SKIP_SMUDGE: 1
 
 install:
   - git lfs pull
