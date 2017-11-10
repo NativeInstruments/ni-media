@@ -3,9 +3,6 @@ image:
 
 platform:
   - x64
-  
-init:
-  - git lfs init --skip-smudge
 
 environment:
   matrix:
@@ -15,7 +12,6 @@ environment:
       GIT_LFS_SKIP_SMUDGE: 1
 
 install:
-  - git lfs pull
   - vcpkg install boost:%VCPKG_TARGET_TRIPLET%
   - vcpkg install gtest:%VCPKG_TARGET_TRIPLET%
   - vcpkg install libOgg:%VCPKG_TARGET_TRIPLET%
@@ -25,10 +21,11 @@ install:
 build_script:
   - mkdir build
   - cd build
-  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DNIMEDIA_ENABLE_MP3_DECODING=OFF -DNIMEDIA_ENABLE_MP4_DECODING=OFF -DNIMEDIA_STATIC_RUNTIME=ON -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
+  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DNIMEDIA_STATIC_RUNTIME=ON -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
   - cmake --build . --config %CONFIG%
 
 test_script:
+  - git lfs pull
   - cmake --build . --target RUN_TESTS --config %CONFIG%
 
 
