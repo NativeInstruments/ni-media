@@ -1,0 +1,3 @@
+[filter "lfs"]
+	smudge = git-lfs smudge --skip %f
+	process = git-lfs filter-process --skip
