@@ -41,7 +41,7 @@ install:
 build_script:
   - mkdir build
   - cd build
-  - cmake .. -G "%GENERATOR%" -DBoost_DEBUG -DBoost_USE_STATIC_LIBS -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=custom-triplet
+  - cmake .. -G "%GENERATOR%" -DBoost_DEBUG=1 -DBoost_USE_STATIC_LIBS=1 -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=custom-triplet
   - cmake --build . --config %CONFIG%
 
 test_script:
