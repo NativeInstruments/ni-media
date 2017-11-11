@@ -7,36 +7,17 @@ endif()
 project( ni-media )
 
 option( NIMEDIA_ENABLE_DEPRECATION_WARNINGS   "Enable ni-media deprecation warnings"  ON )
-
-
 if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
   option( NIMEDIA_TESTS "Build ni-media Tests" ON )
 else()
   option( NIMEDIA_TESTS "Build ni-media Tests" OFF )
 endif()
 
-if(WIN32)
-
-  option( NIMEDIA_FORCE_STATIC_RUNTIME "Force ni-media to use static runtime (/MT)"  OFF )
-
-  if( NIMEDIA_FORCE_STATIC_RUNTIME )
-    foreach( flag CMAKE_CXX_FLAGS
-                  CMAKE_CXX_FLAGS_DEBUG
-                  CMAKE_CXX_FLAGS_RELEASE
-                  CMAKE_CXX_FLAGS_MINSIZEREL
-                  CMAKE_CXX_FLAGS_RELWITHDEBINFO )
-      string(REPLACE "/MD" "/MT" ${flag} "${${flag}}")
-    endforeach()
-  endif()
-
-endif()
-
-
 
 if(WIN32 AND CMAKE_CL_64)
-  set(WIN64 1)
+set(WIN64 1)
 elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-  set(LINUX 1)
+set(LINUX 1)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
