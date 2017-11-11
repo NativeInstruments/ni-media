@@ -17,20 +17,15 @@ endif()
 
 if(WIN32)
 
-  option( NIMEDIA_STATIC_RUNTIME "Configure ni-media to use static runtime (/MT)"  OFF )
+  option( NIMEDIA_FORCE_STATIC_RUNTIME "Force ni-media to use static runtime (/MT)"  OFF )
 
-  if( NIMEDIA_STATIC_RUNTIME )
-    foreach(CompilerFlag CMAKE_CXX_FLAGS
-            CMAKE_CXX_FLAGS_DEBUG
-            CMAKE_CXX_FLAGS_RELEASE
-            CMAKE_CXX_FLAGS_MINSIZEREL
-            CMAKE_CXX_FLAGS_RELWITHDEBINFO
-            CMAKE_C_FLAGS
-            CMAKE_C_FLAGS_DEBUG
-            CMAKE_C_FLAGS_RELEASE
-            CMAKE_C_FLAGS_MINSIZEREL
-            CMAKE_C_FLAGS_RELWITHDEBINFO)
-      string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+  if( NIMEDIA_FORCE_STATIC_RUNTIME )
+    foreach( flag CMAKE_CXX_FLAGS
+                  CMAKE_CXX_FLAGS_DEBUG
+                  CMAKE_CXX_FLAGS_RELEASE
+                  CMAKE_CXX_FLAGS_MINSIZEREL
+                  CMAKE_CXX_FLAGS_RELWITHDEBINFO )
+      string(REPLACE "/MD" "/MT" ${flag} "${${flag}}")
     endforeach()
   endif()
 

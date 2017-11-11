@@ -34,7 +34,7 @@ install:
 build_script:
   - mkdir build
   - cd build
-  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DNIMEDIA_STATIC_RUNTIME=ON -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
+  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DNIMEDIA_FORCE_STATIC_RUNTIME=ON -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
   - cmake --build . --config %CONFIG%
 
 test_script:
