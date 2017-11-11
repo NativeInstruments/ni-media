@@ -1,2 +1,0 @@
-[lfs]
-	fetchexclude = audiostream/test/test_files/**/*.*
