@@ -23,7 +23,7 @@ environment:
       
     - GENERATOR: Visual Studio 15 2017 Win64
       TARGET_ARCHITECTURE: x64
-      BOOST_LIBRARYDIR: C:\Libraries\boost_1_64_0\lib64-msvc-14.1
+      BOOST_LIBRARYDIR: %BOOST_ROOT%\lib64-msvc-14.1
 
 install:
   - echo set(VCPKG_TARGET_ARCHITECTURE %TARGET_ARCHITECTURE%) > C:\tools\vcpkg\triplets\custom-triplet.cmake
@@ -41,7 +41,7 @@ install:
 build_script:
   - mkdir build
   - cd build
-  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=custom-triplet
+  - cmake .. -G "%GENERATOR%" -DBoost_DEBUG -DBoost_USE_STATIC_LIBS -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=custom-triplet
   - cmake --build . --config %CONFIG%
 
 test_script:
