@@ -6,25 +6,29 @@ platform:
 
 environment:
   GIT_LFS_SKIP_SMUDGE: 1
-  
+  CRT_LINKAGE: dynamic
+  LIBRARY_LINKAGE: static
+  CONFIG: Release
+
   matrix:
     - GENERATOR: Visual Studio 14 2015
-      VCPKG_TARGET_TRIPLET: x86-windows-static
-      CONFIG: Release
+      TARGET_ARCHITECTURE: x86
     
     - GENERATOR: Visual Studio 14 2015 Win64
-      VCPKG_TARGET_TRIPLET: x64-windows-static
-      CONFIG: Release
+      TARGET_ARCHITECTURE: x64
       
     - GENERATOR: Visual Studio 15 2017
-      VCPKG_TARGET_TRIPLET: x86-windows-static
-      CONFIG: Release
+      TARGET_ARCHITECTURE: x86
       
     - GENERATOR: Visual Studio 15 2017 Win64
-      VCPKG_TARGET_TRIPLET: x64-windows-static
-      CONFIG: Release
+      TARGET_ARCHITECTURE: x64
 
 install:
+
+  - echo set(VCPKG_TARGET_ARCHITECTURE %TARGET_ARCHITECTURE%) > C:\tools\vcpkg\triplets\ni-media-triplet.cmake
+  - echo set(VCPKG_CRT_LINKAGE %CRT_LINKAGE%) >> C:\tools\vcpkg\triplets\ni-media-triplet.cmake
+  - echo set(VCPKG_LIBRARY_LINKAGE %LIBRARY_LINKAGE%) >> C:\tools\vcpkg\triplets\ni-media-triplet.cmake
+
   - vcpkg install boost:%VCPKG_TARGET_TRIPLET%
   - vcpkg install gtest:%VCPKG_TARGET_TRIPLET%
   - vcpkg install libOgg:%VCPKG_TARGET_TRIPLET%
@@ -34,7 +38,7 @@ install:
 build_script:
   - mkdir build
   - cd build
-  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DNIMEDIA_FORCE_STATIC_RUNTIME=ON -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
+  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=ni-media-triplet
   - cmake --build . --config %CONFIG%
 
 test_script:
