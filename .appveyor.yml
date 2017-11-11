@@ -25,20 +25,20 @@ environment:
 
 install:
 
-  - echo set(VCPKG_TARGET_ARCHITECTURE %TARGET_ARCHITECTURE%) > C:\tools\vcpkg\triplets\ni-media-triplet.cmake
-  - echo set(VCPKG_CRT_LINKAGE %CRT_LINKAGE%) >> C:\tools\vcpkg\triplets\ni-media-triplet.cmake
-  - echo set(VCPKG_LIBRARY_LINKAGE %LIBRARY_LINKAGE%) >> C:\tools\vcpkg\triplets\ni-media-triplet.cmake
+  - echo set(VCPKG_TARGET_ARCHITECTURE %TARGET_ARCHITECTURE%) > C:\tools\vcpkg\triplets\custom-triplet.cmake
+  - echo set(VCPKG_CRT_LINKAGE %CRT_LINKAGE%) >> C:\tools\vcpkg\triplets\custom-triplet.cmake
+  - echo set(VCPKG_LIBRARY_LINKAGE %LIBRARY_LINKAGE%) >> C:\tools\vcpkg\triplets\custom-triplet.cmake
 
-  - vcpkg install boost:%VCPKG_TARGET_TRIPLET%
-  - vcpkg install gtest:%VCPKG_TARGET_TRIPLET%
-  - vcpkg install libOgg:%VCPKG_TARGET_TRIPLET%
-  - vcpkg install libFlac:%VCPKG_TARGET_TRIPLET%
-  - vcpkg install libVorbis:%VCPKG_TARGET_TRIPLET%
+  - vcpkg install boost:custom-triplet
+  - vcpkg install gtest:custom-triplet
+  - vcpkg install libOgg:custom-triplet
+  - vcpkg install libFlac:custom-triplet
+  - vcpkg install libVorbis:custom-triplet
 
 build_script:
   - mkdir build
   - cd build
-  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=ni-media-triplet
+  - cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=custom-triplet
   - cmake --build . --config %CONFIG%
 
 test_script:
