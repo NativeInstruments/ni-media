@@ -1,4 +1,4 @@
-# NI MEDIA [![Travis Build Status](https://travis-ci.org/NativeInstruments/ni-media.svg?branch=master)](https://travis-ci.org/NativeInstruments/ni-media) 
+# NI MEDIA [![Travis Build Status](https://travis-ci.org/NativeInstruments/ni-media.svg?branch=master)](https://travis-ci.org/NativeInstruments/ni-media) [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/github/marcrambo/ni-media?branch=master&svg=true)](https://ci.appveyor.com/api/projects/status/github/marcrambo/ni-media) 
 
 NI Media is a library for reading from / writing to audio streams developed at [Native Instruments](https://www.native-instruments.com).
 
