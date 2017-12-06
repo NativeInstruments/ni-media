@@ -42,6 +42,6 @@ build_script:
   - cmake --build . --config %CONFIG%
 
 test_script:
-  #- git lfs pull -X ""
-  #- cmake --build . --target RUN_TESTS --config %CONFIG%
+  - git lfs pull -X ""
+  - cmake --build . --target RUN_TESTS --config %CONFIG%
 
