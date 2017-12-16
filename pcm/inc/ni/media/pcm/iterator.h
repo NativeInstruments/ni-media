@@ -23,6 +23,7 @@
 #pragma once
 
 #include "converter.h"
+#include "format.h"
 
 #include <boost/iterator/iterator_facade.hpp>
 #include <iterator> // std::iterator_traits
@@ -36,19 +37,18 @@ namespace pcm
 namespace detail
 {
 
-
-template <class T>
-bool equal_format( const T& lhs, const T& rhs )
+template <class... Ts>
+constexpr bool equal_format( const runtime_format<Ts...>& lhs, const runtime_format<Ts...>& rhs )
 {
     boost::ignore_unused( lhs, rhs );
-    assert(::pcm::format( lhs ) == ::pcm::format( rhs ) );
+    assert( lhs == rhs );
     return true;
 }
 
 template <class T1, class T2>
-bool equal_format( const T1& lhs, const T2& rhs )
+constexpr bool equal_format( const T1& lhs, const T2& rhs )
 {
-    return ::pcm::format( lhs ) == ::pcm::format( rhs );
+    return lhs == rhs;
 }
 
 
@@ -76,8 +76,8 @@ private:
 
     template <class OtherIterator,
               class OtherFormat,
-              class = typename std::enable_if<std::is_convertible<OtherIterator, Iterator>::value
-                                              && std::is_convertible<OtherFormat, Format>::value>::type>
+              class = std::enable_if_t<std::is_convertible<OtherIterator, Iterator>::value
+                                       && std::is_convertible<OtherFormat, Format>::value>>
     proxy( const proxy<Value, OtherIterator, OtherFormat>& other )
     : Format( other.format() )
     , iter( other.iter )
@@ -92,7 +92,7 @@ private:
 
     auto step() const -> typename std::iterator_traits<Iterator>::difference_type
     {
-        return get_bitwidth( format() ) / 8;
+        return format().bitwidth() / 8;
     }
 
     const Format& format() const
@@ -159,8 +159,8 @@ public:
 
     template <class OtherIterator,
               class OtherFormat,
-              class = typename std::enable_if<std::is_convertible<OtherIterator, Iterator>::value
-                                              && std::is_convertible<OtherFormat, Format>::value>::type>
+              class = std::enable_if_t<std::is_convertible<OtherIterator, Iterator>::value
+                                       && std::is_convertible<OtherFormat, Format>::value>>
     iterator( const iterator<Value, OtherIterator, OtherFormat>& other )
     : m_proxy( other.m_proxy )
     {
@@ -200,8 +200,8 @@ private:
 
     template <class OtherIterator,
               class OtherFormat,
-              class = typename std::enable_if<std::is_convertible<OtherIterator, Iterator>::value
-                                              && std::is_convertible<OtherFormat, Format>::value>::type>
+              class = std::enable_if_t<std::is_convertible<OtherIterator, Iterator>::value
+                                       && std::is_convertible<OtherFormat, Format>::value>>
     bool equal( const iterator<Value, OtherIterator, OtherFormat>& other ) const
     {
         return equal_format( m_proxy.format(), other.m_proxy.format() ) && m_proxy.iter == other.m_proxy.iter;
@@ -246,8 +246,8 @@ public:
 
     template <class OtherIterator,
               class OtherFormat,
-              class = typename std::enable_if<std::is_convertible<OtherIterator, Iterator>::value
-                                              && std::is_convertible<OtherFormat, Format>::value>::type>
+              class = std::enable_if_t<std::is_convertible<OtherIterator, Iterator>::value
+                                       && std::is_convertible<OtherFormat, Format>::value>>
     iterator( const iterator<Value, OtherIterator, OtherFormat, std::input_iterator_tag>& other )
     : m_proxy( other.m_proxy )
     , m_value( other.m_value )
@@ -274,8 +274,8 @@ private:
 
     template <class OtherIterator,
               class OtherFormat,
-              class = typename std::enable_if<std::is_convertible<OtherIterator, Iterator>::value
-                                              && std::is_convertible<OtherFormat, Format>::value>::type>
+              class = std::enable_if_t<std::is_convertible<OtherIterator, Iterator>::value
+                                       && std::is_convertible<OtherFormat, Format>::value>>
     bool equal( const iterator<Value, OtherIterator, OtherFormat, std::input_iterator_tag>& other ) const
     {
         return equal_format( m_proxy.format(), other.m_proxy.format() ) && m_proxy.iter == other.m_proxy.iter;

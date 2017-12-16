@@ -38,17 +38,15 @@ template <typename Type, typename Tuple, std::size_t... Indices>
 auto tuple_to_array_impl( Tuple&& tuple, std::index_sequence<Indices...> ) -> std::array<Type, sizeof...( Indices )>
 {
     boost::ignore_unused( tuple );
-    using namespace std;
-    return {{static_cast<Type>( get<Indices>( forward<Tuple>( tuple ) ) )...}};
+    return {{static_cast<Type>( std::get<Indices>( std::forward<Tuple>( tuple ) ) )...}};
 }
 
 template <typename Type, typename Tuple>
 auto tuple_to_array( Tuple&& tuple )
 {
     boost::ignore_unused( tuple );
-    using namespace std;
-    return tuple_to_array_impl<Type>( forward<Tuple>( tuple ),
-                                      make_index_sequence<tuple_size<decay_t<Tuple>>::value>() );
+    return tuple_to_array_impl<Type>( std::forward<Tuple>( tuple ),
+                                      std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>() );
 }
 
 } // namespace detail

@@ -22,7 +22,8 @@
 
 #include "core_audio_file_source.h"
 
-#include <boost/algorithm/clamp.hpp>
+#include <ni/media/iostreams/positioning.h>
+
 #include <boost/algorithm/cxx11/any_of.hpp>
 #include <boost/format.hpp>
 
@@ -207,57 +208,42 @@ audio::ifstream_info core_audio_file_source::info() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streampos core_audio_file_source::seek( offset_type offset, BOOST_IOS::seekdir way )
+std::streampos core_audio_file_source::seek( offset_type off, BOOST_IOS::seekdir way )
 {
-    size_t      frameSize = m_info.bytes_per_frame();
-    offset_type framePos = offset / frameSize, endPos = m_info.num_frames() - 1;
+    const auto beg = std::streampos( 0 );
+    const auto end = std::streampos( info().num_bytes() );
+    const auto pos = absolute_position( m_pos, beg, end, off, way );
 
-    switch ( way )
-    {
-        case BOOST_IOS::beg:
-            break;
-        case BOOST_IOS::end:
-            framePos = endPos - framePos;
-            break;
-        default:
-            framePos += m_framePos;
-    }
+    assert( 0 == pos % m_info.bytes_per_frame() );
 
-    framePos = boost::algorithm::clamp( framePos, 0, endPos );
+    if ( m_pos != pos && ExtAudioFileSeek( m_media, pos / m_info.bytes_per_frame() ) == noErr )
+        m_pos = pos;
 
-    if ( m_framePos != framePos && ExtAudioFileSeek( m_media, framePos ) == noErr )
-        m_framePos = framePos;
-    return boost::iostreams::stream_offset_to_streamoff( m_framePos * frameSize );
+    return m_pos;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 std::streamsize core_audio_file_source::read( char* dst, std::streamsize size )
 {
-    UInt32      numFramesRead = 0;
-    offset_type endPos        = m_info.num_frames();
+    assert( 0 == size % m_info.bytes_per_frame() );
 
-    auto frameSize = m_info.bytes_per_frame();
-    auto maxFrames = size / frameSize;
+    const auto end = std::streampos( info().num_bytes() );
+    if ( size <= 0 || m_pos >= end )
+        return 0;
 
-    if ( size > 0 && m_framePos < endPos )
-    {
-        numFramesRead = std::min( UInt32( maxFrames ), UInt32( endPos - m_framePos ) );
+    size = std::min( size, std::streamsize( end - m_pos ) );
 
-        AudioBufferList buffer{.mNumberBuffers = 1,
-                               .mBuffers[0] = {.mNumberChannels = UInt32( m_info.num_channels() ),
-                                               .mDataByteSize   = UInt32( m_info.bytes_per_frame() * numFramesRead ),
-                                               .mData           = static_cast<void*>( dst )}};
+    AudioBufferList buffer{.mNumberBuffers = 1,
+                           .mBuffers[0]    = {.mNumberChannels = UInt32( m_info.num_channels() ),
+                                           .mDataByteSize   = UInt32( size ),
+                                           .mData           = static_cast<void*>( dst )}};
 
-        if ( ExtAudioFileRead( m_media, &numFramesRead, &buffer ) == noErr )
-            m_framePos += numFramesRead;
-        else
-            numFramesRead = 0;
-    }
+    auto num_frames = UInt32( size / m_info.bytes_per_frame() );
+    if ( noErr != ExtAudioFileRead( m_media, &num_frames, &buffer ) )
+        return 0;
 
-    // Fill the rest with silence
-    size_t numCharsRead = numFramesRead * frameSize;
-    std::fill( dst + numCharsRead, dst + size, char( 0 ) );
-
-    return numCharsRead;
+    auto num_bytes = std::streamsize( num_frames * m_info.bytes_per_frame() );
+    m_pos += num_bytes;
+    return num_bytes;
 }

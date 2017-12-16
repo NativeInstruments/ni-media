@@ -27,9 +27,9 @@
 template <class Container, class Info>
 class container_source : public boostext::iostreams::container_source<Container>
 {
-public:
     using base_type = boostext::iostreams::container_source<Container>;
 
+public:
     using info_type = Info;
 
     container_source( Container container, const info_type& info )

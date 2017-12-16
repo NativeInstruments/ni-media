@@ -22,7 +22,15 @@
 
 #pragma once
 
+#include <ni/media/audio/streambuf.h>
+
+#include <boost/iostreams/detail/streambuf.hpp>
+
+#undef BOOST_IOSTREAMS_BASIC_STREAMBUF
+#define BOOST_IOSTREAMS_BASIC_STREAMBUF( ch, tr ) audio::basic_streambuf<ch, tr>
+
 #include <boost/iostreams/stream_buffer.hpp>
+
 #include <type_traits>
 
 // this is a workaround for boost::iostreams::stream_buffer lack of support for move semantics
@@ -57,9 +65,10 @@ class stream_buffer_owner : private device_holder<T>,
     using base_t   = typename boost::iostreams::stream_buffer<boost::reference_wrapper<T>>;
 
 public:
-    stream_buffer_owner( T t )
+    template <class... Args>
+    stream_buffer_owner( T t, Args&&... args )
     : holder_t( std::move( t ) )
-    , base_t( this->ref() )
+    , base_t( this->ref(), std::forward<Args>( args )... )
     {
     }
 
@@ -82,9 +91,9 @@ using stream_buffer = boost::iostreams::stream_buffer<T>;
 
 #endif
 
-
 template <class Device>
-auto make_streambuf( Device&& device )
+auto make_stream_buffer( Device&& device, size_t frames_per_buffer = 4096 )
 {
-    return std::unique_ptr<std::streambuf>( new stream_buffer<std::decay_t<Device>>( std::forward<Device>( device ) ) );
+    auto bytes_per_buffer = frames_per_buffer * device.info().bytes_per_frame();
+    return std::make_unique<stream_buffer<std::decay_t<Device>>>( std::forward<Device>( device ), bytes_per_buffer, 4 );
 }

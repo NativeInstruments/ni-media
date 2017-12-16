@@ -20,6 +20,8 @@
 // SOFTWARE.
 //
 
+#pragma once
+
 #include <ni/media/test_helper.h>
 
 #include <ni/media/audio/ivectorstream.h>
@@ -73,7 +75,7 @@ protected:
     istream_read_test()
     : m_source( generate_range<Container>() )
     {
-        std::vector<char> buffer( m_source.size() * pcm::get_bitwidth( Format() ) / 8 );
+        std::vector<char> buffer( m_source.size() * Format().bitwidth() / 8 );
         boost::copy( m_source, pcm::make_iterator<Value>( buffer.begin(), Format() ) );
         audio::ivectorstream::info_type info;
         info.num_frames( m_source.size() );
@@ -81,7 +83,7 @@ protected:
         m_istream = audio::ivectorstream( buffer, info );
     }
 
-    bool unformatted_read()
+    bool full_unformatted_read()
     {
         std::vector<char> buffer( m_istream.info().num_bytes() );
         m_istream.read( buffer.data(), buffer.size() );
@@ -89,28 +91,58 @@ protected:
         return boost::equal( m_source, destination );
     }
 
+    bool unformatted_read( size_t num_samples )
+    {
+        Container         destination;
+        std::vector<char> buffer( num_samples * m_istream.info().bytes_per_sample() );
+
+        while ( m_istream.read( buffer.data(), buffer.size() ).sample_gcount() > 0 )
+        {
+            auto rng = buffer | pcm::converted_to<Value>( Format() );
+            destination.insert(
+                destination.end(), rng.begin(), std::next( rng.begin(), (ptrdiff_t) m_istream.sample_gcount() ) );
+        }
+
+        return boost::equal( m_source, destination );
+    }
+
+
     bool full_range_read()
     {
-        Container destination( m_source.size() );
+        Container destination( m_istream.info().num_samples() );
         m_istream >> destination;
         return boost::equal( m_source, destination );
     }
 
-    bool range_read( size_t n )
+    bool range_read( size_t num_samples )
     {
         Container destination;
-        Container buffer( n );
+        Container buffer( num_samples );
 
         while ( m_istream >> buffer )
             destination.insert( destination.end(), buffer.begin(), buffer.end() );
 
         auto source = m_source;
 
-        auto remainder = m_istream.info().num_samples() % n;
+        auto remainder = m_istream.info().num_samples() % num_samples;
         if ( remainder )
-            source.insert( source.end(), n - remainder, Value{} );
+            source.insert( source.end(), num_samples - remainder, Value{} );
 
         return boost::equal( source, destination );
+    }
+
+    bool full_value_read()
+    {
+        Container destination;
+        Value     value;
+
+        for ( auto n = m_istream.info().num_samples(); n-- > 0; )
+        {
+            m_istream >> value;
+            destination.push_back( value );
+        }
+
+        return boost::equal( m_source, destination );
     }
 
     bool value_read()
@@ -140,15 +172,15 @@ private:
 
 TYPED_TEST_CASE_P( istream_read_test );
 
-TYPED_TEST_P( istream_read_test, unformatted_read_test )
-{
-    this->clear();
-    EXPECT_TRUE( this->unformatted_read() );
-    EXPECT_TRUE( this->stream().good() );
-}
 
 TYPED_TEST_P( istream_read_test, value_read_test )
 {
+    this->clear();
+    EXPECT_TRUE( this->full_value_read() );
+    EXPECT_TRUE( this->stream().good() );
+    EXPECT_FALSE( this->stream().eof() );
+    EXPECT_FALSE( this->stream().fail() );
+
     this->clear();
     EXPECT_TRUE( this->value_read() );
     EXPECT_FALSE( this->stream().good() );
@@ -156,42 +188,76 @@ TYPED_TEST_P( istream_read_test, value_read_test )
     EXPECT_TRUE( this->stream().fail() );
 }
 
-TYPED_TEST_P( istream_read_test, full_range_read_test )
+
+TYPED_TEST_P( istream_read_test, unformatted_read_test )
 {
+    // full stream
+    this->clear();
+    EXPECT_TRUE( this->full_unformatted_read() );
+    EXPECT_TRUE( this->stream().good() );
+    EXPECT_FALSE( this->stream().eof() );
+    EXPECT_FALSE( this->stream().fail() );
+
+    // aligned, blocksize = 1
+    this->clear();
+    EXPECT_TRUE( this->unformatted_read( 1 ) );
+    EXPECT_FALSE( this->stream().good() );
+    EXPECT_TRUE( this->stream().eof() );
+    EXPECT_TRUE( this->stream().fail() );
+
+    // aligned, blocksize = 8
+    this->clear();
+    EXPECT_TRUE( this->unformatted_read( 8 ) );
+    EXPECT_FALSE( this->stream().good() );
+    EXPECT_TRUE( this->stream().eof() );
+    EXPECT_TRUE( this->stream().fail() );
+
+    // unaligned, blocksize = 7
+    this->clear();
+    EXPECT_TRUE( this->unformatted_read( 7 ) );
+    EXPECT_FALSE( this->stream().good() );
+    EXPECT_TRUE( this->stream().eof() );
+    EXPECT_TRUE( this->stream().fail() );
+
+    // unaligned, blocksize = 335
+    this->clear();
+    EXPECT_TRUE( this->unformatted_read( 335 ) );
+    EXPECT_FALSE( this->stream().good() );
+    EXPECT_TRUE( this->stream().eof() );
+    EXPECT_TRUE( this->stream().fail() );
+}
+
+TYPED_TEST_P( istream_read_test, range_read_test )
+{
+    // full stream
     this->clear();
     EXPECT_TRUE( this->full_range_read() );
     EXPECT_TRUE( this->stream().good() );
-}
+    EXPECT_FALSE( this->stream().eof() );
+    EXPECT_FALSE( this->stream().fail() );
 
-TYPED_TEST_P( istream_read_test, aligned_range_read_blocksize_1_test )
-{
+    // aligned, blocksize = 1
     this->clear();
     EXPECT_TRUE( this->range_read( 1 ) );
     EXPECT_FALSE( this->stream().good() );
     EXPECT_TRUE( this->stream().eof() );
     EXPECT_TRUE( this->stream().fail() );
-}
 
-TYPED_TEST_P( istream_read_test, aligned_range_read_blocksize_8_test )
-{
+    // aligned, blocksize = 8
     this->clear();
     EXPECT_TRUE( this->range_read( 8 ) );
     EXPECT_FALSE( this->stream().good() );
     EXPECT_TRUE( this->stream().eof() );
     EXPECT_TRUE( this->stream().fail() );
-}
 
-TYPED_TEST_P( istream_read_test, unaligned_range_read_blocksize_7_test )
-{
+    // unaligned, blocksize = 7
     this->clear();
     EXPECT_TRUE( this->range_read( 7 ) );
     EXPECT_FALSE( this->stream().good() );
     EXPECT_TRUE( this->stream().eof() );
     EXPECT_TRUE( this->stream().fail() );
-}
 
-TYPED_TEST_P( istream_read_test, unaligned_range_read_blocksize_335_test )
-{
+    // unaligned, blocksize = 335
     this->clear();
     EXPECT_TRUE( this->range_read( 335 ) );
     EXPECT_FALSE( this->stream().good() );
@@ -200,14 +266,7 @@ TYPED_TEST_P( istream_read_test, unaligned_range_read_blocksize_335_test )
 }
 
 
-REGISTER_TYPED_TEST_CASE_P( istream_read_test,
-                            unformatted_read_test,
-                            value_read_test,
-                            full_range_read_test,
-                            aligned_range_read_blocksize_1_test,
-                            aligned_range_read_blocksize_8_test,
-                            unaligned_range_read_blocksize_7_test,
-                            unaligned_range_read_blocksize_335_test );
+REGISTER_TYPED_TEST_CASE_P( istream_read_test, value_read_test, unformatted_read_test, range_read_test );
 
 
 template <class Value, class Format>
@@ -230,17 +289,3 @@ struct make_istream_read_test<Value, std::tuple<Formats...>>
 
 template <class Value>
 using make_istream_read_test_t = typename make_istream_read_test<Value, pcm::format::tags>::type;
-
-
-INSTANTIATE_TYPED_TEST_CASE_P( Uint8ToAll, istream_read_test, make_istream_read_test_t<uint8_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Uint16ToAll, istream_read_test, make_istream_read_test_t<uint16_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Uint32ToAll, istream_read_test, make_istream_read_test_t<uint32_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Uint64ToAll, istream_read_test, make_istream_read_test_t<uint64_t> );
-
-INSTANTIATE_TYPED_TEST_CASE_P( Int8ToAll, istream_read_test, make_istream_read_test_t<int8_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int16ToAll, istream_read_test, make_istream_read_test_t<int16_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int32ToAll, istream_read_test, make_istream_read_test_t<int32_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int64ToAll, istream_read_test, make_istream_read_test_t<int64_t> );
-
-INSTANTIATE_TYPED_TEST_CASE_P( FloatToAll, istream_read_test, make_istream_read_test_t<float> );
-INSTANTIATE_TYPED_TEST_CASE_P( DoubleToAll, istream_read_test, make_istream_read_test_t<double> );

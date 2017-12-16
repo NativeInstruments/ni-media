@@ -36,7 +36,10 @@
 
 std::string get_reference_files_path();
 std::string get_user_files_path();
+std::string get_fuzz_files_path();
+
 std::string get_output_files_path();
+
 
 std::vector<std::string> collect_supported_files( const boost::filesystem::path&,
                                                   boost::optional<audio::ifstream_info::container_type> container );
@@ -51,4 +54,9 @@ inline auto user_files( boost::optional<audio::ifstream_info::container_type> co
 inline auto reference_files( boost::optional<audio::ifstream_info::container_type> container = boost::none )
 {
     return ::testing::ValuesIn( collect_supported_files( get_reference_files_path(), container ) );
+}
+
+inline auto fuzz_files( boost::optional<audio::ifstream_info::container_type> container = boost::none )
+{
+    return ::testing::ValuesIn( collect_supported_files( get_fuzz_files_path(), container ) );
 }

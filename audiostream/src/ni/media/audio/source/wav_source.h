@@ -202,6 +202,7 @@ class wav_source : public boostext::iostreams::subview_source<Source>
 
 public:
     using info_type = audio::wav_ifstream_info;
+    using char_type = typename base_type::char_type;
 
     template <class... Args>
     explicit wav_source( Args&&... args )
@@ -212,7 +213,14 @@ public:
         this->set_view( pos, pos + std::streamoff( m_info.num_bytes() ) );
     }
 
-    auto info() const -> info_type
+    std::streamsize read( char_type* s, std::streamsize n )
+    {
+        assert( 0 == n % m_info.bytes_per_frame() );
+        auto r = base_type::read( s, n );
+        return r < 0 ? r : r - r % m_info.bytes_per_frame();
+    }
+
+    auto info() const
     {
         return m_info;
     }

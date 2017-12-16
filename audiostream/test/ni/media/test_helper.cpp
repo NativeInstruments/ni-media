@@ -60,8 +60,8 @@ auto supported_files( const boost::filesystem::path&                        root
     };
 
     recursive_directory_iterator beg( root_path ), end;
-    return boost::make_iterator_range( beg, end ) | filtered( can_read_file )
-           | transformed( []( const path& p ) { return p.string(); } );
+    return boost::make_iterator_range( beg, end ) | transformed( []( const path& p ) { return p.string(); } )
+           | filtered( can_read_file );
 }
 }
 
@@ -81,6 +81,13 @@ std::string get_reference_files_path()
 
 //----------------------------------------------------------------------------------------------------------------------
 
+std::string get_fuzz_files_path()
+{
+    return get_test_files_path() + "/fuzz_files";
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 std::string get_output_files_path()
 {
 #ifdef NI_MEDIA_OUTPUT_FILES_PATH
@@ -90,7 +97,6 @@ std::string get_output_files_path()
     return output_files_path_env ? output_files_path_env : "./";
 #endif
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 

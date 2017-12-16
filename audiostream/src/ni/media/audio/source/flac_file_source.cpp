@@ -22,7 +22,7 @@
 
 #include <ni/media/audio/source/flac_file_source.h>
 
-#include <boost/algorithm/clamp.hpp>
+#include <ni/media/iostreams/positioning.h>
 
 #include <functional>
 #include <vector>
@@ -39,7 +39,7 @@ class flac_file_source::Impl
 public:
     Impl( const std::string& path );
     std::streamsize read( char_type* s, std::streamsize n );
-    std::streampos seek( boost::iostreams::stream_offset off, BOOST_IOS::seekdir way );
+    std::streampos  seek( boost::iostreams::stream_offset off, BOOST_IOS::seekdir way );
 
     audio::ifstream_info info() const
     {
@@ -47,6 +47,8 @@ public:
     }
 
 private:
+    bool samples_available() const;
+
     // callback implementations
     bool writeCallbackImpl( const FLAC__Frame* frame, const FLAC__int32* const buffer[] );
     void metadataCallbackImpl( const FLAC__StreamMetadata* metadata );
@@ -57,19 +59,18 @@ private:
                                                           const FLAC__Frame*         frame,
                                                           const FLAC__int32* const   buffer[],
                                                           void*                      client_data );
-    static void metadata_callback( const FLAC__StreamDecoder*  decoder,
-                                   const FLAC__StreamMetadata* metadata,
-                                   void*                       client_data );
-    static void error_callback( const FLAC__StreamDecoder*     decoder,
-                                FLAC__StreamDecoderErrorStatus status,
-                                void*                          client_data );
+    static void                           metadata_callback( const FLAC__StreamDecoder*  decoder,
+                                                             const FLAC__StreamMetadata* metadata,
+                                                             void*                       client_data );
+    static void                           error_callback( const FLAC__StreamDecoder*     decoder,
+                                                          FLAC__StreamDecoderErrorStatus status,
+                                                          void*                          client_data );
 
     audio::ifstream_info m_info;
 
     std::vector<char_type> m_buffer;                // buffer (in bytes) used by FLAC decoder
     size_t                 m_buffer_offset;         // buffer offset of next byte to return
     bool                   m_audio_block_available; // is there data in the write buffer?
-    size_t                 m_total_samples;         // total number of samples in each channel
     std::streampos         m_pos = 0;
 
     using DecoderPtr = std::unique_ptr<FLAC__StreamDecoder, std::function<void( FLAC__StreamDecoder* )>>;
@@ -109,19 +110,26 @@ flac_file_source::Impl::Impl( const std::string& path )
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+
+bool flac_file_source::Impl::samples_available() const
+{
+    return m_audio_block_available
+           || ( FLAC__stream_decoder_process_single( m_decoder.get() )
+                && FLAC__STREAM_DECODER_END_OF_STREAM != FLAC__stream_decoder_get_state( m_decoder.get() ) );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 // process audio frames and copy from internal buffer to client buffer
 
 std::streamsize flac_file_source::Impl::read( char_type* s, std::streamsize n )
 {
+    assert( 0 == n % m_info.bytes_per_frame() );
+
     size_t requested = size_t( n ); // total bytes requested
     size_t delivered = 0;           // accumulator for bytes read
 
-    while ( delivered < requested )
+    while ( delivered < requested && samples_available() )
     {
-        // if there is no audio buffered and we can't fetch another frame, break
-        if ( !m_audio_block_available && !FLAC__stream_decoder_process_single( m_decoder.get() ) )
-            break;
-
         // copy at most (requested - delivered) bytes to s
         size_t to_copy = std::min( m_buffer.size() - m_buffer_offset, requested - delivered );
         s              = std::copy_n( m_buffer.begin() + m_buffer_offset, to_copy, s );
@@ -143,24 +151,14 @@ std::streamsize flac_file_source::Impl::read( char_type* s, std::streamsize n )
 
 std::streampos flac_file_source::Impl::seek( boost::iostreams::stream_offset off, BOOST_IOS::seekdir way )
 {
-    const std::streampos beg = 0;
-    const std::streampos end = info().num_bytes();
+    assert( 0 == off % m_info.bytes_per_frame() );
 
-    // Determine absolute byte pos
-    std::streampos pos;
-    if ( way == BOOST_IOS::beg )
-        pos = off;
-    else if ( way == BOOST_IOS::cur )
-        pos = m_pos + boost::iostreams::stream_offset_to_streamoff( off );
-    else if ( way == BOOST_IOS::end )
-        pos = end + boost::iostreams::stream_offset_to_streamoff( off );
-    else
-        throw BOOST_IOSTREAMS_FAILURE( "bad seek direction" );
+    const auto beg = std::streampos( 0 );
+    const auto end = std::streampos( info().num_bytes() );
+    const auto pos = absolute_position( m_pos, beg, end, off, way );
 
-    pos = boost::algorithm::clamp( pos, beg, end );
-
-    FLAC__uint64 frame_pos   = pos / m_info.bytes_per_frame();
-    FLAC__uint64 byte_offset = pos % m_info.bytes_per_frame();
+    const auto frame_pos   = FLAC__uint64( pos / m_info.bytes_per_frame() );
+    const auto byte_offset = FLAC__uint64( pos % m_info.bytes_per_frame() );
 
     if ( FLAC__stream_decoder_seek_absolute( m_decoder.get(), frame_pos ) )
     {
@@ -217,15 +215,13 @@ void flac_file_source::Impl::metadataCallbackImpl( const FLAC__StreamMetadata* m
 
     assert( meta_info.min_blocksize == meta_info.max_blocksize ); // can only handle constant blocksize
 
-    m_total_samples = size_t( meta_info.total_samples );
-
     // fill and set audio::stream_info
     audio::ifstream_info info;
     info.lossless( true );
     info.codec( audio::ifstream_info::codec_type::flac );
     info.container( audio::ifstream_info::container_type::flac );
     info.num_channels( meta_info.channels );
-    info.num_frames( m_total_samples );
+    info.num_frames( (size_t) meta_info.total_samples );
     info.sample_rate( meta_info.sample_rate );
     info.format( pcm::format( pcm::signed_integer, meta_info.bits_per_sample, pcm::little_endian ) );
     m_info = info;
