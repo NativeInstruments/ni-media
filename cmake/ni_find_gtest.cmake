@@ -41,6 +41,7 @@ macro(ni_find_gtest)
 
   endif()
 
-  target_compile_definitions(GTest::GTest PUBLIC -DGTEST_LANG_CXX11=1 -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=0)
+  set_target_properties(GTest::GTest PROPERTIES
+      INTERFACE_COMPILE_DEFINITIONS "$<TARGET_PROPERTY:GTest::GTest,INTERFACE_COMPILE_DEFINITIONS>;-DGTEST_LANG_CXX11=1")
 
 endmacro()
