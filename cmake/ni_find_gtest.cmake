@@ -41,7 +41,8 @@ macro(ni_find_gtest)
 
   endif()
 
-  set_target_properties(GTest::GTest PROPERTIES
-      INTERFACE_COMPILE_DEFINITIONS "$<TARGET_PROPERTY:GTest::GTest,INTERFACE_COMPILE_DEFINITIONS>;-DGTEST_LANG_CXX11=1")
+  set_property (TARGET GTest::GTest APPEND PROPERTY
+        INTERFACE_COMPILE_DEFINITIONS "-DGTEST_LANG_CXX11=1"
+    )
 
 endmacro()
