@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-if(POLICY CMP0063)
-  cmake_policy(SET CMP0063 NEW)
-endif()
+
 
 if( TARGET ni-media )
   return()
