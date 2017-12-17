@@ -41,4 +41,6 @@ macro(ni_find_gtest)
 
   endif()
 
+  target_compile_definitions(GTest::GTest PUBLIC -DGTEST_LANG_CXX11=1 -DGTEST_HAS_TR1_TUPLE=0 -DGTEST_USE_OWN_TR1_TUPLE=0)
+
 endmacro()
