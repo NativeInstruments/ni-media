@@ -37,21 +37,6 @@ namespace pcm
 namespace detail
 {
 
-template <class... Ts>
-constexpr bool equal_format( const runtime_format<Ts...>& lhs, const runtime_format<Ts...>& rhs )
-{
-    boost::ignore_unused( lhs, rhs );
-    assert( lhs == rhs );
-    return true;
-}
-
-template <class T1, class T2>
-constexpr bool equal_format( const T1& lhs, const T2& rhs )
-{
-    return lhs == rhs;
-}
-
-
 template <class Value, class Iterator, class Format>
 struct proxy : Format
 {
@@ -146,6 +131,8 @@ class iterator : public boost::iterator_facade<iterator<Value, Iterator, Format,
     using proxy_t = proxy<Value, Iterator, Format>;
     using this_t  = iterator<Value, Iterator, Format, Category>;
 
+    template <class, class, class, class>
+    friend class iterator;
 
 public:
     using value_type      = typename base_t::value_type;
@@ -153,9 +140,6 @@ public:
     using reference       = typename base_t::reference;
 
     iterator() = default;
-
-    template <class, class, class, class>
-    friend class iterator;
 
     template <class OtherIterator,
               class OtherFormat,
@@ -170,6 +154,11 @@ public:
     iterator( Iterator iter, const Format& fmt )
     : m_proxy( fmt, iter )
     {
+    }
+
+    const Iterator& base() const
+    {
+        return m_proxy.iter;
     }
 
     const Format& format() const
@@ -204,7 +193,8 @@ private:
                                        && std::is_convertible<OtherFormat, Format>::value>>
     bool equal( const iterator<Value, OtherIterator, OtherFormat>& other ) const
     {
-        return equal_format( m_proxy.format(), other.m_proxy.format() ) && m_proxy.iter == other.m_proxy.iter;
+        assert( m_proxy.format() == other.m_proxy.format() );
+        return m_proxy.iter == other.m_proxy.iter;
     }
 
     reference dereference() const
@@ -233,6 +223,8 @@ class iterator<Value, Iterator, Format, std::input_iterator_tag>
     using proxy_t = proxy<Value, Iterator, Format>;
     using this_t  = iterator<Value, Iterator, Format, std::input_iterator_tag>;
 
+    template <class, class, class, class>
+    friend class iterator;
 
 public:
     using value_type      = typename base_t::value_type;
@@ -240,9 +232,6 @@ public:
     using reference       = typename base_t::reference;
 
     iterator() = default;
-
-    template <class, class, class, class>
-    friend class iterator;
 
     template <class OtherIterator,
               class OtherFormat,
@@ -259,6 +248,11 @@ public:
     {
         if ( iter != Iterator{} )
             increment();
+    }
+
+    const Iterator& base() const
+    {
+        return m_proxy.iter;
     }
 
     const Format& format() const
@@ -278,7 +272,8 @@ private:
                                        && std::is_convertible<OtherFormat, Format>::value>>
     bool equal( const iterator<Value, OtherIterator, OtherFormat, std::input_iterator_tag>& other ) const
     {
-        return equal_format( m_proxy.format(), other.m_proxy.format() ) && m_proxy.iter == other.m_proxy.iter;
+        assert( m_proxy.format() == other.m_proxy.format() );
+        return m_proxy.iter == other.m_proxy.iter;
     }
 
     reference dereference() const

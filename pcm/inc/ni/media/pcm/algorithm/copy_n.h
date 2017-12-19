@@ -21,7 +21,8 @@
 //
 
 #pragma once
-#include <ni/media/pcm/detail/dispatch.h>
+
+#include <ni/media/pcm/dispatch.h>
 
 #include <algorithm>
 
@@ -44,8 +45,7 @@ struct copy_n_impl
 template <class InputIt, class Size, class OutputIt>
 OutputIt copy_n( InputIt first, Size count, OutputIt result )
 {
-    using namespace detail;
-    return dispatch( copy_n_impl{}, first, count, result );
+    return dispatch( detail::copy_n_impl{}, first, count, result );
 }
 
 } // namespace pcm

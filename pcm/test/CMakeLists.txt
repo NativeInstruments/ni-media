@@ -11,6 +11,7 @@ add_src_group ( FILES_test_all test_main FILES_main )
 add_src_file  (FILES_test_pcm "ni/media/pcm/numspace.h"                             )
 add_src_file  (FILES_test_pcm "ni/media/pcm/format.test.cpp"                        )
 add_src_file  (FILES_test_pcm "ni/media/pcm/converter.test.cpp"                     )
+add_src_file  (FILES_test_pcm "ni/media/pcm/dispatch.test.cpp"                      )
 add_src_file  (FILES_test_pcm "ni/media/pcm/limits.test.cpp"                        )
 add_src_file  (FILES_test_pcm "ni/media/pcm/iterator.test.cpp"                      )
 add_src_file  (FILES_test_pcm "ni/media/pcm/iterator_copy.test.h"                   )
@@ -22,10 +23,8 @@ add_src_group (FILES_test_all test_pcm FILES_test_pcm)
 #--------------------------------------------------------------------
 # pcm detail
 
-add_src_file  (FILES_test_pcm_detail "ni/media/pcm/detail/find_unique.test.cpp")
 add_src_file  (FILES_test_pcm_detail "ni/media/pcm/detail/tuple_find.test.cpp")
 add_src_file  (FILES_test_pcm_detail "ni/media/pcm/detail/tuple_to_array.test.cpp")
-add_src_file  (FILES_test_pcm_detail "ni/media/pcm/detail/deep_type_replace.test.cpp")
 add_src_group (FILES_test_all test_pcm_detail FILES_test_pcm_detail)
 
 #--------------------------------------------------------------------

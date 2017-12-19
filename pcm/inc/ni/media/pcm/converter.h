@@ -330,10 +330,10 @@ Value read( Iterator iter, const compiletime_format<n, b, e>& )
     return detail::read_impl<Value, Iterator, compiletime_format<n, b, e>>( iter );
 }
 
-template <typename Value, typename Iterator, typename... Ts>
-Value read( Iterator iter, const runtime_format<Ts...>& fmt )
+template <typename Value, typename Iterator>
+Value read( Iterator iter, const runtime_format& fmt )
 {
-    static auto const impls = detail::make_read_impls<Value, Iterator>( std::tuple<Ts...>{} );
+    static auto const impls = detail::make_read_impls<Value, Iterator>( compiletime_formats() );
     return impls.at( fmt.index() )( iter );
 }
 
@@ -343,10 +343,10 @@ void write( Iterator iter, Value val, const compiletime_format<n, b, e>& )
     detail::write_impl<Value, Iterator, compiletime_format<n, b, e>>( iter, val );
 }
 
-template <typename Value, typename Iterator, typename... Ts>
-void write( Iterator iter, Value val, const runtime_format<Ts...>& fmt )
+template <typename Value, typename Iterator>
+void write( Iterator iter, Value val, const runtime_format& fmt )
 {
-    static auto const impls = detail::make_write_impls<Value, Iterator>( std::tuple<Ts...>{} );
+    static auto const impls = detail::make_write_impls<Value, Iterator>( compiletime_formats() );
     impls.at( fmt.index() )( iter, val );
 }
 

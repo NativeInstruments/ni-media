@@ -29,30 +29,8 @@
 namespace pcm
 {
 
-using format = runtime_format<compiletime_format<signed_integer, _8bit, big_endian>,
-                              compiletime_format<signed_integer, _8bit, little_endian>,
-                              compiletime_format<signed_integer, _16bit, big_endian>,
-                              compiletime_format<signed_integer, _16bit, little_endian>,
-                              compiletime_format<signed_integer, _24bit, big_endian>,
-                              compiletime_format<signed_integer, _24bit, little_endian>,
-                              compiletime_format<signed_integer, _32bit, big_endian>,
-                              compiletime_format<signed_integer, _32bit, little_endian>,
-                              compiletime_format<signed_integer, _64bit, big_endian>,
-                              compiletime_format<signed_integer, _64bit, little_endian>,
-                              compiletime_format<unsigned_integer, _8bit, big_endian>,
-                              compiletime_format<unsigned_integer, _8bit, little_endian>,
-                              compiletime_format<unsigned_integer, _16bit, big_endian>,
-                              compiletime_format<unsigned_integer, _16bit, little_endian>,
-                              compiletime_format<unsigned_integer, _24bit, big_endian>,
-                              compiletime_format<unsigned_integer, _24bit, little_endian>,
-                              compiletime_format<unsigned_integer, _32bit, big_endian>,
-                              compiletime_format<unsigned_integer, _32bit, little_endian>,
-                              compiletime_format<unsigned_integer, _64bit, big_endian>,
-                              compiletime_format<unsigned_integer, _64bit, little_endian>,
-                              compiletime_format<floating_point, _32bit, big_endian>,
-                              compiletime_format<floating_point, _32bit, little_endian>,
-                              compiletime_format<floating_point, _64bit, big_endian>,
-                              compiletime_format<floating_point, _64bit, little_endian>>;
+using format = runtime_format;
+
 
 template <number_type n, bitwidth_type b, endian_type e = native_endian>
 constexpr auto make_format( const compiletime_format<n, b, e>& = {} ) -> format
@@ -64,6 +42,7 @@ inline auto make_format( number_type n, bitwidth_type b, endian_type e ) -> form
 {
     return {n, b, e};
 }
+
 
 // the following functions are for backwards compatibility and are not needed anymore
 template <class Format>

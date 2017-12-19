@@ -108,10 +108,10 @@ TEST( pcm_iterator_test, runtime_to_compiletime_convertible )
     using CompiletimeConstIter = pcm::iterator<float, Vec::const_iterator, CompileTimeFormat>;
 
     // is_convertible<From,To>
-    EXPECT_TRUE( ( std::is_convertible<RuntimeIter, CompiletimeIter>::value ) );
-    EXPECT_TRUE( ( std::is_convertible<RuntimeIter, CompiletimeConstIter>::value ) );
+    EXPECT_FALSE( ( std::is_convertible<RuntimeIter, CompiletimeIter>::value ) );
+    EXPECT_FALSE( ( std::is_convertible<RuntimeIter, CompiletimeConstIter>::value ) );
     EXPECT_FALSE( ( std::is_convertible<RuntimeConstIter, CompiletimeIter>::value ) );
-    EXPECT_TRUE( ( std::is_convertible<RuntimeConstIter, CompiletimeConstIter>::value ) );
+    EXPECT_FALSE( ( std::is_convertible<RuntimeConstIter, CompiletimeConstIter>::value ) );
 }
 
 TEST( pcm_iterator_test, runtime_to_compiletime_assignable )
@@ -125,10 +125,10 @@ TEST( pcm_iterator_test, runtime_to_compiletime_assignable )
     using CompiletimeConstIter = pcm::iterator<float, Vec::const_iterator, CompileTimeFormat>;
 
     // is_assignable<To,From>
-    EXPECT_TRUE( ( std::is_assignable<CompiletimeIter&, RuntimeIter>::value ) );
-    EXPECT_TRUE( ( std::is_assignable<CompiletimeConstIter&, RuntimeIter>::value ) );
+    EXPECT_FALSE( ( std::is_assignable<CompiletimeIter&, RuntimeIter>::value ) );
+    EXPECT_FALSE( ( std::is_assignable<CompiletimeConstIter&, RuntimeIter>::value ) );
     EXPECT_FALSE( ( std::is_assignable<CompiletimeIter&, RuntimeConstIter>::value ) );
-    EXPECT_TRUE( ( std::is_assignable<CompiletimeConstIter&, RuntimeConstIter>::value ) );
+    EXPECT_FALSE( ( std::is_assignable<CompiletimeConstIter&, RuntimeConstIter>::value ) );
 }
 
 TEST( pcm_iterator_test, compiletime_to_runtime_assignable )
