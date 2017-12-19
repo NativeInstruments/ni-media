@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 
+
 if( TARGET ni-media )
   return()
 endif()

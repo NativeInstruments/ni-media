@@ -31,7 +31,7 @@ class istream_info : public stream_info
 {
 
 public:
-    void num_frames( size_t num_frames );
+    void   num_frames( size_t num_frames );
     size_t num_frames() const;
 
     size_t num_samples() const;
@@ -41,8 +41,7 @@ public:
     friend bool operator!=( const istream_info& lhs, const istream_info& rhs );
 
 private:
-    size_t m_numFrames = 0; //!< number of sampleFrames
+    size_t m_num_frames = 0;
 };
-
 
 } // namespace audio

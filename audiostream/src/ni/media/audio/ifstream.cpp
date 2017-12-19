@@ -33,51 +33,53 @@ namespace audio
 namespace
 {
 
-template <class Stream>
-Stream open_file_as( const std::string& file, ifstream_info::container_type container, size_t stream_index = 0 )
+istream make_istream( const std::string& file, ifstream_info::container_type container, size_t stream_index = 0 )
 {
     using container_type = ifstream_info::container_type;
 
     if ( container != container_type::mp4 && stream_index != 0 )
+    {
         throw std::runtime_error( "Unsupported stream index" );
+    }
 
     switch ( container )
     {
 
 #if NIMEDIA_ENABLE_AIFF_DECODING
         case container_type::aiff:
-            return Stream( aiff_file_source( file ) );
+            return { aiff_file_source( file ) };
 #endif
 
 #if NIMEDIA_ENABLE_FLAC_DECODING
         case container_type::flac:
-            return Stream( flac_file_source( file ) );
+            return { flac_file_source( file ) };
 #endif
 
 #if NIMEDIA_ENABLE_MP3_DECODING
         case container_type::mp3:
-            return Stream( mp3_file_source( file ) );
+            return { mp3_file_source( file ) };
 #endif
 
 #if NIMEDIA_ENABLE_MP4_DECODING
         case container_type::mp4:
-            return Stream( mp4_file_source( file, stream_index ) );
+            return { mp4_file_source( file, stream_index ) };
 #endif
 
 #if NIMEDIA_ENABLE_OGG_DECODING
         case container_type::ogg:
-            return Stream( ogg_file_source( file ) );
+            return { ogg_file_source( file ) };
 #endif
 
 #if NIMEDIA_ENABLE_WAV_DECODING
         case container_type::wav:
-            return Stream( wav_file_source( file ) );
+            return { wav_file_source( file ) };
 #endif
 
 #if NIMEDIA_ENABLE_WMA_DECODING
         case container_type::wma:
-            return Stream( wma_file_source( file ) );
+            return { wma_file_source( file ) };
 #endif
+
         default:
             break;
     }
@@ -85,11 +87,17 @@ Stream open_file_as( const std::string& file, ifstream_info::container_type cont
     throw std::runtime_error( "Unsupported container_type" );
 }
 
-template <class Stream>
-Stream open_file_as( const std::string& file )
+istream make_istream( const std::string& file )
 {
+#if NIMEDIA_ENABLE_ITUNES_DECODING
+    if ( is_itunes_url( file ) )
+    {
+        return { avassetreader_source( file, 0 ) };
+    }
+#endif
+    
     if ( auto container = ifstream_container( file ) )
-        return open_file_as<Stream>( file, *container );
+        return make_istream( file, *container );
 
     throw std::runtime_error( "Unsupported file extension" );
 }
@@ -101,14 +109,14 @@ Stream open_file_as( const std::string& file )
 
 ifstream::ifstream( const std::string& file )
 {
-    istream::operator=( open_file_as<istream>( file ) );
+    istream::operator=( make_istream( file ) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 ifstream::ifstream( const std::string& file, ifstream_info::container_type container, size_t stream_index )
 {
-    istream::operator=( open_file_as<istream>( file, container, stream_index ) );
+    istream::operator=( make_istream( file, container, stream_index ) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------

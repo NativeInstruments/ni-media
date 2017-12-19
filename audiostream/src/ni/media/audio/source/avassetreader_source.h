@@ -22,29 +22,48 @@
 
 #pragma once
 
-#include <ni/media/audio/ifstream_info.h>
+#include <ni/media/audio/istream_info.h>
 
-#include <AudioToolbox/ExtendedAudioFile.h>
-
+#include <boost/iostreams/categories.hpp>
 #include <boost/iostreams/positioning.hpp>
 
-class core_audio_file_source
+#include <memory>
+
+class avassetreader_source
 {
     using offset_type = boost::iostreams::stream_offset;
 
 public:
-    core_audio_file_source( const std::string&                   path,
-                            audio::ifstream_info::container_type container,
-                            size_t                               stream = 0 );
-    ~core_audio_file_source();
+    using char_type = char;
+    struct category : boost::iostreams::input_seekable, boost::iostreams::device_tag, boost::iostreams::closable_tag
+    {
+    };
+    
+    avassetreader_source();
+    ~avassetreader_source();
 
-    audio::ifstream_info info() const;
+    avassetreader_source( avassetreader_source&& source );
+    
+    explicit avassetreader_source( const std::string& avAssetUrl,
+                                   size_t             stream = 0 );
+    
+    void open( const std::string& avAssetUrl, size_t stream = 0 );
+    void close();
+    
+    bool is_open() const;
+    
+    auto info() const -> audio::istream_info;
 
-    std::streampos  seek( offset_type, BOOST_IOS::seekdir );
-    std::streamsize read( char*, std::streamsize );
-
+    auto seek( boost::iostreams::stream_offset, BOOST_IOS::seekdir = BOOST_IOS::beg ) -> std::streampos;
+    auto read( char_type*, std::streamsize ) -> std::streamsize;
+    
 private:
-    ExtAudioFileRef      m_media;
-    audio::ifstream_info m_info;
-    std::streampos       m_pos = 0;
+    class Impl;
+    std::unique_ptr<Impl> m_impl;
+    
+    bool m_trimOffsetDetermined = false;
+    size_t m_trimOffsetFrames = 0;
+    
+private:
+    std::unique_ptr<Impl> create_impl( const std::string & avAssetUrl, size_t, size_t );
 };

@@ -91,11 +91,10 @@ void read_interlaced_test( Stream&&       stream,
         expected[1].last = expected[1].first + num_bytes;
         actual[1].last   = stream.tellg();
 
-        // TODO: fix AUDIOCHAP-72 and reenable assertions
         ASSERT_EQ( expected[0].first, actual[0].first ) << "Block Number: " << n;
-        // ASSERT_EQ( expected[0].last     , actual[0].last    )  << "Block Number: " << n;
+        ASSERT_EQ( expected[0].last, actual[0].last ) << "Block Number: " << n;
         ASSERT_EQ( expected[1].first, actual[1].first ) << "Block Number: " << n;
-        // ASSERT_EQ( expected[1].last     , actual[1].last    )  << "Block Number: " << n;
+        ASSERT_EQ( expected[1].last, actual[1].last ) << "Block Number: " << n;
     }
 
     if ( frame_offset < 0 )

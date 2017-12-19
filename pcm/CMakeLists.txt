@@ -14,10 +14,14 @@ endif()
 #--------------------------------------------------------------------
 
 add_src_file  (FILES_media_pcm "inc/ni/media/pcm/converter.h")
-add_src_file  (FILES_media_pcm "src/ni/media/pcm/format.cpp" WITH_PUBLIC_HEADER)
+add_src_file  (FILES_media_pcm "inc/ni/media/pcm/description.h")
+add_src_file  (FILES_media_pcm "inc/ni/media/pcm/compiletime_format.h")
+add_src_file  (FILES_media_pcm "inc/ni/media/pcm/runtime_format.h")
+add_src_file  (FILES_media_pcm "inc/ni/media/pcm/format.h" )
 add_src_file  (FILES_media_pcm "inc/ni/media/pcm/iterator.h")
 add_src_file  (FILES_media_pcm "inc/ni/media/pcm/algorithm.h")
 add_src_file  (FILES_media_pcm "inc/ni/media/pcm/limits.h")
+add_src_file  (FILES_media_pcm "src/ni/media/pcm/dummy.cpp")
 add_src_group (FILES_All media_pcm FILES_media_pcm)
 
 add_src_file  (FILES_media_pcm_detail "inc/ni/media/pcm/detail/find_unique.h")

@@ -20,28 +20,9 @@
 // SOFTWARE.
 //
 
-#pragma once
+#include "istream_read.test.h"
 
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/ofstream_info.h>
-
-#include <boost/optional.hpp>
-
-#include <set>
-#include <string>
-
-namespace audio
-{
-
-auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_info::container_type>;
-auto ofstream_container( const std::string& url ) -> boost::optional<ofstream_info::container_type>;
-
-auto is_itunes_url( const std::string& url ) -> bool;
-auto extension_from_url( const std::string& url ) -> std::string;
-
-bool can_read_file( const std::string& url );
-bool can_read_file( const std::string& url, std::set<ifstream_info::container_type> supported_containers );
-
-bool can_write_file( const std::string& url );
-bool can_write_file( const std::string& url, std::set<ofstream_info::container_type> supported_containers );
-}
+INSTANTIATE_TYPED_TEST_CASE_P( Int8ToAll, istream_read_test, make_istream_read_test_t<int8_t> );
+INSTANTIATE_TYPED_TEST_CASE_P( Int16ToAll, istream_read_test, make_istream_read_test_t<int16_t> );
+INSTANTIATE_TYPED_TEST_CASE_P( Int32ToAll, istream_read_test, make_istream_read_test_t<int32_t> );
+INSTANTIATE_TYPED_TEST_CASE_P( Int64ToAll, istream_read_test, make_istream_read_test_t<int64_t> );
