@@ -24,24 +24,17 @@
 
 #include <ni/media/pcm/description.h>
 
+#include <tuple>
 #include <type_traits>
 
 namespace pcm
 {
-
-template <typename... Ts>
-struct runtime_format;
 
 template <number_type n = signed_integer, bitwidth_type b = _8bit, endian_type e = native_endian>
 struct compiletime_format
 {
     constexpr compiletime_format()                            = default;
     constexpr compiletime_format( const compiletime_format& ) = default;
-
-    template <typename... Args>
-    compiletime_format( const runtime_format<Args...>& )
-    {
-    }
 
     constexpr auto number() const
     {
@@ -69,6 +62,34 @@ template <number_type ln, bitwidth_type lb, endian_type le, number_type rn, bitw
 constexpr auto operator!=( compiletime_format<ln, lb, le>, compiletime_format<rn, rb, re> )
 {
     return !std::is_same<compiletime_format<ln, lb, le>, compiletime_format<rn, rb, re>>::value;
+}
+
+inline constexpr auto compiletime_formats()
+{
+    return std::tuple<compiletime_format<signed_integer, _8bit, big_endian>,
+                      compiletime_format<signed_integer, _8bit, little_endian>,
+                      compiletime_format<signed_integer, _16bit, big_endian>,
+                      compiletime_format<signed_integer, _16bit, little_endian>,
+                      compiletime_format<signed_integer, _24bit, big_endian>,
+                      compiletime_format<signed_integer, _24bit, little_endian>,
+                      compiletime_format<signed_integer, _32bit, big_endian>,
+                      compiletime_format<signed_integer, _32bit, little_endian>,
+                      compiletime_format<signed_integer, _64bit, big_endian>,
+                      compiletime_format<signed_integer, _64bit, little_endian>,
+                      compiletime_format<unsigned_integer, _8bit, big_endian>,
+                      compiletime_format<unsigned_integer, _8bit, little_endian>,
+                      compiletime_format<unsigned_integer, _16bit, big_endian>,
+                      compiletime_format<unsigned_integer, _16bit, little_endian>,
+                      compiletime_format<unsigned_integer, _24bit, big_endian>,
+                      compiletime_format<unsigned_integer, _24bit, little_endian>,
+                      compiletime_format<unsigned_integer, _32bit, big_endian>,
+                      compiletime_format<unsigned_integer, _32bit, little_endian>,
+                      compiletime_format<unsigned_integer, _64bit, big_endian>,
+                      compiletime_format<unsigned_integer, _64bit, little_endian>,
+                      compiletime_format<floating_point, _32bit, big_endian>,
+                      compiletime_format<floating_point, _32bit, little_endian>,
+                      compiletime_format<floating_point, _64bit, big_endian>,
+                      compiletime_format<floating_point, _64bit, little_endian>>();
 }
 
 

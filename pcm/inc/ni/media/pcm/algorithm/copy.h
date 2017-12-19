@@ -21,7 +21,8 @@
 //
 
 #pragma once
-#include <ni/media/pcm/detail/dispatch.h>
+
+#include <ni/media/pcm/dispatch.h>
 
 #include <algorithm>
 #include <utility>
@@ -54,15 +55,13 @@ struct copy_impl
 template <class InputIt, class OutputIt>
 auto copy( InputIt beg, InputIt end, OutputIt out )
 {
-    using namespace detail;
-    return dispatch( copy_impl{}, beg, end, out );
+    return dispatch( detail::copy_impl{}, beg, end, out );
 }
 
 template <class InputIt, class OutputIt>
 auto copy( InputIt ibeg, InputIt iend, OutputIt obeg, OutputIt oend )
 {
-    using namespace detail;
-    return dispatch( copy_impl{}, ibeg, iend, obeg, oend );
+    return dispatch( detail::copy_impl{}, ibeg, iend, obeg, oend );
 }
 
 // range based

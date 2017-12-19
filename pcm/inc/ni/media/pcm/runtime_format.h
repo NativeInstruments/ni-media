@@ -36,10 +36,9 @@
 namespace pcm
 {
 
-template <typename... Ts>
 struct runtime_format
 {
-    using tags = std::tuple<Ts...>;
+    using tags = decltype( compiletime_formats() );
 
     template <class Format>
     using enable_if_supported =
@@ -47,7 +46,7 @@ struct runtime_format
 
     runtime_format( const runtime_format& ) = default;
 
-    template <class Format = std::tuple_element_t<0, tags>, class = enable_if_supported<Format>>
+    template <class Format = compiletime_format<>, class = enable_if_supported<Format>>
     constexpr runtime_format( const Format& fmt = {} )
     : m_number( fmt.number() )
     , m_bitwidth( fmt.bitwidth() )
@@ -72,7 +71,7 @@ struct runtime_format
 
     runtime_format( number_type n, size_t bits, endian_type e = native_endian )
     {
-        auto bw = bitwidth();
+        auto bw = bitwidth_type{};
 
         switch ( bits )
         {
@@ -118,21 +117,28 @@ struct runtime_format
         return m_index;
     }
 
-    friend bool operator==( const runtime_format& lhs, const runtime_format& rhs )
-    {
-        return lhs.m_index == rhs.m_index;
-    }
-
-    friend bool operator!=( const runtime_format& lhs, const runtime_format& rhs )
-    {
-        return lhs.m_index != rhs.m_index;
-    }
-
 private:
     number_type   m_number;
     bitwidth_type m_bitwidth;
     endian_type   m_endian;
     uint8_t       m_index;
 };
+
+inline bool operator==( const runtime_format& lhs, const runtime_format& rhs )
+{
+    return lhs.index() == rhs.index();
+}
+
+inline bool operator!=( const runtime_format& lhs, const runtime_format& rhs )
+{
+    return lhs.index() != rhs.index();
+}
+
+
+inline auto runtime_formats()
+{
+    static auto const fs = detail::tuple_to_array<runtime_format>( compiletime_formats() );
+    return fs;
+}
 
 } // namespace pcm
