@@ -22,26 +22,27 @@
 
 #pragma once
 
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/ofstream_info.h>
+#include <boost/algorithm/clamp.hpp>
+#include <boost/iostreams/positioning.hpp>
 
-#include <boost/optional.hpp>
-
-#include <set>
-#include <string>
-
-namespace audio
+inline std::streampos absolute_position( std::streampos                  pos,
+                                         std::streampos                  beg,
+                                         std::streampos                  end,
+                                         boost::iostreams::stream_offset off,
+                                         BOOST_IOS::seekdir              way )
 {
 
-auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_info::container_type>;
-auto ofstream_container( const std::string& url ) -> boost::optional<ofstream_info::container_type>;
+    switch ( way )
+    {
+        case BOOST_IOS::beg:
+            pos = beg + boost::iostreams::offset_to_position( off );
+            break;
+        case BOOST_IOS::end:
+            pos = end + boost::iostreams::offset_to_position( off );
+            break;
+        case BOOST_IOS::cur:
+            pos += boost::iostreams::offset_to_position( off );
+    }
 
-auto is_itunes_url( const std::string& url ) -> bool;
-auto extension_from_url( const std::string& url ) -> std::string;
-
-bool can_read_file( const std::string& url );
-bool can_read_file( const std::string& url, std::set<ifstream_info::container_type> supported_containers );
-
-bool can_write_file( const std::string& url );
-bool can_write_file( const std::string& url, std::set<ofstream_info::container_type> supported_containers );
+    return boost::algorithm::clamp( pos, beg, end );
 }

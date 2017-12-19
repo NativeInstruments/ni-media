@@ -22,26 +22,40 @@
 
 #pragma once
 
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/ofstream_info.h>
+#include <boost/detail/endian.hpp> // BOOST_LITTLE_ENDIAN
 
-#include <boost/optional.hpp>
+#include <cstdint>
 
-#include <set>
-#include <string>
-
-namespace audio
+namespace pcm
 {
 
-auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_info::container_type>;
-auto ofstream_container( const std::string& url ) -> boost::optional<ofstream_info::container_type>;
+enum number_type : uint8_t
+{
+    signed_integer = 0,
+    unsigned_integer,
+    floating_point
+};
 
-auto is_itunes_url( const std::string& url ) -> bool;
-auto extension_from_url( const std::string& url ) -> std::string;
+enum bitwidth_type : uint8_t
+{
+    _8bit  = 8,
+    _16bit = 16,
+    _24bit = 24,
+    _32bit = 32,
+    _64bit = 64
+};
 
-bool can_read_file( const std::string& url );
-bool can_read_file( const std::string& url, std::set<ifstream_info::container_type> supported_containers );
+enum endian_type : uint8_t
+{
+    big_endian = 0,
+    little_endian,
+#if defined( BOOST_BIG_ENDIAN )
+    native_endian = big_endian,
+#elif defined( BOOST_LITTLE_ENDIAN )
+    native_endian = little_endian,
+#else
+#error "unable to determine system endianness."
+#endif
+};
 
-bool can_write_file( const std::string& url );
-bool can_write_file( const std::string& url, std::set<ofstream_info::container_type> supported_containers );
-}
+} // namespace pcm

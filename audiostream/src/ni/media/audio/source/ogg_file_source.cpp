@@ -22,6 +22,8 @@
 
 #include <ni/media/audio/source/ogg_file_source.h>
 
+#include <ni/media/iostreams/positioning.h>
+
 #include <boost/algorithm/clamp.hpp>
 #include <boost/optional.hpp>
 
@@ -48,11 +50,11 @@ public:
     void open( const std::string& path );
 
     audio::ifstream_info info();
-    std::streamsize read( char_type* dst, std::streamsize size );
-    std::streampos seek( offset_type offset, BOOST_IOS::seekdir way );
+    std::streamsize      read( char_type* dst, std::streamsize size );
+    std::streampos       seek( offset_type offset, BOOST_IOS::seekdir way );
 
 private:
-    offset_type                     m_pos = 0;
+    std::streampos                  m_pos = 0;
     boost::optional<OggVorbis_File> m_vorbisFile;
     audio::ifstream_info            m_info;
 };
@@ -128,41 +130,33 @@ void ogg_file_source::Impl::open( const std::string& path )
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streampos ogg_file_source::Impl::seek( offset_type offset, BOOST_IOS::seekdir way )
+std::streampos ogg_file_source::Impl::seek( offset_type off, BOOST_IOS::seekdir way )
 {
+    assert( 0 == off % m_info.bytes_per_frame() );
+
     if ( !m_vorbisFile )
     {
         throw std::runtime_error( "No vorbis file loaded." );
     }
 
-    const offset_type beg = 0;
-    const offset_type end = info().num_bytes();
-
-    // Determine absolute byte pos
-    std::streampos pos;
-    if ( way == BOOST_IOS::beg )
-        pos = offset;
-    else if ( way == BOOST_IOS::cur )
-        pos = m_pos + offset;
-    else if ( way == BOOST_IOS::end )
-        pos = end + offset;
-    else
-        throw BOOST_IOSTREAMS_FAILURE( "bad seek direction" );
-
-    pos = boost::algorithm::clamp( pos, beg, end );
+    const auto beg = std::streampos( 0 );
+    const auto end = std::streampos( info().num_bytes() );
+    const auto pos = absolute_position( m_pos, beg, end, off, way );
 
     if (::ov_pcm_seek( m_vorbisFile.get_ptr(), pos / info().bytes_per_frame() ) == 0 )
     {
         m_pos = pos;
     }
 
-    return boost::iostreams::stream_offset_to_streamoff( m_pos );
+    return m_pos;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 std::streamsize ogg_file_source::Impl::read( char_type* dst, std::streamsize size )
 {
+    assert( 0 == size % m_info.bytes_per_frame() );
+
     if ( !m_vorbisFile )
     {
         return std::streamsize( 0 );

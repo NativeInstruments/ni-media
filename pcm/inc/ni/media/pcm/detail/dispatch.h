@@ -98,7 +98,7 @@ struct dynamic_t
 
 template <class... Args>
 using dispatch_t = std::conditional_t<
-    std::is_same<std::tuple<Args...>, deep_type_replace_t<std::tuple<Args...>, format, format::tag<>>>::value,
+    std::is_same<std::tuple<Args...>, deep_type_replace_t<std::tuple<Args...>, format, compiletime_format<>>>::value,
     static_t,
     dynamic_t>;
 

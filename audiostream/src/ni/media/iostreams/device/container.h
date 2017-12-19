@@ -22,8 +22,8 @@
 
 #pragma once
 
+#include <ni/media/iostreams/positioning.h>
 
-#include <boost/algorithm/clamp.hpp>
 #include <boost/config.hpp> // BOOST_NO_STDC_NAMESPACE.
 #include <boost/iostreams/categories.hpp>
 #include <boost/iostreams/detail/ios.hpp> // failure.
@@ -88,18 +88,11 @@ public:
 
     std::streampos seek( boost::iostreams::stream_offset off, BOOST_IOS::seekdir way )
     {
-        // Determine new value of pos_
-        std::streampos next;
-        if ( way == BOOST_IOS::beg )
-            next = off;
-        else if ( way == BOOST_IOS::cur )
-            next = m_pos + off;
-        else if ( way == BOOST_IOS::end )
-            next = m_container.size() + off - 1;
-        else
-            throw BOOST_IOSTREAMS_FAILURE( "bad seek direction" );
+        auto beg = std::streampos( 0 );
+        auto pos = std::streampos( m_pos );
+        auto end = std::streampos( m_container.size() );
 
-        m_pos = size_t( boost::algorithm::clamp( next, 0, m_container.size() ) );
+        m_pos = size_t( absolute_position( pos, beg, end, off, way ) );
         return m_pos;
     }
 
@@ -109,9 +102,8 @@ public:
     }
 
 private:
-    using size_type = typename Container::size_type;
     Container m_container;
-    size_type m_pos = 0;
+    size_t    m_pos = 0;
 };
 
 template <class Container>
@@ -144,8 +136,8 @@ public:
     {
     };
 
-    using base_type::write;
     using base_type::seek;
+    using base_type::write;
 
     using base_type::base_type;
 };

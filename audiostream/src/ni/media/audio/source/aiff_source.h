@@ -245,6 +245,7 @@ class aiff_source : public boostext::iostreams::subview_source<Source>
 
 public:
     using info_type = audio::aiff_ifstream_info;
+    using char_type = typename base_type::char_type;
 
     template <class... Args>
     explicit aiff_source( Args&&... args )
@@ -253,6 +254,13 @@ public:
         m_info   = detail::readAiffHeader( *this );
         auto pos = this->seek( 0, std::ios_base::cur );
         this->set_view( pos, pos + std::streamoff( m_info.num_bytes() ) );
+    }
+
+    std::streamsize read( char_type* s, std::streamsize n )
+    {
+        assert( 0 == n % m_info.bytes_per_frame() );
+        auto r = base_type::read( s, n );
+        return r < 0 ? r : r - r % m_info.bytes_per_frame();
     }
 
     auto info() const -> info_type
