@@ -86,7 +86,7 @@ TEST( pcm_iterator_test, compiletime_to_runtime_convertible )
     using RuntimeIter      = pcm::iterator<float, Vec::iterator>;
     using RuntimeConstIter = pcm::iterator<float, Vec::const_iterator>;
 
-    using CompileTimeFormat    = pcm::format::tag<pcm::signed_integer, pcm::_16bit>;
+    using CompileTimeFormat    = pcm::compiletime_format<pcm::signed_integer, pcm::_16bit>;
     using CompiletimeIter      = pcm::iterator<float, Vec::iterator, CompileTimeFormat>;
     using CompiletimeConstIter = pcm::iterator<float, Vec::const_iterator, CompileTimeFormat>;
 
@@ -103,15 +103,15 @@ TEST( pcm_iterator_test, runtime_to_compiletime_convertible )
     using RuntimeIter      = pcm::iterator<float, Vec::iterator>;
     using RuntimeConstIter = pcm::iterator<float, Vec::const_iterator>;
 
-    using CompileTimeFormat    = pcm::format::tag<pcm::signed_integer, pcm::_16bit>;
+    using CompileTimeFormat    = pcm::compiletime_format<pcm::signed_integer, pcm::_16bit>;
     using CompiletimeIter      = pcm::iterator<float, Vec::iterator, CompileTimeFormat>;
     using CompiletimeConstIter = pcm::iterator<float, Vec::const_iterator, CompileTimeFormat>;
 
     // is_convertible<From,To>
-    EXPECT_TRUE( ( std::is_convertible<RuntimeIter, CompiletimeIter>::value ) );
-    EXPECT_TRUE( ( std::is_convertible<RuntimeIter, CompiletimeConstIter>::value ) );
+    EXPECT_FALSE( ( std::is_convertible<RuntimeIter, CompiletimeIter>::value ) );
+    EXPECT_FALSE( ( std::is_convertible<RuntimeIter, CompiletimeConstIter>::value ) );
     EXPECT_FALSE( ( std::is_convertible<RuntimeConstIter, CompiletimeIter>::value ) );
-    EXPECT_TRUE( ( std::is_convertible<RuntimeConstIter, CompiletimeConstIter>::value ) );
+    EXPECT_FALSE( ( std::is_convertible<RuntimeConstIter, CompiletimeConstIter>::value ) );
 }
 
 TEST( pcm_iterator_test, runtime_to_compiletime_assignable )
@@ -120,15 +120,15 @@ TEST( pcm_iterator_test, runtime_to_compiletime_assignable )
     using RuntimeIter      = pcm::iterator<float, Vec::iterator>;
     using RuntimeConstIter = pcm::iterator<float, Vec::const_iterator>;
 
-    using CompileTimeFormat    = pcm::format::tag<pcm::signed_integer, pcm::_16bit>;
+    using CompileTimeFormat    = pcm::compiletime_format<pcm::signed_integer, pcm::_16bit>;
     using CompiletimeIter      = pcm::iterator<float, Vec::iterator, CompileTimeFormat>;
     using CompiletimeConstIter = pcm::iterator<float, Vec::const_iterator, CompileTimeFormat>;
 
     // is_assignable<To,From>
-    EXPECT_TRUE( ( std::is_assignable<CompiletimeIter&, RuntimeIter>::value ) );
-    EXPECT_TRUE( ( std::is_assignable<CompiletimeConstIter&, RuntimeIter>::value ) );
+    EXPECT_FALSE( ( std::is_assignable<CompiletimeIter&, RuntimeIter>::value ) );
+    EXPECT_FALSE( ( std::is_assignable<CompiletimeConstIter&, RuntimeIter>::value ) );
     EXPECT_FALSE( ( std::is_assignable<CompiletimeIter&, RuntimeConstIter>::value ) );
-    EXPECT_TRUE( ( std::is_assignable<CompiletimeConstIter&, RuntimeConstIter>::value ) );
+    EXPECT_FALSE( ( std::is_assignable<CompiletimeConstIter&, RuntimeConstIter>::value ) );
 }
 
 TEST( pcm_iterator_test, compiletime_to_runtime_assignable )
@@ -137,7 +137,7 @@ TEST( pcm_iterator_test, compiletime_to_runtime_assignable )
     using RuntimeIter      = pcm::iterator<float, Vec::iterator>;
     using RuntimeConstIter = pcm::iterator<float, Vec::const_iterator>;
 
-    using CompileTimeFormat    = pcm::format::tag<pcm::signed_integer, pcm::_16bit>;
+    using CompileTimeFormat    = pcm::compiletime_format<pcm::signed_integer, pcm::_16bit>;
     using CompiletimeIter      = pcm::iterator<float, Vec::iterator, CompileTimeFormat>;
     using CompiletimeConstIter = pcm::iterator<float, Vec::const_iterator, CompileTimeFormat>;
 

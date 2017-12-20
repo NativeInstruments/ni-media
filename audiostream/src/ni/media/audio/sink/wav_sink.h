@@ -65,8 +65,9 @@ auto write_wav_header( Sink& sink )
     uint32_t subChunk1Size = 16;
     write_obj( sink, subChunk1Size );
 
-    // audioFormat, PCM = 1
-    uint16_t audioFormat = 1;
+    // audioFormat
+    uint16_t audioFormat =
+        sink.info().format().number() == pcm::floating_point ? wavFormatTagIeeeFloat : wavFormatTagPcm;
     write_obj( sink, audioFormat );
 
     // numChannels

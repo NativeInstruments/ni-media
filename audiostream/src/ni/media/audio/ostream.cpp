@@ -44,7 +44,7 @@ template <class AudioSink>
 ostream::ostream( AudioSink sink )
 : std::ostream( nullptr )
 , m_info( make_info( sink.info() ) )
-, m_streambuf( make_streambuf( std::move( sink ) ) )
+, m_streambuf( make_stream_buffer( std::move( sink ) ) )
 {
     std::ostream::rdbuf( m_streambuf.get() );
 }

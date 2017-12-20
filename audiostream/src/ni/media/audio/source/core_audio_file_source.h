@@ -22,10 +22,11 @@
 
 #pragma once
 
+#include <ni/media/audio/ifstream_info.h>
+
 #include <AudioToolbox/ExtendedAudioFile.h>
 
-#include <ni/media/audio/source/mp4_file_source.h>
-
+#include <boost/iostreams/positioning.hpp>
 
 class core_audio_file_source
 {
@@ -45,5 +46,5 @@ public:
 private:
     ExtAudioFileRef      m_media;
     audio::ifstream_info m_info;
-    offset_type          m_framePos = 0;
+    std::streampos       m_pos = 0;
 };

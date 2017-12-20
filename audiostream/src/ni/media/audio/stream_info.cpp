@@ -45,35 +45,35 @@ auto stream_info::format() const -> format_type
 
 void stream_info::sample_rate( size_t val )
 {
-    m_sampleRate = val;
+    m_sample_rate = val;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 size_t stream_info::sample_rate() const
 {
-    return m_sampleRate;
+    return m_sample_rate;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 void stream_info::num_channels( size_t num_channels )
 {
-    m_numChannels = num_channels;
+    m_num_channels = num_channels;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 size_t stream_info::num_channels() const
 {
-    return m_numChannels;
+    return m_num_channels;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 size_t stream_info::bits_per_sample() const
 {
-    return ::pcm::get_bitwidth( m_format );
+    return m_format.bitwidth();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -94,8 +94,8 @@ size_t stream_info::bytes_per_frame() const
 
 bool operator==( const stream_info& lhs, const stream_info& rhs )
 {
-    return std::tie( lhs.m_sampleRate, lhs.m_numChannels, lhs.m_format )
-           == std::tie( rhs.m_sampleRate, rhs.m_numChannels, rhs.m_format );
+    return std::tie( lhs.m_sample_rate, lhs.m_num_channels, lhs.m_format )
+           == std::tie( rhs.m_sample_rate, rhs.m_num_channels, rhs.m_format );
 }
 
 //----------------------------------------------------------------------------------------------------------------------

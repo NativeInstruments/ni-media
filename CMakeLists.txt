@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.2)
+
 
 if( TARGET ni-media )
   return()
@@ -29,7 +30,9 @@ include(ni_add_gtest)
 
 if( NIMEDIA_TESTS )
   enable_testing()
-  find_package(GTest REQUIRED)
+  
+  include(ni_find_gtest)
+  ni_find_gtest()
 endif()
 
 add_subdirectory( pcm )
@@ -47,6 +50,9 @@ foreach( target audiostream audiostream_test pcm pcm_test )
   if( TARGET ${target} )
     set_property( TARGET ${target} PROPERTY FOLDER ni-media )
     set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
+      target_compile_options( ${target} PRIVATE -ftemplate-depth-1024 )
+    endif()
   endif()
 endforeach()
 

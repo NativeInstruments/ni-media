@@ -52,4 +52,8 @@
 #include <ni/media/audio/source/wma_file_source.h>
 #endif
 
+#if NIMEDIA_ENABLE_ITUNES_DECODING
+#include <ni/media/audio/source/avassetreader_source.h>
+#endif
+
 #include <ni/media/audio/source/container_source.h>

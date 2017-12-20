@@ -23,15 +23,16 @@
 #include "media_foundation_file_source.h"
 
 #include <ni/media/audio/iotools.h>
-
-#include <codecvt>
-#include <functional>
-#include <locale>
+#include <ni/media/iostreams/positioning.h>
 
 #include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/cxx11/any_of.hpp>
 #include <boost/format.hpp>
 #include <boost/make_unique.hpp>
+
+#include <codecvt>
+#include <functional>
+#include <locale>
 
 // this header must be included last
 #include "media_foundation_helper.h"
@@ -341,8 +342,7 @@ media_foundation_file_source::media_foundation_file_source( const std::string&  
     LONGLONG    length100ns = 0;
     if ( FAILED( m_reader->GetPresentationAttribute(
              static_cast<DWORD>( MF_SOURCE_READER_MEDIASOURCE ), MF_PD_DURATION, &var ) )
-         || FAILED( PropVariantToInt64( var, &length100ns ) )
-         || FAILED( PropVariantClear( &var ) ) )
+         || FAILED( PropVariantToInt64( var, &length100ns ) ) || FAILED( PropVariantClear( &var ) ) )
     {
         throw std::runtime_error( "Could not read the track length." );
     }
@@ -388,23 +388,14 @@ media_foundation_file_source::~media_foundation_file_source()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streampos media_foundation_file_source::seek( offset_type offset, BOOST_IOS::seekdir way )
+std::streampos media_foundation_file_source::seek( offset_type off, BOOST_IOS::seekdir way )
 {
-    auto        frameSize  = m_info.bytes_per_frame();
-    offset_type nominalPos = offset / frameSize, endPos = m_info.num_frames() - 1;
+    assert( 0 == off % m_info.bytes_per_frame() );
 
-    switch ( way )
-    {
-        case BOOST_IOS::beg:
-            break;
-        case BOOST_IOS::end:
-            nominalPos = endPos - nominalPos;
-            break;
-        default:
-            nominalPos += m_nominalPos;
-    }
-
-    nominalPos = boost::algorithm::clamp( nominalPos, 0, endPos );
+    const auto frameSize  = m_info.bytes_per_frame();
+    const auto begPos     = std::streampos( 0 );
+    const auto endPos     = std::streampos( info().num_frames() );
+    const auto nominalPos = absolute_position( m_nominalPos, begPos, endPos, off / frameSize, way );
 
     // The allowed range for the nominal offset  is [0, lengthInFrames[
     // The allowed range for the adjusted offset is [aacReadOffset, lengthInFrames + aacReadOffset[
@@ -417,15 +408,17 @@ std::streampos media_foundation_file_source::seek( offset_type offset, BOOST_IOS
         m_adjustedPos = adjustedPos;
     }
 
-    return boost::iostreams::stream_offset_to_streamoff( m_nominalPos * frameSize );
+    return std::streampos( m_nominalPos * frameSize );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 std::streamsize media_foundation_file_source::read( char* dst, std::streamsize size )
 {
+    assert( 0 == size % m_info.bytes_per_frame() );
+
     auto frameSize = m_info.bytes_per_frame();
-    auto endPos = boost::algorithm::clamp<offset_type>( m_nominalPos + size / frameSize, 0, m_info.num_frames() - 1 );
+    auto endPos    = boost::algorithm::clamp<offset_type>( m_nominalPos + size / frameSize, 0, m_info.num_frames() );
     auto numFrames = endPos - m_nominalPos;
 
     if ( numFrames > 0 )
@@ -623,7 +616,7 @@ auto media_foundation_file_source::consumeBlock() -> std::unique_ptr<MfBlock>
 {
     DWORD    flags     = 0;
     LONGLONG timestamp = 0, duration = 0;
-    auto mfSample = allocateNoThrow( [this, &flags, &timestamp]( IMFSample** p ) {
+    auto     mfSample = allocateNoThrow( [this, &flags, &timestamp]( IMFSample** p ) {
         return m_reader->ReadSample( DWORD( m_streamIndex ), 0, nullptr, &flags, &timestamp, p );
     } );
 

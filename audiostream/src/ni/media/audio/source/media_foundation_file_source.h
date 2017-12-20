@@ -24,9 +24,10 @@
 
 #include <boost/icl/interval_set.hpp>
 #include <boost/icl/right_open_interval.hpp>
-#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/categories.hpp>
+#include <boost/iostreams/positioning.hpp>
 
-#include <ni/media/audio/source/mp4_file_source.h>
+#include <ni/media/audio/ifstream_info.h>
 
 
 struct IMFSourceReader;

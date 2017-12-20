@@ -20,6 +20,7 @@
 // SOFTWARE.
 //
 
+#pragma once
 
 #include <ni/media/pcm/algorithm/copy.h>
 #include <ni/media/pcm/iterator.h>
@@ -66,10 +67,10 @@ protected:
     , m_runtime_destination( m_source.size() )
     , m_compiletime_dispatch_destination( m_source.size() )
     , m_runtime_dispatch_destination( m_source.size() )
-    , m_compiletime_buffer( m_source.size() * pcm::get_bitwidth( Format() ) / 8 )
-    , m_runtime_buffer( m_source.size() * pcm::get_bitwidth( Format() ) / 8 )
-    , m_compiletime_dispatch_buffer( m_source.size() * pcm::get_bitwidth( Format() ) / 8 )
-    , m_runtime_dispatch_buffer( m_source.size() * pcm::get_bitwidth( Format() ) / 8 )
+    , m_compiletime_buffer( m_source.size() * Format().bitwidth() / 8 )
+    , m_runtime_buffer( m_source.size() * Format().bitwidth() / 8 )
+    , m_compiletime_dispatch_buffer( m_source.size() * Format().bitwidth() / 8 )
+    , m_runtime_dispatch_buffer( m_source.size() * Format().bitwidth() / 8 )
     {
     }
 
@@ -91,10 +92,10 @@ protected:
 
     void clear()
     {
-        boost::fill( m_compiletime_buffer, 0 );
-        boost::fill( m_runtime_buffer, 0 );
-        boost::fill( m_compiletime_dispatch_buffer, 0 );
-        boost::fill( m_runtime_dispatch_buffer, 0 );
+        boost::fill( m_compiletime_buffer, uint8_t{} );
+        boost::fill( m_runtime_buffer, uint8_t{} );
+        boost::fill( m_compiletime_dispatch_buffer, uint8_t{} );
+        boost::fill( m_runtime_dispatch_buffer, uint8_t{} );
         boost::fill( m_compiletime_destination, Value{} );
         boost::fill( m_runtime_destination, Value{} );
         boost::fill( m_compiletime_dispatch_destination, Value{} );
@@ -348,17 +349,3 @@ struct make_iterator_test<Value, std::tuple<Formats...>>
 
 template <class Value>
 using make_iterator_test_t = typename make_iterator_test<Value, pcm::format::tags>::type;
-
-
-INSTANTIATE_TYPED_TEST_CASE_P( Uint8ToAll, PcmIteratorTest, make_iterator_test_t<uint8_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Uint16ToAll, PcmIteratorTest, make_iterator_test_t<uint16_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Uint32ToAll, PcmIteratorTest, make_iterator_test_t<uint32_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Uint64ToAll, PcmIteratorTest, make_iterator_test_t<uint64_t> );
-
-INSTANTIATE_TYPED_TEST_CASE_P( Int8ToAll, PcmIteratorTest, make_iterator_test_t<int8_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int16ToAll, PcmIteratorTest, make_iterator_test_t<int16_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int32ToAll, PcmIteratorTest, make_iterator_test_t<int32_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int64ToAll, PcmIteratorTest, make_iterator_test_t<int64_t> );
-
-INSTANTIATE_TYPED_TEST_CASE_P( FloatToAll, PcmIteratorTest, make_iterator_test_t<float> );
-INSTANTIATE_TYPED_TEST_CASE_P( DoubleToAll, PcmIteratorTest, make_iterator_test_t<double> );

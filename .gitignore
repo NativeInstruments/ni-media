@@ -1,6 +1,9 @@
 # build products --------------------------------
 
 build/
+deps/
+libs/
+nib/
 
 # cmake convention ------------------------------
 

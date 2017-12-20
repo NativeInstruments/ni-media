@@ -24,7 +24,8 @@
 
 #include <ni/media/audio/ifstream_info.h>
 
-#include <boost/iostreams/device/null.hpp>
+#include <boost/iostreams/categories.hpp>
+#include <boost/iostreams/positioning.hpp>
 
 #include <memory>
 
