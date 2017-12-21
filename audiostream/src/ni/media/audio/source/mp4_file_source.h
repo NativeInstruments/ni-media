@@ -61,5 +61,7 @@ private:
     std::unique_ptr<class core_audio_file_source> m_impl;
 #elif BOOST_OS_WINDOWS
     std::unique_ptr<class media_foundation_file_source> m_impl;
+#elif BOOST_OS_LINUX
+    std::unique_ptr<class gstreamer_file_source> m_impl;
 #endif
 };
