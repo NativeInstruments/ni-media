@@ -26,6 +26,7 @@
 
 #include <boost/iostreams/categories.hpp>
 #include <boost/iostreams/positioning.hpp>
+#include <boost/predef.h>
 
 #include <memory>
 
@@ -57,5 +58,9 @@ public:
     auto info() const -> info_type;
 
 private:
+#if BOOST_OS_WINDOWS
     std::unique_ptr<class media_foundation_file_source> m_impl;
+#elif BOOST_OS_LINUX
+    std::unique_ptr<class gstreamer_file_source> m_impl;
+#endif
 };
