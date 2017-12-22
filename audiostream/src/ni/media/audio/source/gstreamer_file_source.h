@@ -69,6 +69,7 @@ class gstreamer_file_source
     void setup_source(const std::string& path, audio::ifstream_info::container_type container);
     GstElement* prepare_pipeline(const std::string& path);
     void preroll_pipeline();
+    GstState wait_for_async_operation();
     void fill_format_info(GstStructure *caps_struct, audio::ifstream_info::container_type container);
 
     static void onPadAdded(GstElement* element, GstPad* pad, GstElement* sink);
@@ -78,7 +79,7 @@ class gstreamer_file_source
     template<typename T> using tGstPtr = std::unique_ptr<T, GUnref>;
     tGstPtr<GstElement> m_pipeline;
 
-    using RingBuffer = detail::RingBuffer<char, 8192>;
+    using RingBuffer = detail::RingBuffer<char, 65536>;
     std::unique_ptr<RingBuffer> m_ring_buffer;
     int64_t m_position = 0;
   };
