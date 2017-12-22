@@ -44,18 +44,22 @@ namespace detail
     {
         static constexpr size_t size = s;
         static constexpr size_t mask = (s - 1);
-        std::vector<T> m_buffer;
+        std::array<T, s> m_buffer;
         uint64_t m_write_head = 0;
         uint64_t m_read_head = 0;
 
         void push(const T* data, size_t count)
         {
+          auto filled = m_write_head - m_read_head;
+          auto space = s - filled;
+          assert(count <= space);
+
           if(count)
           {
             auto idx = m_write_head & mask;
             auto space = size - idx;
             auto for_now = std::min(space, count);
-            std::copy(data, data + for_now, m_buffer.begin() + idx);
+            std::copy(data, data + for_now, m_buffer.data() + idx);
             m_write_head += for_now;
             push(data + for_now, count - for_now);
           }
@@ -70,11 +74,16 @@ namespace detail
             auto idx = m_read_head & mask;
             auto space = size - idx;
             auto for_now = std::min(space, count);
-            std::copy(m_buffer.begin() + idx, m_buffer.begin() + idx + for_now, data);
+            std::copy(m_buffer.data() + idx, m_buffer.data() + idx + for_now, data);
             m_read_head += for_now;
             return for_now + pull(data + for_now, count - for_now);
           }
           return 0;
+        }
+
+        void flush()
+        {
+          m_read_head = m_write_head = 0;
         }
     };
 }
@@ -92,6 +101,24 @@ gstreamer_file_source::gstreamer_file_source(const std::string& path, audio::ifs
 
 gstreamer_file_source::~gstreamer_file_source()
 {
+  gst_element_set_state(m_pipeline.get(), GST_STATE_NULL);
+  wait_for_async_operation();
+  m_pipeline.reset();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+GstState gstreamer_file_source::wait_for_async_operation()
+{
+  GstState current_state = GST_STATE_VOID_PENDING;
+  GstState pending_state = GST_STATE_VOID_PENDING;
+
+  while(gst_element_get_state(m_pipeline.get(), &current_state, &pending_state, GST_MSECOND) == GST_STATE_CHANGE_ASYNC)
+  {
+    g_main_context_iteration(nullptr, FALSE);
+  }
+
+  return current_state;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -144,23 +171,15 @@ GstElement* gstreamer_file_source::prepare_pipeline(const std::string& path)
 
 void gstreamer_file_source::preroll_pipeline()
 {
+  gst_element_set_state(m_pipeline.get(), GST_STATE_PAUSED);
+
+  if(wait_for_async_operation() != GST_STATE_PAUSED)
+    throw std::runtime_error( "gstreamer_file_source: pipeline doesn't preroll into paused state" );
+
   gst_element_set_state(m_pipeline.get(), GST_STATE_PLAYING);
-  GstState current_state = GST_STATE_VOID_PENDING;
-  GstState pending_state = GST_STATE_VOID_PENDING;
 
-  while(gst_element_get_state(m_pipeline.get(), &current_state, &pending_state, GST_MSECOND) == GST_STATE_CHANGE_ASYNC)
-  {
-    g_main_context_iteration(nullptr, FALSE);
-  }
-
-  std::cerr << "Pipeline is in state: " << current_state << std::endl;
-
-  if(current_state != GST_STATE_PLAYING)
-  {
-    auto res = gst_element_get_state(m_pipeline.get(), &current_state, &pending_state, GST_MSECOND);
-    std::cerr << "Pipeline does not preroll: " << res << " " << current_state << std::endl;
-    throw std::runtime_error( "gstreamer_file_source: pipeline doesn't preroll" );
-  }
+  if(wait_for_async_operation() != GST_STATE_PLAYING)
+    throw std::runtime_error( "gstreamer_file_source: pipeline doesn't preroll into playing state" );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -221,6 +240,8 @@ void gstreamer_file_source::onPadAdded(GstElement* element, GstPad* pad, GstElem
 
 std::streampos gstreamer_file_source::seek(offset_type off, BOOST_IOS::seekdir way )
 {
+  assert( 0 == off % m_info.bytes_per_frame() );
+
   int64_t newPosition = 0;
 
   if (way == BOOST_IOS::seekdir::_S_beg)
@@ -234,18 +255,19 @@ std::streampos gstreamer_file_source::seek(offset_type off, BOOST_IOS::seekdir w
   else if (way == BOOST_IOS::seekdir::_S_end)
   {
     int64_t end = 0;
-    if(!gst_element_query_duration (m_pipeline.get(), GST_FORMAT_DEFAULT, &end))
+    if(!gst_element_query_duration (m_pipeline.get(), GST_FORMAT_BYTES, &end))
     {
       throw std::runtime_error( "gstreamer_file_source: seeking from end of file impossible - could not query duration" );
     }
     newPosition = end + off;
   }
 
-  if(newPosition != m_position)
+  if(m_position != newPosition)
   {
     m_position = newPosition;
+    m_ring_buffer->flush();
 
-    if(!gst_element_seek_simple(m_pipeline.get(), GST_FORMAT_DEFAULT, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), m_position))
+    if(!gst_element_seek_simple(m_pipeline.get(), GST_FORMAT_BYTES, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), m_position))
     {
       throw std::runtime_error( "gstreamer_file_source: seeking failed" );
     }
@@ -256,40 +278,44 @@ std::streampos gstreamer_file_source::seek(offset_type off, BOOST_IOS::seekdir w
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streamsize gstreamer_file_source::read(char* dst, std::streamsize size)
+std::streamsize gstreamer_file_source::read(char* dst, std::streamsize numBytesRequested)
 {
-  auto bytesPerFrame = m_info.bytes_per_frame();
-  auto bufferedBytes = m_ring_buffer->pull(dst, size * bytesPerFrame);
-  auto bufferedFrames = bufferedBytes / bytesPerFrame;
-  dst += bufferedFrames;
-  size -= bufferedFrames;
+  auto read_bytes = m_ring_buffer->pull(dst, numBytesRequested);
 
-  tGstPtr<GstElement> sink(gst_bin_get_by_name(GST_BIN(m_pipeline.get()), "sink"), gst_object_unref);
-  GstAppSink *app_sink = reinterpret_cast<GstAppSink *>(sink.get());
+  dst += read_bytes;
+  numBytesRequested -= read_bytes;
+  m_position += read_bytes;
 
-  tGstPtr<GstSample> sample(gst_app_sink_pull_sample(app_sink), (GUnref) gst_sample_unref);
-
-  if(sample)
+  if(numBytesRequested)
   {
-    auto buffer = gst_sample_get_buffer(sample.get());
+    tGstPtr<GstElement> sink(gst_bin_get_by_name(GST_BIN(m_pipeline.get()), "sink"), gst_object_unref);
+    GstAppSink *app_sink = reinterpret_cast<GstAppSink *>(sink.get());
 
-    GstMapInfo mapped;
+    tGstPtr<GstSample> sample(gst_app_sink_pull_sample(app_sink), (GUnref) gst_sample_unref);
 
-    if(gst_buffer_map(buffer, &mapped, GST_MAP_READ))
+    if(sample)
     {
-      auto numBytesRequested = size * bytesPerFrame;
-      auto for_now = std::min(mapped.size, numBytesRequested);
+      auto buffer = gst_sample_get_buffer(sample.get());
 
-      std::copy(mapped.data, mapped.data + for_now, dst);
+      GstMapInfo mapped;
 
-      m_ring_buffer->push((char*) mapped.data + for_now, mapped.size - for_now);
-      bufferedFrames += for_now / bytesPerFrame;
+      if(gst_buffer_map(buffer, &mapped, GST_MAP_READ))
+      {
+        auto for_now = std::min<gsize>(mapped.size, numBytesRequested);
+        std::copy(mapped.data, mapped.data + for_now, dst);
+        read_bytes += for_now;
+        dst += for_now;
+        numBytesRequested -= for_now;
+        m_position += for_now;
 
-      gst_buffer_unmap(buffer, &mapped);
+        m_ring_buffer->push((char*) mapped.data + for_now, mapped.size - for_now);
+        gst_buffer_unmap(buffer, &mapped);
+
+        return read_bytes + read(dst, numBytesRequested);
+      }
     }
   }
 
-  m_position += bufferedFrames;
-  return bufferedFrames;
+  return read_bytes;
 }
 
