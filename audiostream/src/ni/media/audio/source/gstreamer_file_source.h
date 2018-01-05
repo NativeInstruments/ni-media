@@ -71,6 +71,7 @@ class gstreamer_file_source
     void preroll_pipeline();
     GstState wait_for_async_operation();
     void fill_format_info(GstStructure *caps_struct, audio::ifstream_info::container_type container);
+    std::streamsize recursive_read(char* dst, std::streamsize numBytesRequested);
 
     static void onPadAdded(GstElement* element, GstPad* pad, GstElement* sink);
 
