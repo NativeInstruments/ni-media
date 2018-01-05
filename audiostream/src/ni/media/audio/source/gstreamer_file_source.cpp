@@ -34,6 +34,7 @@
 #include <functional>
 #include <locale>
 #include <iostream>
+#include <algorithm>
 
 #include <gst/app/gstappsink.h>
 
@@ -280,6 +281,13 @@ std::streampos gstreamer_file_source::seek(offset_type off, BOOST_IOS::seekdir w
 
 std::streamsize gstreamer_file_source::read(char* dst, std::streamsize numBytesRequested)
 {
+  return recursive_read(dst, numBytesRequested);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+std::streamsize gstreamer_file_source::recursive_read(char* dst, std::streamsize numBytesRequested)
+{
   auto read_bytes = m_ring_buffer->pull(dst, numBytesRequested);
 
   dst += read_bytes;
@@ -311,7 +319,7 @@ std::streamsize gstreamer_file_source::read(char* dst, std::streamsize numBytesR
         m_ring_buffer->push((char*) mapped.data + for_now, mapped.size - for_now);
         gst_buffer_unmap(buffer, &mapped);
 
-        return read_bytes + read(dst, numBytesRequested);
+        return read_bytes + recursive_read(dst, numBytesRequested);
       }
     }
   }
