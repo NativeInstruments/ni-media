@@ -31,6 +31,7 @@ matrix:
           - gstreamer1.0-plugins-bad
           - gstreamer1.0-plugins-bad-faad
           - libgstreamer1.0-dev
+          - libgstreamer-plugins-base1.0-dev
 
       env: MATRIX_EVAL="CONFIG=Release && CXX=g++-5"
           
