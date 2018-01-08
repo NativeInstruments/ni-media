@@ -24,13 +24,13 @@ matrix:
           - libogg-dev
           - libvorbis-dev
           - libflac++-dev
-          - gstreamer1.0-libav-dev
-          - gstreamer1.0-nice-dev
-          - gstreamer1.0-plugins-base-dev
-          - gstreamer1.0-plugins-good-dev
-          - gstreamer1.0-plugins-ugly-dev
-          - gstreamer1.0-plugins-bad-dev
-          - gstreamer1.0-plugins-bad-faad-dev
+          - gstreamer1.0-libav
+          - gstreamer1.0-plugins-base
+          - gstreamer1.0-plugins-good
+          - gstreamer1.0-plugins-ugly
+          - gstreamer1.0-plugins-bad
+          - gstreamer1.0-plugins-bad-faad
+          - libgstreamer1.0-dev
 
       env: MATRIX_EVAL="CONFIG=Release && CXX=g++-5"
           
