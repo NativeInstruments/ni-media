@@ -42,10 +42,10 @@ public:
     void format( format_type format );
     auto format() const -> format_type;
 
-    void sample_rate( size_t val );
+    void   sample_rate( size_t val );
     size_t sample_rate() const;
 
-    void num_channels( size_t num_channels );
+    void   num_channels( size_t num_channels );
     size_t num_channels() const;
 
     size_t bits_per_sample() const;
@@ -57,9 +57,9 @@ public:
 
 private:
     // Members
-    size_t      m_sampleRate  = 44100; //!< sample rate
-    size_t      m_numChannels = 1;     //!< number of channels
-    format_type m_format;              //!< pcm format
+    size_t      m_sample_rate  = 44100;
+    size_t      m_num_channels = 1;
+    format_type m_format;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

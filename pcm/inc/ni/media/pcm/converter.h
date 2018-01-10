@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "format.h"
+#include "runtime_format.h"
 
 #include <algorithm>
 #include <array>
@@ -30,32 +30,42 @@
 #include <iterator>
 #include <type_traits>
 
+#include <boost/algorithm/clamp.hpp>
 
 namespace pcm
 {
 namespace detail
 {
 
-template <class Real, size_t Bits>
-struct real_promotion
+template <typename Real, size_t Bits>
+struct promote
 {
     using type = typename std::conditional<( 23 < Bits ), double, float>::type;
 };
 
 template <size_t Bits>
-struct real_promotion<double, Bits>
+struct promote<double, Bits>
 {
     using type = double;
 };
 
+template <typename Real, size_t Bits>
+using promote_t = typename promote<Real, Bits>::type;
+
+
+template <typename Source>
+Source sign_cast( Source val )
+{
+    return val;
+}
 
 template <typename Target, typename Source>
-Target sign_cast( Source val )
+Target sign_cast( Source val,
+                  std::enable_if_t<std::is_signed<Target>::value != std::is_signed<Source>::value>* = nullptr )
 {
-    const bool toggle_msb = std::is_signed<Target>::value != std::is_signed<Source>::value;
-    const auto mask       = Source{1} << ( sizeof( Source ) * 8 - 1 );
+    static constexpr auto mask = Source{1} << ( sizeof( Source ) * 8 - 1 );
 
-    return static_cast<Target>( toggle_msb ? val ^ mask : val );
+    return static_cast<Target>( val ^ mask );
 }
 
 template <typename Integer, typename Real>
@@ -64,7 +74,7 @@ Integer round_cast( Real val )
     return static_cast<Integer>( val > 0 ? val + Real{0.5} : val - Real{0.5} );
 }
 
-template <class T1, class T2>
+template <typename T1, typename T2>
 struct is_bigger : public std::integral_constant<bool, ( sizeof( T1 ) > sizeof( T2 ) )>
 {
 };
@@ -76,155 +86,151 @@ Source shift_cast( Source val )
 }
 
 template <typename Target, typename Source>
-typename std::enable_if<is_bigger<Source, Target>::value, Target>::type shift_cast( Source val )
+Target shift_cast( Source val, std::enable_if_t<is_bigger<Source, Target>::value>* = nullptr )
 {
     return static_cast<Target>( val >> ( 8 * ( sizeof( Source ) - sizeof( Target ) ) ) );
 }
 
 template <typename Target, typename Source>
-typename std::enable_if<( is_bigger<Target, Source>::value ), Target>::type shift_cast( Source val )
+Target shift_cast( Source val, std::enable_if_t<( is_bigger<Target, Source>::value )>* = nullptr )
 {
     return static_cast<Target>( val ) << ( 8 * ( sizeof( Target ) - sizeof( Source ) ) );
 }
 
-
-// floating point -> floating point
-// simple cast
+// floating point <- floating point
+// static_cast
 template <typename Target, typename Source>
-typename std::enable_if<std::is_floating_point<Target>::value && std::is_floating_point<Source>::value, Target>::type
-convert_to( Source src )
+Target convert_to(
+    Source src,
+    std::enable_if_t<std::is_floating_point<Target>::value && std::is_floating_point<Source>::value>* = nullptr )
 {
     return static_cast<Target>( src );
 }
 
-// floating point -> fixed point
-// clip, upscale, round_cast, sign_cast
+// fixed point <- floating point
+// clamp, upscale, round_cast, sign_cast
 template <typename Target, typename Source>
-typename std::enable_if<std::is_integral<Target>::value && std::is_floating_point<Source>::value, Target>::type
-convert_to( Source src )
+Target convert_to(
+    Source src, std::enable_if_t<std::is_integral<Target>::value && std::is_floating_point<Source>::value>* = nullptr )
 {
-    using SignedTarget = typename std::make_signed<Target>::type;
-    using Real         = typename real_promotion<Source, sizeof( Target ) * 8>::type;
+    using boost::algorithm::clamp;
 
-    const auto scaleValue = static_cast<Real>( 1ull << ( sizeof( Target ) * 8 - 1 ) );
-    const auto minValue   = static_cast<Real>( -1.0 );
-    const auto maxValue   = ( scaleValue - static_cast<Real>( 1.0 ) ) / scaleValue;
+    using SignedTarget   = std::make_signed_t<Target>;
+    using PromotedSource = promote_t<Source, sizeof( Target ) * 8>;
 
-    Real srcValue = std::max( minValue, std::min( maxValue, static_cast<Real>( src ) ) );
+    static constexpr auto scale = PromotedSource{1ull << ( sizeof( Target ) * 8 - 1 )};
+    static constexpr auto lo    = PromotedSource{-1};
+    static constexpr auto hi    = ( scale - PromotedSource{1} ) / scale;
 
-    return sign_cast<Target>( round_cast<SignedTarget>( srcValue * scaleValue ) );
+    return sign_cast<Target>( round_cast<SignedTarget>( scale * clamp( PromotedSource{src}, lo, hi ) ) );
 }
 
-// fixed point -> floating point
+// floating point <- fixed point
 // sign_cast + downscale
 template <typename Target, typename Source>
-typename std::enable_if<std::is_floating_point<Target>::value && std::is_integral<Source>::value, Target>::type
-convert_to( Source src )
+Target convert_to(
+    Source src, std::enable_if_t<std::is_floating_point<Target>::value && std::is_integral<Source>::value>* = nullptr )
 {
-    using SignedSource = typename std::make_signed<Source>::type;
-    using Real         = typename real_promotion<Target, sizeof( Source ) * 8>::type;
+    using SignedSource   = std::make_signed_t<Source>;
+    using PromotedTarget = promote_t<Target, sizeof( Source ) * 8>;
 
-    const SignedSource srcValue   = sign_cast<SignedSource>( src );
-    const Real         scaleValue = static_cast<Real>( 1.0 ) / ( 1ull << ( sizeof( Source ) * 8 - 1 ) );
+    static constexpr auto scale = PromotedTarget{1} / ( 1ull << ( sizeof( Source ) * 8 - 1 ) );
 
-    return static_cast<Target>( scaleValue * static_cast<Real>( srcValue ) );
+    return static_cast<Target>( scale * sign_cast<SignedSource>( src ) );
 }
 
-// fixed point -> fixed point
+// fixed point <- fixed point
 // sign_cast, shift_cast
 template <typename Target, typename Source>
-typename std::enable_if<std::is_integral<Target>::value && std::is_integral<Source>::value, Target>::type convert_to(
-    Source src )
+Target convert_to( Source src,
+                   std::enable_if_t<std::is_integral<Target>::value && std::is_integral<Source>::value>* = nullptr )
 {
-    using sign_adjusted_Source = typename std::conditional<std::is_signed<Target>::value,
-                                                           typename std::make_signed<Source>::type,
-                                                           typename std::make_unsigned<Source>::type>::type;
+    using SignAdjustedSource = std::conditional_t<std::is_signed<Target>::value, //
+                                                  std::make_signed_t<Source>,
+                                                  std::make_unsigned_t<Source>>;
 
-
-    return shift_cast<Target>( sign_cast<sign_adjusted_Source>( src ) );
+    return shift_cast<Target>( sign_cast<SignAdjustedSource>( src ) );
 }
 
-
-template <class T>
-struct intermediate
+template <typename T>
+struct storage
 {
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::floating_point, ::pcm::_32bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::floating_point, ::pcm::_32bit, e>>
 {
     using type = float;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::floating_point, ::pcm::_64bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::floating_point, ::pcm::_64bit, e>>
 {
     using type = double;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::signed_integer, ::pcm::_8bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::signed_integer, ::pcm::_8bit, e>>
 {
     using type = int8_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::signed_integer, ::pcm::_16bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::signed_integer, ::pcm::_16bit, e>>
 {
     using type = int16_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::signed_integer, ::pcm::_24bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::signed_integer, ::pcm::_24bit, e>>
 {
     using type = int32_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::signed_integer, ::pcm::_32bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::signed_integer, ::pcm::_32bit, e>>
 {
     using type = int32_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::signed_integer, ::pcm::_64bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::signed_integer, ::pcm::_64bit, e>>
 {
     using type = int64_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::unsigned_integer, ::pcm::_8bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::unsigned_integer, ::pcm::_8bit, e>>
 {
     using type = uint8_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::unsigned_integer, ::pcm::_16bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::unsigned_integer, ::pcm::_16bit, e>>
 {
     using type = uint16_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::unsigned_integer, ::pcm::_24bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::unsigned_integer, ::pcm::_24bit, e>>
 {
     using type = uint32_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::unsigned_integer, ::pcm::_32bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::unsigned_integer, ::pcm::_32bit, e>>
 {
     using type = uint32_t;
 };
 
-template <endian e>
-struct intermediate<::pcm::format::tag<::pcm::unsigned_integer, ::pcm::_64bit, e>>
+template <endian_type e>
+struct storage<::pcm::compiletime_format<::pcm::unsigned_integer, ::pcm::_64bit, e>>
 {
     using type = uint64_t;
 };
 
-
 // equivalent of std::copy_n with the additional garanty that iterators will be incremented exactly n times
-template <class InputIterator, class Size, class OutputIterator>
+template <typename InputIterator, typename Size, typename OutputIterator>
 OutputIterator increment_n_copy_n( InputIterator in, Size size, OutputIterator out )
 {
     for ( Size i = 0; i != size; ++i, ++in, ++out )
@@ -232,36 +238,33 @@ OutputIterator increment_n_copy_n( InputIterator in, Size size, OutputIterator o
     return out;
 }
 
-template <class Format>
-struct byte_array
+template <typename Format>
+struct intermediate
 {
-    using intermediate_t = typename intermediate<Format>::type;
+    using value_type = typename storage<Format>::type;
 
-    static const auto is_native_endian = get_endian( Format{} ) == native_endian;
-    static const auto num_bytes        = get_bitwidth( Format{} ) / 8;
-    static const auto padding          = little_endian == native_endian ? sizeof( intermediate_t ) - num_bytes : 0;
-    static const auto index            = is_native_endian ? padding : padding + num_bytes;
+    static constexpr auto is_native_endian = Format{}.endian() == native_endian;
+    static constexpr auto num_bytes        = Format{}.bitwidth() / 8;
+    static constexpr auto padding          = little_endian == native_endian ? sizeof( value_type ) - num_bytes : 0;
+    static constexpr auto offset           = is_native_endian ? padding : padding + num_bytes;
 
-    template <class InputIterator>
-    byte_array( InputIterator iter )
-    : m_data( 0 )
+    template <typename InputIterator>
+    intermediate( InputIterator iter )
     {
         increment_n_copy_n( iter, num_bytes, begin() );
     }
-    byte_array( intermediate_t val )
-    : m_data( val )
+
+    intermediate( value_type val )
+    : m_value( val )
     {
     }
 
-    using iterator = typename std::conditional<is_native_endian, char*, std::reverse_iterator<char*>>::type;
-
-    using const_iterator =
-        typename std::conditional<is_native_endian, const char*, std::reverse_iterator<const char*>>::type;
-
+    using iterator       = std::conditional_t<is_native_endian, char*, std::reverse_iterator<char*>>;
+    using const_iterator = std::conditional_t<is_native_endian, const char*, std::reverse_iterator<const char*>>;
 
     auto begin() -> iterator
     {
-        return iterator( &m_data.byte[index] );
+        return iterator( reinterpret_cast<char*>( &m_value ) + offset );
     }
 
     auto end() -> iterator
@@ -271,7 +274,7 @@ struct byte_array
 
     auto begin() const -> const_iterator
     {
-        return const_iterator( &m_data.byte[index] );
+        return const_iterator( reinterpret_cast<char*>( &m_value ) + offset );
     }
 
     auto end() const -> const_iterator
@@ -284,94 +287,67 @@ struct byte_array
         return num_bytes;
     }
 
-    auto value() const -> intermediate_t
+    auto value() const -> value_type
     {
-        return m_data.value;
+        return m_value;
     }
 
 private:
-    union data
-    {
-        data( intermediate_t val )
-        : value( val )
-        {
-        }
-
-        intermediate_t value;
-        char           byte[sizeof( intermediate_t )];
-    } m_data;
+    value_type m_value = 0;
 };
 
-template <class Value, class Iterator, class Format>
+template <typename Value, typename Iterator, typename Format>
 Value read_impl( Iterator iter )
 {
-    auto data = byte_array<Format>( iter );
+    auto data = intermediate<Format>( iter );
     return convert_to<Value>( data.value() );
 }
 
-
-template <class Value, class Iterator, class Format>
-Value read_impl( Iterator iter, const Format& )
+template <typename Value, typename Iterator, typename... Ts>
+auto make_read_impls( const std::tuple<Ts...>& ) -> std::array<Value ( * )( Iterator ), sizeof...( Ts )>
 {
-    return read_impl<Value, Iterator, Format>( iter );
+    return {{&read_impl<Value, Iterator, Ts>...}};
 }
 
-
-template <typename Value, typename Iterator, typename... Tags>
-auto make_read_impls( const std::tuple<Tags...>& ) -> std::array<Value ( * )( Iterator ), sizeof...( Tags )>
-{
-    return {{&read_impl<Value, Iterator, Tags>...}};
-}
-
-
-template <class Value, class Iterator>
-Value read_impl( Iterator iter, const format& fmt )
-{
-    static auto const impls = make_read_impls<Value, Iterator>( format::tags{} );
-    return impls.at( get_index( fmt ) )( iter );
-}
-
-
-template <class Value, class Iterator, class Format>
+template <typename Value, typename Iterator, typename Format>
 void write_impl( Iterator iter, Value val )
 {
-    auto data = byte_array<Format>{convert_to<typename intermediate<Format>::type>( val )};
-    std::copy_n( data.begin(), data.size(), iter );
+    auto data = intermediate<Format>{convert_to<typename intermediate<Format>::value_type>( val )};
+    std::copy( data.begin(), data.end(), iter );
 }
 
-template <class Value, class Iterator, class Format>
-void write_impl( Iterator iter, Value val, const Format& )
+template <typename Value, typename Iterator, typename... Ts>
+auto make_write_impls( const std::tuple<Ts...>& ) -> std::array<void ( * )( Iterator, Value ), sizeof...( Ts )>
 {
-    write_impl<Value, Iterator, Format>( iter, val );
-}
-
-
-template <typename Value, typename Iterator, typename... Tags>
-auto make_write_impls( const std::tuple<Tags...>& ) -> std::array<void ( * )( Iterator, Value ), sizeof...( Tags )>
-{
-    return {{&write_impl<Value, Iterator, Tags>...}};
-}
-
-template <class Value, class Iterator>
-void write_impl( Iterator iter, Value val, const format& fmt )
-{
-    static auto const impls = make_write_impls<Value, Iterator>( format::tags{} );
-    impls.at( get_index( fmt ) )( iter, val );
+    return {{&write_impl<Value, Iterator, Ts>...}};
 }
 
 } // namespace detail
 
-
-template <class Value, class Iterator, class Format>
-Value read( Iterator iter, const Format& fmt )
+template <typename Value, typename Iterator, number_type n, bitwidth_type b, endian_type e>
+Value read( Iterator iter, const compiletime_format<n, b, e>& )
 {
-    return detail::read_impl<Value>( iter, fmt );
+    return detail::read_impl<Value, Iterator, compiletime_format<n, b, e>>( iter );
 }
 
-template <class Value, class Iterator, class Format>
-void write( Iterator iter, Value val, const Format& fmt )
+template <typename Value, typename Iterator>
+Value read( Iterator iter, const runtime_format& fmt )
 {
-    detail::write_impl( iter, val, fmt );
+    static auto const impls = detail::make_read_impls<Value, Iterator>( compiletime_formats() );
+    return impls.at( fmt.index() )( iter );
+}
+
+template <typename Value, typename Iterator, number_type n, bitwidth_type b, endian_type e>
+void write( Iterator iter, Value val, const compiletime_format<n, b, e>& )
+{
+    detail::write_impl<Value, Iterator, compiletime_format<n, b, e>>( iter, val );
+}
+
+template <typename Value, typename Iterator>
+void write( Iterator iter, Value val, const runtime_format& fmt )
+{
+    static auto const impls = detail::make_write_impls<Value, Iterator>( compiletime_formats() );
+    impls.at( fmt.index() )( iter, val );
 }
 
 

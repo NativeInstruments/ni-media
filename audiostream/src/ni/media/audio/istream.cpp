@@ -20,14 +20,13 @@
 // SOFTWARE.
 //
 
-#include <ni/media/iostreams/stream_buffer.h>
-
-#include <ni/media/audio/istream.h>
 
 #include <ni/media/audio/ifvectorstream.h>
+#include <ni/media/audio/istream.h>
 #include <ni/media/audio/ivectorstream.h>
 
 #include <ni/media/audio/source.h>
+#include <ni/media/iostreams/stream_buffer.h>
 
 #include <boost/predef.h>
 
@@ -41,7 +40,7 @@ namespace audio
 
 istream::istream()
 : std::istream( nullptr )
-, m_info( new info_type() )
+, m_info( std::make_unique<info_type>() )
 {
 }
 
@@ -51,7 +50,7 @@ template <class AudioSource>
 istream::istream( AudioSource source )
 : std::istream( nullptr )
 , m_info( make_info( source.info() ) )
-, m_streambuf( make_streambuf( std::move( source ) ) )
+, m_streambuf( make_stream_buffer( std::move( source ) ) )
 {
     rdbuf( m_streambuf.get() );
 }
@@ -163,6 +162,8 @@ auto istream::info() const -> const info_type&
 {
     return *m_info;
 }
+
+//----------------------------------------------------------------------------------------------------------------------
 
 template istream::istream( container_source<std::vector<char>, ivectorstream::info_type> );
 template istream::istream( container_source<std::vector<char>, ifvectorstream::info_type> );

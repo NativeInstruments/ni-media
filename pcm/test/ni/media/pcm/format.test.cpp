@@ -27,7 +27,7 @@
 
 TEST( pcm_format_test, constructor_default )
 {
-    EXPECT_TRUE( pcm::is_valid( pcm::format{} ) );
+    EXPECT_NO_THROW( pcm::format{} );
 }
 
 TEST( pcm_format_test, constructor_throws_invalid_format )
@@ -38,11 +38,6 @@ TEST( pcm_format_test, constructor_throws_invalid_format )
 TEST( pcm_format_test, constructor_throws_invalid_bitwidth )
 {
     EXPECT_THROW( pcm::format f( pcm::signed_integer, 23, pcm::little_endian ), std::runtime_error );
-}
-
-TEST( pcm_format_test, constructor_throws_invalid_number )
-{
-    EXPECT_THROW( pcm::format f( false, false, 32, pcm::little_endian ), std::runtime_error );
 }
 
 

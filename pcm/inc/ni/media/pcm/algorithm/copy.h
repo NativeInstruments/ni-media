@@ -21,9 +21,11 @@
 //
 
 #pragma once
-#include <ni/media/pcm/detail/dispatch.h>
+
+#include <ni/media/pcm/dispatch.h>
 
 #include <algorithm>
+#include <utility>
 
 namespace pcm
 {
@@ -37,21 +39,34 @@ struct copy_impl
     {
         return std::copy( beg, end, out );
     }
+
+    template <class InputIt, class OutputIt>
+    auto operator()( InputIt ibeg, InputIt iend, OutputIt obeg, OutputIt oend ) const
+    {
+        for ( ; ibeg != iend && obeg != oend; ++ibeg, ++obeg )
+            *obeg = *ibeg;
+        return std::make_pair( ibeg, obeg );
+    }
 };
 
 } // namespace detail
 
 // iterator based
 template <class InputIt, class OutputIt>
-OutputIt copy( InputIt beg, InputIt end, OutputIt out )
+auto copy( InputIt beg, InputIt end, OutputIt out )
 {
-    using namespace detail;
-    return dispatch( copy_impl{}, beg, end, out );
+    return dispatch( detail::copy_impl{}, beg, end, out );
+}
+
+template <class InputIt, class OutputIt>
+auto copy( InputIt ibeg, InputIt iend, OutputIt obeg, OutputIt oend )
+{
+    return dispatch( detail::copy_impl{}, ibeg, iend, obeg, oend );
 }
 
 // range based
 template <class InputRange, class OutputIt>
-OutputIt copy( const InputRange& range, OutputIt out )
+auto copy( const InputRange& range, OutputIt out )
 {
     return ::pcm::copy( std::begin( range ), std::end( range ), out );
 }

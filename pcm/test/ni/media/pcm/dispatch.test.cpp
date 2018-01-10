@@ -20,28 +20,20 @@
 // SOFTWARE.
 //
 
-#pragma once
+#include <ni/media/pcm/algorithm.h>
+#include <ni/media/pcm/iterator.h>
 
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/ofstream_info.h>
+#include <gtest/gtest.h>
 
-#include <boost/optional.hpp>
 
-#include <set>
-#include <string>
-
-namespace audio
+TEST( dispatch_test, dispatch_throws_runtime_error_on_imcompatible_formats )
 {
+    auto in  = std::vector<char>();
+    auto out = std::vector<float>();
 
-auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_info::container_type>;
-auto ofstream_container( const std::string& url ) -> boost::optional<ofstream_info::container_type>;
-
-auto is_itunes_url( const std::string& url ) -> bool;
-auto extension_from_url( const std::string& url ) -> std::string;
-
-bool can_read_file( const std::string& url );
-bool can_read_file( const std::string& url, std::set<ifstream_info::container_type> supported_containers );
-
-bool can_write_file( const std::string& url );
-bool can_write_file( const std::string& url, std::set<ofstream_info::container_type> supported_containers );
+    EXPECT_THROW(
+        ( pcm::copy( pcm::make_iterator<float>( in.begin(), pcm::runtime_format( pcm::signed_integer, pcm::_24bit ) ),
+                     pcm::make_iterator<float>( in.end(), pcm::runtime_format( pcm::signed_integer, pcm::_16bit ) ),
+                     out.begin() ) ),
+        std::runtime_error );
 }

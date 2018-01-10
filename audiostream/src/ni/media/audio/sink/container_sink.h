@@ -25,14 +25,14 @@
 #include <ni/media/iostreams/device/container.h>
 
 template <class Container, class Info>
-class ContainerSink : public container_sink<Container>
+class container_sink : public boostext::iostreams::container_sink<Container>
 {
+    using base_type = boostext::iostreams::container_sink<Container>;
 
 public:
-    using base_type = container_sink<Container>;
     using info_type = Info;
 
-    ContainerSink( Container container, const info_type& info )
+    container_sink( Container container, const info_type& info )
     : base_type( std::move( container ) )
     , m_info( info )
     {

@@ -22,7 +22,8 @@
 
 #pragma once
 
-#include <boost/iostreams/device/file.hpp> // basic_file
+#include <ni/media/iostreams/positioning.h>
+
 
 namespace boostext
 {
@@ -35,11 +36,12 @@ namespace
 const std::streampos max_pos = std::streamoff( std::numeric_limits<std::streamsize>::max() );
 }
 
-template <class Stream>
-class subview_device : public Stream
+template <class Device>
+class subview_device : public Device
 {
+    using base_type = Device;
+
 public:
-    using base_type   = Stream;
     using char_type   = typename base_type::char_type;
     using offset_type = boost::iostreams::stream_offset;
     using base_type::base_type;
@@ -49,8 +51,10 @@ public:
 
     std::streampos seek( boost::iostreams::stream_offset off, BOOST_IOS::seekdir way )
     {
-        std::streampos pos = way == BOOST_IOS::beg ? base_type::seek( off + m_beg, way ) : base_type::seek( off, way );
-        return pos - m_beg;
+        const auto old_pos = base_type::seek( 0, BOOST_IOS::cur );
+        const auto new_pos = absolute_position( old_pos, m_beg, m_end, off, way );
+
+        return base_type::seek( new_pos, BOOST_IOS::beg ) - m_beg;
     }
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -63,9 +67,9 @@ public:
 
     //----------------------------------------------------------------------------------------------------------------------
 
-    offset_type tell()
+    std::streampos tell()
     {
-        return boost::iostreams::position_to_offset( seek( 0, BOOST_IOS::cur ) );
+        return seek( 0, BOOST_IOS::cur );
     }
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -80,6 +84,13 @@ public:
     std::streampos end() const
     {
         return m_end;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+
+    std::streampos size() const
+    {
+        return end() - beg();
     }
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -102,12 +113,12 @@ public:
 
     std::streamsize write( const char_type* s, std::streamsize n )
     {
-        std::streampos pos = base_type::seek( 0, BOOST_IOS::cur );
+        std::streampos pos = this->tell();
 
-        if ( pos >= this->end() )
-            return 0;
+        if ( pos == std::streampos( -1 ) || pos > this->size() )
+            return -1;
 
-        return base_type::write( s, std::min( n, std::streamsize( this->end() - pos ) ) );
+        return base_type::write( s, std::min( n, std::streamsize( this->size() - pos ) ) );
     }
 };
 
@@ -124,12 +135,12 @@ public:
 
     std::streamsize read( char_type* s, std::streamsize n )
     {
-        std::streampos pos = base_type::seek( 0, BOOST_IOS::cur );
+        std::streampos pos = this->tell();
 
-        if ( pos >= this->end() )
-            return 0;
+        if ( pos == std::streampos( -1 ) || pos > this->size() )
+            return -1;
 
-        return base_type::read( s, std::min( n, std::streamsize( this->end() - pos ) ) );
+        return base_type::read( s, std::min( n, std::streamsize( this->size() - pos ) ) );
     }
 };
 }

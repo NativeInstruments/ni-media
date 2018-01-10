@@ -23,11 +23,11 @@
 #pragma once
 
 #include <ni/media/audio/istream_info.h>
+#include <ni/media/audio/streambuf.h>
 
-#include <ni/media/pcm/algorithm/copy_n.h>
+#include <ni/media/pcm/algorithm/copy.h>
 #include <ni/media/pcm/iterator.h>
 
-#include <boost/range/difference_type.hpp>
 #include <boost/range/has_range_iterator.hpp>
 #include <boost/range/value_type.hpp>
 
@@ -36,6 +36,7 @@
 #include <iterator>
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 namespace audio
 {
@@ -64,22 +65,23 @@ public:
 
     using std::istream::operator bool;
     using std::istream::operator!;
+    using std::istream::bad;
+    using std::istream::clear;
+    using std::istream::eof;
+    using std::istream::fail;
+    using std::istream::good;
+    using std::istream::rdbuf;
+    using std::istream::rdstate;
+    using std::istream::setstate;
+
+
+    auto read( char_type* s, std::streamsize n ) -> istream&;
 
     template <class Value>
     auto operator>>( Value& val ) -> std::enable_if_t<std::is_arithmetic<Value>::value, istream&>;
 
     template <class Range>
     auto operator>>( Range&& rng ) -> std::enable_if_t<boost::has_range_iterator<Range>::value, istream&>;
-
-    using std::istream::rdstate;
-    using std::istream::clear;
-    using std::istream::setstate;
-    using std::istream::good;
-    using std::istream::eof;
-    using std::istream::fail;
-    using std::istream::bad;
-
-    auto read( char_type* s, std::streamsize n ) -> istream&;
 
     auto seekg( pos_type pos ) -> istream&;
     auto sample_seekg( pos_type pos ) -> istream&;
@@ -97,8 +99,6 @@ public:
     auto frame_tellg() -> pos_type;
     auto sample_tellg() -> pos_type;
 
-    using std::istream::rdbuf;
-
     // - stream_info
 
     using info_type = istream_info;
@@ -106,8 +106,8 @@ public:
     virtual auto info() const -> const info_type&;
 
 private:
-    std::unique_ptr<info_type>      m_info;
-    std::unique_ptr<std::streambuf> m_streambuf;
+    std::unique_ptr<info_type> m_info;
+    std::unique_ptr<streambuf> m_streambuf;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -126,28 +126,39 @@ auto istream::operator>>( Value& val ) -> std::enable_if_t<std::is_arithmetic<Va
 template <class Range>
 auto istream::operator>>( Range&& rng ) -> std::enable_if_t<boost::has_range_iterator<Range>::value, istream&>
 {
-    using Value      = typename boost::range_value<Range>::type;
-    using Difference = typename boost::range_difference<Range>::type;
+    using Value = typename boost::range_value<Range>::type;
 
-    auto beg = std::begin( rng );
-    auto end = std::end( rng );
+    const auto out_beg = std::begin( rng );
+    const auto out_end = std::end( rng );
 
-    const auto samples_requested = std::distance( beg, end );
-    if ( samples_requested == 0 || fail() )
+    if ( fail() || out_beg == out_end )
         return *this;
 
-    const auto samples_available = Difference( m_info->num_samples() - sample_tellg() );
-    if ( samples_available == 0 || eof() )
+    if ( m_streambuf->underflow() == streambuf::traits_type::eof() )
     {
-        setstate( eofbit | failbit );
+        setstate( rdstate() | eofbit | failbit );
         return *this;
     }
 
-    auto iter = pcm::make_iterator<Value>( std::istreambuf_iterator<char>( rdbuf() ), m_info->format() );
-    std::fill( pcm::copy_n( iter, std::min( samples_requested, samples_available ), beg ), end, Value{} );
-
-    if ( samples_available < samples_requested )
+    auto out_iter = out_beg;
+    do
     {
+        assert( std::distance( m_streambuf->gptr(), m_streambuf->egptr() ) % m_info->bytes_per_sample() == 0 );
+
+        auto pcm_beg = pcm::make_iterator<Value>( m_streambuf->gptr(), m_info->format() );
+        auto pcm_end = pcm::make_iterator<Value>( m_streambuf->egptr(), m_info->format() );
+
+        auto result = pcm::copy( pcm_beg, pcm_end, out_iter, out_end );
+        out_iter    = result.second;
+
+        auto count = static_cast<int>( std::distance( pcm_beg, result.first ) * m_info->bytes_per_sample() );
+        m_streambuf->gbump( count );
+
+    } while ( out_iter != out_end && m_streambuf->underflow() != streambuf::traits_type::eof() );
+
+    if ( out_iter != out_end )
+    {
+        std::fill( out_iter, out_end, Value{} );
         setstate( rdstate() | eofbit );
     }
 

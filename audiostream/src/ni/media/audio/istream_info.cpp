@@ -31,14 +31,14 @@ namespace audio
 
 void istream_info::num_frames( size_t num_frames )
 {
-    m_numFrames = num_frames;
+    m_num_frames = num_frames;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 size_t istream_info::num_frames() const
 {
-    return m_numFrames;
+    return m_num_frames;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ size_t istream_info::num_bytes() const
 bool operator==( const istream_info& lhs, const istream_info& rhs )
 {
     return static_cast<const stream_info&>( lhs ) == static_cast<const stream_info&>( rhs )
-           && lhs.m_numFrames == rhs.m_numFrames;
+           && lhs.m_num_frames == rhs.m_num_frames;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -23,7 +23,11 @@
 #include <ni/media/audio/iotools.h>
 
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/predef.h>
+
+#include <boost/filesystem.hpp>
+#include <map>
 
 namespace audio
 {
@@ -88,52 +92,82 @@ auto ofstream_map() -> const std::map<std::string, ofstream_info::container_type
     return map;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+
 template <class Map>
-auto container_of( const boost::filesystem::path& path, const Map& map ) -> boost::optional<typename Map::mapped_type>
+auto container_of( const std::string& url, const Map& map ) -> boost::optional<typename Map::mapped_type>
 {
-    if ( is_regular_file( path ) && path.has_extension() )
-    {
-        auto it = map.find( boost::to_lower_copy( path.extension().string() ) );
-        if ( it != map.end() )
-            return it->second;
-    }
+    auto extension = extension_from_url( url );
+    if ( extension.empty() )
+        return {};
 
-    return boost::none;
+    auto it = map.find( boost::to_lower_copy( extension ) );
+    if ( it == map.end() )
+        return {};
+
+    return it->second;
 }
-
 
 } // namespace
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto ifstream_container( const boost::filesystem::path& path ) -> boost::optional<ifstream_info::container_type>
+bool is_itunes_url( const std::string& url )
 {
-    return container_of( path, ifstream_map() );
+    return boost::starts_with( url, "ipod-library://" );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+std::string extension_from_url( const std::string& url )
+{
+#if NIMEDIA_ENABLE_ITUNES_DECODING
+    if ( is_itunes_url( url ) )
+    {
+        return {};
+    }
+    else
+#endif
+    {
+        auto path = boost::filesystem::path( url );
+        if ( is_regular_file( path ) && path.has_extension() )
+            return path.extension().string();
+    }
+    return {};
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_info::container_type>
+{
+    return container_of( url, ifstream_map() );
 }
 
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto ofstream_container( const boost::filesystem::path& path ) -> boost::optional<ofstream_info::container_type>
+auto ofstream_container( const std::string& url ) -> boost::optional<ofstream_info::container_type>
 {
-    return container_of( path, ofstream_map() );
+    return container_of( url, ofstream_map() );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool can_read_file( const boost::filesystem::path& path )
+bool can_read_file( const std::string& url )
 {
-    return ifstream_container( path ) != boost::none;
+    return ifstream_container( url ) != boost::none;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool can_read_file( const boost::filesystem::path& path, std::set<ifstream_info::container_type> supported_containers )
+bool can_read_file( const std::string& url, std::set<ifstream_info::container_type> supported_containers )
 {
-    if ( auto container = ifstream_container( path ) )
+    if ( auto container = ifstream_container( url ) )
         return supported_containers.find( *container ) != supported_containers.end();
 
     return false;
 }
+
 
 } // namespace audio

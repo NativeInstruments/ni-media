@@ -128,12 +128,36 @@ TEST_P( ifstream_test, read_middle_of_stream_twice )
 
 //----------------------------------------------------------------------------------------------------------------------
 
-TEST_P( ifstream_test, read_end_of_stream_twice )
+TEST_P( ifstream_test, read_past_eof_twice )
 {
-    auto stream    = open_file_as<audio::ifstream>();
-    auto frame_pos = stream.info().num_frames() - num_frames;
+    auto stream = open_file_as<audio::ifstream>();
 
-    read_interlaced_test( stream, num_frames, frame_pos );
+    // 5 seconds before end of stream or shorter if stream is shorter
+    auto num_frames_from_end = std::min( stream.info().num_frames(), size_t( 5 * stream.info().sample_rate() ) );
+
+    auto num_samples = ( 2 * num_frames_from_end ) * stream.info().num_channels();
+
+    auto frame_pos = stream.info().num_frames() - num_frames_from_end;
+
+    std::vector<float> first_pass( num_samples ), second_pass( num_samples );
+
+    stream.frame_seekg( frame_pos );
+    ASSERT_TRUE( stream.good() );
+
+    stream >> first_pass;
+
+    EXPECT_TRUE( stream.eof() );
+    ASSERT_FALSE( stream.fail() );
+
+    stream.frame_seekg( frame_pos );
+    ASSERT_TRUE( stream.good() );
+
+    stream >> second_pass;
+
+    EXPECT_TRUE( stream.eof() );
+    ASSERT_FALSE( stream.fail() );
+
+    EXPECT_TRUE( boost::equal( first_pass, second_pass ) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
