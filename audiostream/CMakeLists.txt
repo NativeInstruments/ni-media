@@ -71,7 +71,7 @@ endif()
 
 set( COMPILE_WITH_COREAUDIO         DONT_COMPILE)
 set( COMPILE_WITH_MEDIA_FOUNDATION  DONT_COMPILE)
-set( COMPILE_WITH_GSTREAMER  				DONT_COMPILE)
+set( COMPILE_WITH_GSTREAMER         DONT_COMPILE)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # dependencies
@@ -252,7 +252,7 @@ add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/container_sou
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/core_audio_file_source.cpp"       ${COMPILE_WITH_COREAUDIO}         WITH_HEADER )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/media_foundation_helper.h"        ${COMPILE_WITH_MEDIA_FOUNDATION}              )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/media_foundation_file_source.cpp" ${COMPILE_WITH_MEDIA_FOUNDATION}  WITH_HEADER )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/gstreamer_file_source.cpp" 			 ${COMPILE_WITH_GSTREAMER}  			 WITH_HEADER )
+add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/gstreamer_file_source.cpp"        ${COMPILE_WITH_GSTREAMER}         WITH_HEADER )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_source.h"                    ${COMPILE_WITH_AIFF_DECODING}                 )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_file_source.h"               ${COMPILE_WITH_AIFF_DECODING}                 )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_vector_source.h"             ${COMPILE_WITH_AIFF_DECODING}                 )

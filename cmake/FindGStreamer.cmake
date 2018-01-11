@@ -10,7 +10,7 @@ mark_as_advanced(GSTREAMER_INCLUDE_DIRS GSTREAMER_LIBRARY)
 
 
 if( GSTREAMER_FOUND )
-	if( NOT TARGET GSTREAMER::gstreamer )
+  if( NOT TARGET GSTREAMER::gstreamer )
     add_library(GSTREAMER::gstreamer SHARED IMPORTED)
     set_target_properties(GSTREAMER::gstreamer PROPERTIES
       IMPORTED_LINK_INTERFACE_LANGUAGES "C"
