@@ -85,7 +85,8 @@ set( COMPILE_WITH_MEDIA_FOUNDATION  DONT_COMPILE)
 # dependencies
 #-----------------------------------------------------------------------------------------------------------------------
 
-find_package(Boost REQUIRED COMPONENTS iostreams filesystem system)
+set(BOOST_MIN_VERSION "1.61.0")
+find_package(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS iostreams filesystem system)
 
 if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE_WMA_DECODING)
 
