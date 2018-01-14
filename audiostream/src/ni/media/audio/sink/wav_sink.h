@@ -48,7 +48,6 @@ auto write_wav_header( Sink& sink )
     // grab the offset of the chunkSize header
     sink.chunk_size_offset( sink.tell() );
 
-
     // this gets overwritten in the close() call
     // make space for filesize and initialize with 0 for now
     write_obj( sink, uint32_t( 0 ) );
