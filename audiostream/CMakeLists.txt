@@ -200,6 +200,7 @@ add_src_file  (FILES_media_iostreams_device "src/ni/media/iostreams/device/conta
 add_src_group (FILES_All media_iostreams_device FILES_media_iostreams_device)
 
 add_src_file  (FILES_media_audio "src/ni/media/audio/fourcc.h"                                )
+add_src_file  (FILES_media_audio "src/ni/media/audio/ieee80.h"                                )
 add_src_file  (FILES_media_audio "src/ni/media/audio/iotools.cpp"          WITH_HEADER        )
 add_src_file  (FILES_media_audio "src/ni/media/audio/stream_info.cpp"      WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/istream.cpp"          WITH_PUBLIC_HEADER )

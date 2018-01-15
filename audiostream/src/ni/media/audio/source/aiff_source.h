@@ -24,6 +24,7 @@
 
 #include <ni/media/audio/aiff/aiff_chunks.h>
 #include <ni/media/audio/aiff/aiff_ifstream_info.h>
+#include <ni/media/audio/ieee80.h>
 #include <ni/media/iostreams/device/subview.h>
 #include <ni/media/iostreams/fetch.h>
 
@@ -37,45 +38,10 @@
 #include <cmath>
 #include <cstdint>
 
-
 //----------------------------------------------------------------------------------------------------------------------
+
 namespace detail
 {
-
-inline double IEEE80_to_double( const uint8_t* p )
-{
-    int16_t exponent = *p++;
-    exponent <<= 8;
-    exponent |= *p++;
-    int8_t sign = ( exponent & 0x8000 ) ? 1 : 0;
-    exponent &= 0x7FFF;
-
-    uint32_t mant1 = *p++;
-    for ( size_t i = 0; i < 3; ++i )
-    {
-        mant1 <<= 8;
-        mant1 |= *p++;
-    }
-
-    uint32_t mant0 = *p++;
-    for ( size_t i = 0; i < 3; ++i )
-    {
-        mant0 <<= 8;
-        mant0 |= *p++;
-    }
-
-    if ( mant1 == 0 && mant0 == 0 && exponent == 0 && sign == 0 )
-        return 0.0;
-    else
-    {
-        double val = mant0 * std::pow( 2.0, -63.0 );
-        val += mant1 * std::pow( 2.0, -31.0 );
-        val *= std::pow( 2.0, exponent - 16383.0 );
-        return sign ? -val : val;
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 
 template <class Source>
 auto read_pascal_string( Source& src ) -> boost::optional<std::string>
@@ -160,7 +126,7 @@ auto readAiffHeader( Source& src )
             info.format( format );
             info.num_channels( commChunk.numChannels );
             info.num_frames( commChunk.numSampleFrames );
-            info.sample_rate( size_t( IEEE80_to_double( commChunk.extSampleRate ) ) );
+            info.sample_rate( size_t( ieee_80_to_double( commChunk.extSampleRate ) ) );
         }
 
         else if ( aiffTag.id == aiff::tags::mark )

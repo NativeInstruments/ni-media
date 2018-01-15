@@ -24,9 +24,11 @@
 
 #include <ni/media/audio/aiff/aiff_chunks.h>
 #include <ni/media/audio/aiff/aiff_ofstream_info.h>
+#include <ni/media/audio/ieee80.h>
 #include <ni/media/iostreams/device/subview.h>
 #include <ni/media/iostreams/write_obj.h>
 
+//----------------------------------------------------------------------------------------------------------------------
 
 namespace detail
 {
@@ -47,7 +49,9 @@ auto write_aiff_header( Sink& sink )
     sink.num_frames_offset( sink.tell() );
     write_obj( sink, boost::endian::big_uint32_t( 0 ) );
     write_obj( sink, boost::endian::big_uint16_t( sink.info().format().bitwidth() ) );
-    write_obj( sink, aiff::CommonChunk{}.extSampleRate );
+    uint8_t extSampleRateBuffer[10];
+    double_to_ieee_80( static_cast<double>( sink.info().sample_rate() ), extSampleRateBuffer );
+    write_obj( sink, extSampleRateBuffer );
 
     // SSND
     write_obj( sink, boost::endian::big_uint32_t( aiff::tags::ssnd ) );
@@ -77,6 +81,8 @@ auto close_aiff( Sink& sink )
 
 } // namespace detail
 
+//----------------------------------------------------------------------------------------------------------------------
+
 template <class Sink>
 class aiff_sink : public boostext::iostreams::subview_sink<Sink>
 {
@@ -91,6 +97,8 @@ public:
     : base_type( std::forward<Args>( args )... )
     , m_info( info )
     {
+        if ( m_info.num_channels() == 0 )
+            throw std::runtime_error( "Invalid ofstream_info, num_channels == 0" );
         detail::write_aiff_header( *this );
         auto pos = this->tell();
         this->set_view( pos );
