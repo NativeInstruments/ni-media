@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <boost/icl/interval_set.hpp>
-#include <boost/icl/right_open_interval.hpp>
 #include <boost/iostreams/categories.hpp>
 #include <boost/iostreams/positioning.hpp>
 
@@ -42,12 +40,6 @@ public:
     //----------------------------------------------------------------------------------------------------------------------
 
     using offset_type = boost::iostreams::stream_offset;
-
-    using FrameRange    = boost::icl::right_open_interval<offset_type>;
-    using FrameRangeSet = boost::icl::interval_set<FrameRange::domain_type, std::less, FrameRange>;
-
-    template <typename MfType>
-    using MfTypePtr = std::unique_ptr<MfType, std::function<void( MfType* )>>;
 
     //----------------------------------------------------------------------------------------------------------------------
 
