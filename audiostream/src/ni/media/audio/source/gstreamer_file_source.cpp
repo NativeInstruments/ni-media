@@ -25,17 +25,9 @@
 #include <ni/media/audio/iotools.h>
 #include <ni/media/iostreams/positioning.h>
 
-#include <boost/algorithm/clamp.hpp>
-#include <boost/algorithm/cxx11/any_of.hpp>
-#include <boost/format.hpp>
 #include <boost/make_unique.hpp>
 
 #include <algorithm>
-#include <codecvt>
-#include <functional>
-#include <iostream>
-#include <locale>
-
 #include <gst/app/gstappsink.h>
 
 namespace detail
@@ -196,15 +188,21 @@ void gstreamer_file_source::fill_format_info( GstStructure*                     
     m_info.lossless( false );
 
     gint64 num_frames = 0;
-    gst_element_query_duration( m_pipeline.get(), GST_FORMAT_DEFAULT, &num_frames );
+    if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_DEFAULT, &num_frames ) )
+        throw std::runtime_error( "gstreamer_file_source: could not query duration from gstreamer" );
+
     m_info.num_frames( num_frames );
 
     int sample_rate = 0;
-    gst_structure_get_int( caps_struct, "rate", &sample_rate );
+    if ( !gst_structure_get_int( caps_struct, "rate", &sample_rate ) )
+        throw std::runtime_error( "gstreamer_file_source: could not query sample rate from gstreamer" );
+
     m_info.sample_rate( sample_rate );
 
     int num_channels = 0;
-    gst_structure_get_int( caps_struct, "channels", &num_channels );
+    if ( !gst_structure_get_int( caps_struct, "channels", &num_channels ) )
+        throw std::runtime_error( "gstreamer_file_source: could not query number of channels from gstreamer" );
+
     m_info.num_channels( num_channels );
 
     m_info.format( create_runtime_format( caps_struct ) );
@@ -214,11 +212,14 @@ void gstreamer_file_source::fill_format_info( GstStructure*                     
 
 pcm::runtime_format gstreamer_file_source::create_runtime_format( GstStructure* caps_struct )
 {
-    const gchar*     format      = gst_structure_get_string( caps_struct, "format" );
-    pcm::number_type number_type = gst_format_char_to_number_type( format[0] );
-    auto             srcDepth    = std::atol( format + 1 );
-    auto             endian      = ( strcmp( format, "BE" ) == 0 ) ? pcm::big_endian : pcm::little_endian;
-    return pcm::runtime_format( number_type, srcDepth, endian );
+    if ( auto format = gst_structure_get_string( caps_struct, "format" ) )
+    {
+        pcm::number_type number_type = gst_format_char_to_number_type( format[0] );
+        auto             srcDepth    = std::atol( format + 1 );
+        auto             endian      = ( strcmp( format, "BE" ) == 0 ) ? pcm::big_endian : pcm::little_endian;
+        return pcm::runtime_format( number_type, srcDepth, endian );
+    }
+    throw std::runtime_error( "gstreamer_file_source: could not get runtime format from gstreamer caps" );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
