@@ -61,5 +61,4 @@ before_script:
   - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
     
 script:
-  - cmake --build .
-# - cmake --build . && git lfs pull -X "" && cmake --build . --target test
+  - cmake --build . && git lfs pull -X "" && cmake --build . --target test
