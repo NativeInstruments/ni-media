@@ -4,7 +4,6 @@ dist: trusty
   
 git:
   depth: 3
-  lfs_skip_smudge: true
    
 matrix:
   include:
