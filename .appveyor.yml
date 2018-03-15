@@ -18,7 +18,9 @@ environment:
       TARGET_ARCHITECTURE: x64
 
 install:
+  - cd /d C:\tools\vcpkg
   - git checkout  548b7f69197fad294f44b6e3ae5f587116220fae -- ports/boost
+  - cd %APPVEYOR_BUILD_FOLDER%
 
   - echo set(VCPKG_TARGET_ARCHITECTURE %TARGET_ARCHITECTURE%) > C:\tools\vcpkg\triplets\custom-triplet.cmake
   - echo set(VCPKG_CRT_LINKAGE %CRT_LINKAGE%) >> C:\tools\vcpkg\triplets\custom-triplet.cmake
