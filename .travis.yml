@@ -61,4 +61,5 @@ before_script:
   - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
     
 script:
+  - export CTEST_OUTPUT_ON_FAILURE=TRUE
   - cmake --build . && git lfs pull -X "" && cmake --build . --target test

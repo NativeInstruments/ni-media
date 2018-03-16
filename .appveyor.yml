@@ -9,6 +9,7 @@ environment:
   CRT_LINKAGE: dynamic
   LIBRARY_LINKAGE: static
   CONFIG: Release
+  CTEST_OUTPUT_ON_FAILURE: 1
 
   matrix:
     - GENERATOR: Visual Studio 15 2017
