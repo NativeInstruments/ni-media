@@ -33,11 +33,17 @@ class ifvectorstream : public ifstream
 {
 
 public:
-    ifvectorstream() = default;
+    ifvectorstream();
+
     ifvectorstream( std::vector<char> vec, const info_type& info );
     ifvectorstream( std::vector<char> vec, info_type::container_type container );
 
-    ifvectorstream( ifvectorstream&& );
+    ifvectorstream( ifstream&& );
+
+    ifvectorstream( ifvectorstream&& other );
     ifvectorstream& operator=( ifvectorstream&& );
+
+protected:
+    ifvectorstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
 };
 }

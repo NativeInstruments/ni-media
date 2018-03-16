@@ -47,9 +47,9 @@ namespace detail
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline audio::istream_info parse_reference_file( const std::string& file_name )
+inline audio::ifstream_info parse_reference_file( const std::string& file_name )
 {
-    audio::istream_info info;
+    audio::ifstream_info info;
 
     const auto separator = boost::char_separator<char>{"."};
     const auto tokens    = boost::tokenizer<boost::char_separator<char>>{file_name, separator};

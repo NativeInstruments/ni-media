@@ -54,17 +54,23 @@ public:
         wma
     };
 
+    void num_frames( size_t num_frames );
+    size_t num_frames() const;
+
+    size_t num_samples() const;
+    size_t num_bytes() const;
+
     void codec( codec_type value );
     auto codec() const -> codec_type;
 
     void container( container_type value );
     auto container() const -> container_type;
 
-
     friend bool operator==( const ifstream_info& lhs, const ifstream_info& rhs );
     friend bool operator!=( const ifstream_info& lhs, const ifstream_info& rhs );
 
 private:
+    size_t         m_num_frames = 0;
     container_type m_container;
     codec_type     m_codec;
 };

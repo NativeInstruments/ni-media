@@ -35,7 +35,7 @@ class ofstream : public ostream
 public:
     using info_type = ofstream_info;
 
-    ofstream() = default;
+    ofstream();
 
     ofstream( ofstream&& );
     ofstream& operator=( ofstream&& );
@@ -43,7 +43,7 @@ public:
     const info_type& info() const override;
 
 protected:
-    using ostream::ostream;
+    ofstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
 };
 
 } // namespace audio

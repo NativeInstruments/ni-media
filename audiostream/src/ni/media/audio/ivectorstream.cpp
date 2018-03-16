@@ -23,36 +23,55 @@
 #include <ni/media/audio/ivectorstream.h>
 
 #include <ni/media/audio/source/container_source.h>
+#include <ni/media/iostreams/stream_buffer.h>
 
 #include <iterator>
 
 
 namespace audio
 {
+
 //----------------------------------------------------------------------------------------------------------------------
 
-ivectorstream::ivectorstream( std::vector<char> vec, const istream::info_type& info )
+ivectorstream::ivectorstream( std::unique_ptr<streambuf> sb, std::unique_ptr<ivectorstream::info_type> info )
+: istream( std::move( sb ), std::move( info ) )
 {
-    istream::operator=( container_source<std::vector<char>, istream::info_type>( std::move( vec ), info ) );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ivectorstream::ivectorstream()
+: istream( nullptr, std::make_unique<info_type>() )
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ivectorstream::ivectorstream( std::vector<char> vec, const info_type& info )
+: ivectorstream( make_stream_buffer( container_source<std::vector<char>, info_type>( std::move( vec ), info ) ),
+                 make_info( info ) )
+{
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 ivectorstream::ivectorstream( istream&& other )
+: ivectorstream()
 {
     if ( other.good() )
     {
         other.frame_seekg( 0 );
-        auto vec = std::vector<char>( other.info().num_bytes() );
-        other.read( vec.data(), other.info().num_bytes() );
-        istream::operator=( container_source<std::vector<char>, istream::info_type>( std::move( vec ), other.info() ) );
+        auto beg = std::istreambuf_iterator<char>( other.rdbuf() );
+        auto end = std::istreambuf_iterator<char>();
+        auto vec = std::vector<char>( beg, end );
+        *this    = ivectorstream( std::move( vec ), other.info() );
     }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 ivectorstream::ivectorstream( ivectorstream&& other )
-: istream( static_cast<istream&&>( std::move( other ) ) )
+: istream( std::move( other ) )
 {
 }
 
@@ -60,9 +79,8 @@ ivectorstream::ivectorstream( ivectorstream&& other )
 
 ivectorstream& ivectorstream::operator=( ivectorstream&& other )
 {
-    istream::operator=( static_cast<istream&&>( std::move( other ) ) );
+    istream::operator=( std::move( other ) );
     return *this;
 }
-
 
 } // namespace audio

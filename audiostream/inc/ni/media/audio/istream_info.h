@@ -29,19 +29,6 @@ namespace audio
 
 class istream_info : public stream_info
 {
-
-public:
-    void   num_frames( size_t num_frames );
-    size_t num_frames() const;
-
-    size_t num_samples() const;
-    size_t num_bytes() const;
-
-    friend bool operator==( const istream_info& lhs, const istream_info& rhs );
-    friend bool operator!=( const istream_info& lhs, const istream_info& rhs );
-
-private:
-    size_t m_num_frames = 0;
 };
 
 } // namespace audio

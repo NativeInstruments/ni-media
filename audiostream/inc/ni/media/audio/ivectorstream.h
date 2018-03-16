@@ -32,7 +32,7 @@ namespace audio
 class ivectorstream : public istream
 {
 public:
-    ivectorstream() = default;
+    ivectorstream();
 
     ivectorstream( std::vector<char> vec, const info_type& info );
 
@@ -40,5 +40,8 @@ public:
 
     ivectorstream( ivectorstream&& );
     ivectorstream& operator=( ivectorstream&& );
+
+protected:
+    ivectorstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
 };
 }

@@ -23,6 +23,7 @@
 #pragma once
 
 #include <ni/media/audio/ostream_info.h>
+#include <ni/media/audio/streambuf.h>
 
 #include <ni/media/pcm/algorithm/copy.h>
 #include <ni/media/pcm/iterator.h>
@@ -43,16 +44,7 @@ namespace audio
 class ostream : protected std::ostream
 {
 public:
-    ostream();
-
-    template <class AudioSink>
-    ostream( AudioSink sink );
-
-    ostream( const ostream& ) = delete;
-    ostream( ostream&& );
-
-    ostream& operator=( const ostream& ) = delete;
-    ostream& operator                    =( ostream&& );
+    using info_type = ostream_info;
 
     // - std::ostream
 
@@ -88,13 +80,20 @@ public:
 
     // - stream_info
 
-    using info_type = ostream_info;
-
     virtual auto info() const -> const info_type&;
 
+protected:
+    ostream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
+
+    ostream( const ostream& ) = delete;
+    ostream& operator=( const ostream& ) = delete;
+
+    ostream( ostream&& );
+    ostream& operator=( ostream&& );
+
 private:
-    std::unique_ptr<info_type>      m_info;
-    std::unique_ptr<std::streambuf> m_streambuf;
+    std::unique_ptr<streambuf> m_streambuf;
+    std::unique_ptr<info_type> m_info;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

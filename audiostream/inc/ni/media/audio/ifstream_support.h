@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2018 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,19 @@
 
 #pragma once
 
-#include <ni/media/audio/ofstream.h>
-#include <ni/media/audio/wav/wav_ofstream_info.h>
+#include <ni/media/audio/ifstream_info.h>
+
+#include <map>
+#include <string>
 
 namespace audio
 {
 
-class wav_ofstream : public ofstream
-{
-
-public:
-    using info_type = wav_ofstream_info;
-
-    wav_ofstream();
-
-    wav_ofstream( wav_ofstream&& );
-    wav_ofstream& operator=( wav_ofstream&& );
-
-    wav_ofstream( const std::string& file, const info_type& info );
-
-    const info_type& info() const override;
-};
-
+// a map of extension => container type
+using ifstream_container_map = std::map<std::string, ifstream_info::container_type>;
+auto ifstream_supported_formats() -> const ifstream_container_map&;
+    
 } // namespace audio
+
+
+//----------------------------------------------------------------------------------------------------------------------
