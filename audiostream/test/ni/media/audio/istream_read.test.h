@@ -78,14 +78,13 @@ protected:
         std::vector<char> buffer( m_source.size() * Format().bitwidth() / 8 );
         boost::copy( m_source, pcm::make_iterator<Value>( buffer.begin(), Format() ) );
         audio::ivectorstream::info_type info;
-        info.num_frames( m_source.size() );
         info.format( Format() );
         m_istream = audio::ivectorstream( buffer, info );
     }
 
     bool full_unformatted_read()
     {
-        std::vector<char> buffer( m_istream.info().num_bytes() );
+        std::vector<char> buffer( m_source.size() * m_istream.info().bytes_per_sample() );
         m_istream.read( buffer.data(), buffer.size() );
         auto destination = boost::copy_range<Container>( buffer | pcm::converted_to<Value>( Format() ) );
         return boost::equal( m_source, destination );
@@ -109,7 +108,7 @@ protected:
 
     bool full_range_read()
     {
-        Container destination( m_istream.info().num_samples() );
+        Container destination( m_source.size() );
         m_istream >> destination;
         return boost::equal( m_source, destination );
     }
@@ -122,25 +121,15 @@ protected:
         while ( m_istream >> buffer )
             destination.insert( destination.end(), buffer.begin(), buffer.end() );
 
-        auto source = m_source;
-
-        auto remainder = m_istream.info().num_samples() % num_samples;
-        if ( remainder )
-            source.insert( source.end(), num_samples - remainder, Value{} );
-
-        return boost::equal( source, destination );
+        return std::equal( m_source.begin(), m_source.end(), destination.begin() );
     }
 
     bool full_value_read()
     {
-        Container destination;
-        Value     value;
+        Container destination( m_source.size() );
 
-        for ( auto n = m_istream.info().num_samples(); n-- > 0; )
-        {
+        for ( auto& value : destination )
             m_istream >> value;
-            destination.push_back( value );
-        }
 
         return boost::equal( m_source, destination );
     }

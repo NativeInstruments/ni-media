@@ -20,51 +20,20 @@
 // SOFTWARE.
 //
 
-#include <ni/media/audio/iotools.h>
-#include <ni/media/audio/ofstream.h>
+#include <gtest/gtest.h>
 
-#include <ni/media/audio/sink.h>
+#include <ni/media/audio/ifvectorstream.h>
 
-#include <boost/predef.h>
-
-namespace audio
-{
+#include <boost/range/algorithm/equal.hpp>
 
 //----------------------------------------------------------------------------------------------------------------------
 
-ofstream::ofstream()
-: ostream( nullptr, std::make_unique<info_type>() )
+TEST( ni_media_audio_ifvectorstream, default_constructor )
 {
+    audio::ifvectorstream is;
+
+    EXPECT_EQ( -1, is.tellg() );
+    EXPECT_TRUE( is.bad() );
+    
+    EXPECT_EQ( is.info().num_bytes(), 0 );
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-ofstream::ofstream( ofstream&& other )
-: ostream( std::move( other ) )
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-ofstream& ofstream::operator=( ofstream&& other )
-{
-    ostream::operator=( std::move( other ) );
-    return *this;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-ofstream::ofstream( std::unique_ptr<streambuf> sb, std::unique_ptr<ofstream::info_type> info )
-: ostream( std::move( sb ), std::move( info ) )
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-const ofstream::info_type& ofstream::info() const
-{
-    return static_cast<const info_type&>( ostream::info() );
-}
-
-} // namespace pcm

@@ -24,16 +24,53 @@
 #include <ni/media/audio/iotools.h>
 
 #include <ni/media/audio/source.h>
+#include <ni/media/iostreams/stream_buffer.h>
 
 #include <boost/predef.h>
 
 namespace audio
 {
 
-namespace
-{
+//----------------------------------------------------------------------------------------------------------------------
 
-istream make_istream( const std::string& file, ifstream_info::container_type container, size_t stream_index = 0 )
+ifstream::ifstream()
+: istream( nullptr, std::make_unique<info_type>() )
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ifstream::ifstream( std::unique_ptr<streambuf> sb, std::unique_ptr<info_type> info )
+: istream( std::move( sb ), std::move( info ) )
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ifstream::ifstream( const std::string& file )
+: ifstream()
+{
+#if NIMEDIA_ENABLE_ITUNES_DECODING
+    if ( is_itunes_url( file ) )
+    {
+        auto source = avassetreader_source( file, 0 );
+        auto info   = source.info();
+        *this = ifstream( make_stream_buffer( std::move( source ) ), std::make_unique<info_type>( std::move( info ) ) );
+        return;
+    }
+#endif
+
+    auto container = ifstream_container( file );
+    if ( !container )
+        throw std::runtime_error( "Unsupported file extension" );
+
+    *this = ifstream( file, *container );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ifstream::ifstream( const std::string& file, ifstream_info::container_type container, size_t stream_index )
+: ifstream()
 {
     using container_type = ifstream_info::container_type;
 
@@ -42,87 +79,65 @@ istream make_istream( const std::string& file, ifstream_info::container_type con
         throw std::runtime_error( "Unsupported stream index" );
     }
 
+    auto make_ifstream = []( auto&& source ) {
+        auto info = source.info();
+        return ifstream( make_stream_buffer( std::move( source ) ),
+                         std::make_unique<decltype( info )>( std::move( info ) ) );
+    };
+
     switch ( container )
     {
-
 #if NIMEDIA_ENABLE_AIFF_DECODING
         case container_type::aiff:
-            return { aiff_file_source( file ) };
+            *this = make_ifstream( aiff_file_source( file ) );
+            break;
 #endif
 
 #if NIMEDIA_ENABLE_FLAC_DECODING
         case container_type::flac:
-            return { flac_file_source( file ) };
+            *this = make_ifstream( flac_file_source( file ) );
+            break;
 #endif
 
 #if NIMEDIA_ENABLE_MP3_DECODING
         case container_type::mp3:
-            return { mp3_file_source( file ) };
+            *this = make_ifstream( mp3_file_source( file ) );
+            break;
 #endif
 
 #if NIMEDIA_ENABLE_MP4_DECODING
         case container_type::mp4:
-            return { mp4_file_source( file, stream_index ) };
+            *this = make_ifstream( mp4_file_source( file, stream_index ) );
+            break;
 #endif
 
 #if NIMEDIA_ENABLE_OGG_DECODING
         case container_type::ogg:
-            return { ogg_file_source( file ) };
+            *this = make_ifstream( ogg_file_source( file ) );
+            break;
 #endif
 
 #if NIMEDIA_ENABLE_WAV_DECODING
         case container_type::wav:
-            return { wav_file_source( file ) };
+            *this = make_ifstream( wav_file_source( file ) );
+            break;
 #endif
 
 #if NIMEDIA_ENABLE_WMA_DECODING
         case container_type::wma:
-            return { wma_file_source( file ) };
+            *this = make_ifstream( wma_file_source( file ) );
+            break;
 #endif
 
         default:
-            break;
+            throw std::runtime_error( "Unsupported container_type" );
     }
-
-    throw std::runtime_error( "Unsupported container_type" );
-}
-
-istream make_istream( const std::string& file )
-{
-#if NIMEDIA_ENABLE_ITUNES_DECODING
-    if ( is_itunes_url( file ) )
-    {
-        return { avassetreader_source( file, 0 ) };
-    }
-#endif
-    
-    if ( auto container = ifstream_container( file ) )
-        return make_istream( file, *container );
-
-    throw std::runtime_error( "Unsupported file extension" );
-}
-
-} // namespace
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-ifstream::ifstream( const std::string& file )
-{
-    istream::operator=( make_istream( file ) );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-ifstream::ifstream( const std::string& file, ifstream_info::container_type container, size_t stream_index )
-{
-    istream::operator=( make_istream( file, container, stream_index ) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 ifstream::ifstream( ifstream&& other )
-: istream( static_cast<istream&&>( std::move( other ) ) )
+: istream( std::move( other ) )
 {
 }
 
@@ -130,7 +145,7 @@ ifstream::ifstream( ifstream&& other )
 
 ifstream& ifstream::operator=( ifstream&& other )
 {
-    istream::operator=( static_cast<istream&&>( std::move( other ) ) );
+    istream::operator=( std::move( other ) );
     return *this;
 }
 
