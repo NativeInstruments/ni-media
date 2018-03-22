@@ -37,6 +37,9 @@ namespace pcm
 namespace detail
 {
 
+template <class, class, class, class>
+class iterator;
+
 template <class Value, class Iterator, class Format>
 struct proxy : Format
 {

@@ -29,6 +29,34 @@ namespace audio
 
 //----------------------------------------------------------------------------------------------------------------------
 
+void ifstream_info::num_frames( size_t num_frames )
+{
+    m_num_frames = num_frames;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+size_t ifstream_info::num_frames() const
+{
+    return m_num_frames;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+size_t ifstream_info::num_samples() const
+{
+    return num_frames() * num_channels();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+size_t ifstream_info::num_bytes() const
+{
+    return num_samples() * bytes_per_sample();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 void ifstream_info::codec( codec_type value )
 {
     m_codec = value;
@@ -61,7 +89,8 @@ bool operator==( const ifstream_info& lhs, const ifstream_info& rhs )
 {
     return static_cast<const istream_info&>( lhs ) == static_cast<const istream_info&>( rhs )
            && static_cast<const fstream_info&>( lhs ) == static_cast<const fstream_info&>( rhs )
-           && std::tie( lhs.m_container, lhs.m_codec ) == std::tie( rhs.m_container, rhs.m_codec );
+           && std::tie( lhs.m_num_frames, lhs.m_container, lhs.m_codec )
+                  == std::tie( rhs.m_num_frames, rhs.m_container, rhs.m_codec );
 }
 
 //----------------------------------------------------------------------------------------------------------------------

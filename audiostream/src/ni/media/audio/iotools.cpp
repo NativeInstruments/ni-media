@@ -21,6 +21,7 @@
 //
 
 #include <ni/media/audio/iotools.h>
+#include <ni/media/audio/ifstream_support.h>
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -32,16 +33,12 @@
 namespace audio
 {
 
-namespace
+auto ifstream_supported_formats() -> const ifstream_container_map&
 {
-
-
-auto ifstream_map() -> const std::map<std::string, ifstream_info::container_type>&
-{
-    using container_type = ifstream_info::container_type;
+    using container_type = ifstream_container_map::mapped_type;
 
     // clang-format off
-    static const std::map<std::string, container_type> map
+    static const ifstream_container_map map
     {
 #if NIMEDIA_ENABLE_AIFF_DECODING
         {".aif", container_type::aiff},
@@ -72,6 +69,11 @@ auto ifstream_map() -> const std::map<std::string, ifstream_info::container_type
     // clang-format on
     return map;
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+    
+namespace
+{
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -141,7 +143,7 @@ std::string extension_from_url( const std::string& url )
 
 auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_info::container_type>
 {
-    return container_of( url, ifstream_map() );
+    return container_of( url, ifstream_supported_formats() );
 }
 
 

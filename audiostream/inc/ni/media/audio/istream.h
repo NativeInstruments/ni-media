@@ -44,16 +44,7 @@ namespace audio
 class istream : protected std::istream
 {
 public:
-    istream();
-
-    template <class AudioSource>
-    istream( AudioSource source );
-
-    istream( const istream& ) = delete;
-    istream( istream&& );
-
-    istream& operator=( istream& ) = delete;
-    istream& operator              =( istream&& );
+    using info_type = istream_info;
 
     // - std::istream
 
@@ -100,14 +91,20 @@ public:
     auto sample_tellg() -> pos_type;
 
     // - stream_info
-
-    using info_type = istream_info;
-
     virtual auto info() const -> const info_type&;
 
+protected:
+    istream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
+
+    istream( const istream& ) = delete;
+    istream& operator=( istream& ) = delete;
+
+    istream( istream&& );
+    istream& operator=( istream&& );
+
 private:
-    std::unique_ptr<info_type> m_info;
     std::unique_ptr<streambuf> m_streambuf;
+    std::unique_ptr<info_type> m_info;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

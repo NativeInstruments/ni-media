@@ -27,13 +27,13 @@ add_src_group (FILES_test_all test_iostreams FILES_test_iostreams)
 #--------------------------------------------------------------------
 # audio
 
-add_src_file  (FILES_test_audio "ni/media/audio/istream.test.cpp" )
 add_src_file  (FILES_test_audio "ni/media/audio/istream_read.test.h")
 add_src_file  (FILES_test_audio "ni/media/audio/istream_read_signed_integer.test.cpp" )
 add_src_file  (FILES_test_audio "ni/media/audio/istream_read_unsigned_integer.test.cpp")
 add_src_file  (FILES_test_audio "ni/media/audio/istream_read_floating_point.test.cpp"  )
 add_src_file  (FILES_test_audio "ni/media/audio/ifstream.test.cpp" )
 add_src_file  (FILES_test_audio "ni/media/audio/ifstream_robustness.test.cpp")
+add_src_file  (FILES_test_audio "ni/media/audio/ifvectorstream.test.cpp" )
 add_src_file  (FILES_test_audio "ni/media/audio/ivectorstream.test.cpp" )
 add_src_file  (FILES_test_audio "ni/media/audio/ofstream.test.cpp" )
 add_src_group (FILES_test_all test_audio FILES_test_audio)

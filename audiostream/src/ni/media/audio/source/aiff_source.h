@@ -122,12 +122,15 @@ auto readAiffHeader( Source& src )
         {
             static const size_t commChunkSize = sizeof( aiff::CommonChunk );
             aiff::CommonChunk   commChunk;
-            bool                littleEndian = false;
 
             if ( aiffTag.length < commChunkSize || !fetch( src, commChunk ) )
             {
                 throw std::runtime_error( "Could not read \'COMM\' chunk." );
             }
+
+            pcm::number_type    numberType = pcm::signed_integer;
+            size_t              bitWidth = commChunk.sampleSize;
+            bool                littleEndian = false;
 
             if ( aiffTag.subType == aiff::tags::aifc )
             {
@@ -149,13 +152,23 @@ auto readAiffHeader( Source& src )
                     case aiff::tags::sowt:
                         littleEndian = true;
                         break;
+                    case aiff::tags::fl32:
+                    case aiff::tags::FL32:
+                        bitWidth = 32;
+                        numberType = pcm::floating_point;
+                        break;
+                    case aiff::tags::fl64:
+                    case aiff::tags::FL64:
+                        bitWidth = 64;
+                        numberType = pcm::floating_point;
+                        break;
                     default:
                         throw std::runtime_error( "Unsupported compressor." );
                 }
             }
 
             auto format = pcm::format(
-                pcm::signed_integer, commChunk.sampleSize, littleEndian ? pcm::little_endian : pcm::big_endian );
+                numberType, bitWidth, littleEndian ? pcm::little_endian : pcm::big_endian );
 
             info.format( format );
             info.num_channels( commChunk.numChannels );

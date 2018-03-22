@@ -50,7 +50,7 @@ public:
     std::string                 m_avAssetUrl;
     size_t                      m_streamIndex;
     offset_type                 m_framePos = 0;
-    audio::istream_info         m_info;
+    audio::ifstream_info        m_info;
     
 private:
     AVAssetReader *             m_reader = nullptr;
@@ -82,10 +82,10 @@ private:
 namespace
 {
 
-audio::istream_info buildOutStreamInfo( AVAssetReaderTrackOutput * output, size_t beginOffsetFrames )
+audio::ifstream_info buildOutStreamInfo( AVAssetReaderTrackOutput * output, size_t beginOffsetFrames )
 {
     using namespace pcm;
-    audio::istream_info info;
+    audio::ifstream_info info;
 
     NSDictionary<NSString*,id> * settings = output.outputSettings;
     if(settings == nil)
@@ -312,9 +312,9 @@ bool avassetreader_source::is_open() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-audio::istream_info avassetreader_source::info() const
+audio::ifstream_info avassetreader_source::info() const
 {
-    return m_impl ? m_impl->m_info : audio::istream_info();
+    return m_impl ? m_impl->m_info : audio::ifstream_info();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -398,11 +398,14 @@ std::streamsize avassetreader_source::Impl::read( char* dst, std::streamsize siz
         {
             // frames
             offset_type totalFrames = static_cast<offset_type>(m_info.num_frames());
-            offset_type remain = totalFrames - m_framePos - (numCharsRead / frameSize);
-            // bytes
-            remain *= frameSize;
-            offset_type advance = std::min(remain, static_cast<offset_type>(size - numCharsRead));
-            numCharsRead += advance;
+            if(totalFrames > m_framePos)
+            {
+                offset_type remain = totalFrames - m_framePos - (numCharsRead / frameSize);
+                // bytes
+                remain *= frameSize;
+                offset_type advance = std::min(remain, static_cast<offset_type>(size - numCharsRead));
+                numCharsRead += advance;
+            }
         }
 
         m_framePos += numCharsRead / frameSize;
