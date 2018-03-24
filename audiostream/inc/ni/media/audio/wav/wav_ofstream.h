@@ -30,13 +30,14 @@ namespace audio
 
 class wav_ofstream : public ofstream
 {
-    using base_t = ofstream;
 
 public:
     using info_type = wav_ofstream_info;
 
-    wav_ofstream()                 = default;
-    wav_ofstream( wav_ofstream&& ) = default;
+    wav_ofstream();
+
+    wav_ofstream( wav_ofstream&& );
+    wav_ofstream& operator=( wav_ofstream&& );
 
     wav_ofstream( const std::string& file, const info_type& info );
 

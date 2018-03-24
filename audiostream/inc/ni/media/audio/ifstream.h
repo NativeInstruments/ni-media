@@ -35,7 +35,8 @@ class ifstream : public istream
 public:
     using info_type = ifstream_info;
 
-    ifstream() = default;
+    ifstream();
+
     ifstream( const std::string& file );
     ifstream( const std::string& file, info_type::container_type container, size_t stream_index = 0 );
 
@@ -43,5 +44,8 @@ public:
     ifstream& operator=( ifstream&& );
 
     const info_type& info() const override;
+
+protected:
+    ifstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
 };
 }

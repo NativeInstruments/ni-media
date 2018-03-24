@@ -127,7 +127,7 @@ if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE
 
     else()
 
-      foreach( lib IN ITEMS CoreFoundation AVFoundation CoreMedia )
+      foreach( lib IN ITEMS Foundation AVFoundation CoreMedia )
         find_library(${lib}_FRAMEWORK ${lib})
         if( NOT ${lib}_FRAMEWORK )
           message(FATAL_ERROR "could not locate ${lib}.framework")
@@ -204,8 +204,8 @@ add_src_file  (FILES_media_audio "src/ni/media/audio/ieee80.h"                  
 add_src_file  (FILES_media_audio "src/ni/media/audio/iotools.cpp"          WITH_HEADER        )
 add_src_file  (FILES_media_audio "src/ni/media/audio/stream_info.cpp"      WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/istream.cpp"          WITH_PUBLIC_HEADER )
-add_src_file  (FILES_media_audio "src/ni/media/audio/istream_info.cpp"     WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ostream.cpp"          WITH_PUBLIC_HEADER )
+add_src_file  (FILES_media_audio "inc/ni/media/audio/istream_info.h"                          )
 add_src_file  (FILES_media_audio "inc/ni/media/audio/ostream_info.h"                          )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ivectorstream.cpp"    WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ifstream.cpp"         WITH_PUBLIC_HEADER )
@@ -213,6 +213,7 @@ add_src_file  (FILES_media_audio "src/ni/media/audio/ofstream.cpp"         WITH_
 add_src_file  (FILES_media_audio "src/ni/media/audio/ifvectorstream.cpp"   WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/fstream_info.cpp"     WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ifstream_info.cpp"    WITH_PUBLIC_HEADER )
+add_src_file  (FILES_media_audio "inc/ni/media/audio/ifstream_support.h"                      )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ofstream_info.cpp"    WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/source.h"                                )
 add_src_file  (FILES_media_audio "src/ni/media/audio/sink.h"                                  )

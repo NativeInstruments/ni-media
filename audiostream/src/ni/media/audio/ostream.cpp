@@ -32,34 +32,21 @@ namespace audio
 
 //----------------------------------------------------------------------------------------------------------------------
 
-ostream::ostream()
-: std::ostream( nullptr )
-, m_info( new info_type() )
+ostream::ostream( std::unique_ptr<streambuf> sb, std::unique_ptr<ostream::info_type> info )
+: std::ostream( sb.get() )
+, m_streambuf( std::move( sb ) )
+, m_info( std::move( info ) )
 {
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <class AudioSink>
-ostream::ostream( AudioSink sink )
-: std::ostream( nullptr )
-, m_info( make_info( sink.info() ) )
-, m_streambuf( make_stream_buffer( std::move( sink ) ) )
-{
-    std::ostream::rdbuf( m_streambuf.get() );
-}
-
-template ostream::ostream( wav_file_sink );
-template ostream::ostream( aiff_file_sink );
 
 //----------------------------------------------------------------------------------------------------------------------
 
 ostream::ostream( ostream&& other )
 : std::ostream( std::move( other ) )
-, m_info( std::move( other.m_info ) )
 , m_streambuf( std::move( other.m_streambuf ) )
+, m_info( std::move( other.m_info ) )
 {
-    std::ostream::set_rdbuf( m_streambuf.get() );
+    set_rdbuf( m_streambuf.get() );
 }
 
 //----------------------------------------------------------------------------------------------------------------------

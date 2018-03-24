@@ -32,8 +32,16 @@ namespace audio
 
 //----------------------------------------------------------------------------------------------------------------------
 
+ofstream::ofstream()
+: ostream( nullptr, std::make_unique<info_type>() )
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
 ofstream::ofstream( ofstream&& other )
-: ostream( static_cast<ostream&&>( std::move( other ) ) )
+: ostream( std::move( other ) )
 {
 }
 
@@ -41,8 +49,15 @@ ofstream::ofstream( ofstream&& other )
 
 ofstream& ofstream::operator=( ofstream&& other )
 {
-    ostream::operator=( static_cast<ostream&&>( std::move( other ) ) );
+    ostream::operator=( std::move( other ) );
     return *this;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ofstream::ofstream( std::unique_ptr<streambuf> sb, std::unique_ptr<ofstream::info_type> info )
+: ostream( std::move( sb ), std::move( info ) )
+{
 }
 
 //----------------------------------------------------------------------------------------------------------------------

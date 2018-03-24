@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <ni/media/audio/istream_info.h>
+#include <ni/media/audio/ifstream_info.h>
 
 #include <boost/iostreams/categories.hpp>
 #include <boost/iostreams/positioning.hpp>
@@ -52,7 +52,7 @@ public:
     
     bool is_open() const;
     
-    auto info() const -> audio::istream_info;
+    auto info() const -> audio::ifstream_info;
 
     auto seek( boost::iostreams::stream_offset, BOOST_IOS::seekdir = BOOST_IOS::beg ) -> std::streampos;
     auto read( char_type*, std::streamsize ) -> std::streamsize;

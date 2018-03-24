@@ -38,29 +38,19 @@ namespace audio
 
 //----------------------------------------------------------------------------------------------------------------------
 
-istream::istream()
-: std::istream( nullptr )
-, m_info( std::make_unique<info_type>() )
+istream::istream( std::unique_ptr<streambuf> sb, std::unique_ptr<istream::info_type> info )
+: std::istream( sb.get() )
+, m_streambuf( std::move( sb ) )
+, m_info( std::move( info ) )
 {
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <class AudioSource>
-istream::istream( AudioSource source )
-: std::istream( nullptr )
-, m_info( make_info( source.info() ) )
-, m_streambuf( make_stream_buffer( std::move( source ) ) )
-{
-    rdbuf( m_streambuf.get() );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 istream::istream( istream&& other )
 : std::istream( std::move( other ) )
-, m_info( std::move( other.m_info ) )
 , m_streambuf( std::move( other.m_streambuf ) )
+, m_info( std::move( other.m_info ) )
 {
     set_rdbuf( m_streambuf.get() );
 }
@@ -164,38 +154,5 @@ auto istream::info() const -> const info_type&
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-
-template istream::istream( container_source<std::vector<char>, ivectorstream::info_type> );
-template istream::istream( container_source<std::vector<char>, ifvectorstream::info_type> );
-
-#if NIMEDIA_ENABLE_AIFF_DECODING
-template istream::istream( aiff_file_source );
-template istream::istream( aiff_vector_source );
-#endif
-
-#if NIMEDIA_ENABLE_FLAC_DECODING
-template istream::istream( flac_file_source );
-#endif
-
-#if NIMEDIA_ENABLE_MP3_DECODING
-template istream::istream( mp3_file_source );
-#endif
-
-#if NIMEDIA_ENABLE_MP4_DECODING
-template istream::istream( mp4_file_source );
-#endif
-
-#if NIMEDIA_ENABLE_OGG_DECODING
-template istream::istream( ogg_file_source );
-#endif
-
-#if NIMEDIA_ENABLE_WAV_DECODING
-template istream::istream( wav_file_source );
-template istream::istream( wav_vector_source );
-#endif
-
-#if NIMEDIA_ENABLE_WMA_DECODING
-template istream::istream( wma_file_source );
-#endif
 
 } // namespace audio

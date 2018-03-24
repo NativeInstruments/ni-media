@@ -50,6 +50,10 @@ constexpr auto inst = big_endian_fourcc( "INST" );
 constexpr auto ssnd = big_endian_fourcc( "SSND" );
 constexpr auto none = big_endian_fourcc( "NONE" );
 constexpr auto sowt = big_endian_fourcc( "sowt" );
+constexpr auto fl32 = big_endian_fourcc( "fl32" );
+constexpr auto FL32 = big_endian_fourcc( "FL32" );
+constexpr auto fl64 = big_endian_fourcc( "fl64" );
+constexpr auto FL64 = big_endian_fourcc( "FL64" );
 
 } // namespace tags
 
