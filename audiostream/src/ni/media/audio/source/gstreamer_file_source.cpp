@@ -25,10 +25,10 @@
 #include <ni/media/audio/iotools.h>
 #include <ni/media/iostreams/positioning.h>
 
-#include <boost/make_unique.hpp>
+#include <gst/app/gstappsink.h>
 
 #include <algorithm>
-#include <gst/app/gstappsink.h>
+#include <chrono>
 
 namespace detail
 {
@@ -183,21 +183,32 @@ void gstreamer_file_source::preroll_pipeline()
 void gstreamer_file_source::fill_format_info( GstStructure*                        caps_struct,
                                               audio::ifstream_info::container_type container )
 {
+
+    using namespace std::chrono;
+
     m_info.container( container );
     m_info.codec( audio::ifstream_info::codec_type::mp3 );
     m_info.lossless( false );
-
-    gint64 num_frames = 0;
-    if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_DEFAULT, &num_frames ) )
-        throw std::runtime_error( "gstreamer_file_source: could not query duration from gstreamer" );
-
-    m_info.num_frames( num_frames );
 
     int sample_rate = 0;
     if ( !gst_structure_get_int( caps_struct, "rate", &sample_rate ) )
         throw std::runtime_error( "gstreamer_file_source: could not query sample rate from gstreamer" );
 
     m_info.sample_rate( sample_rate );
+
+    gint64 num_frames = 0;
+    if ( gst_element_query_duration( m_pipeline.get(), GST_FORMAT_DEFAULT, &num_frames ) && num_frames >= 0 )
+    {
+        m_info.num_frames( size_t( num_frames ) );
+    }
+    else // retrieving num_frames failed: fallback to retrieve time information instead (less precise)
+    {
+        gint64 duration_ns = 0; // in nanoseconds
+        if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_TIME, &duration_ns ) )
+            throw std::runtime_error( "gstreamer_file_source: could not query duration from gstreamer" );
+
+        m_info.num_frames( size_t( duration<double>( nanoseconds( duration_ns ) ).count() * sample_rate ) );
+    }
 
     int num_channels = 0;
     if ( !gst_structure_get_int( caps_struct, "channels", &num_channels ) )
