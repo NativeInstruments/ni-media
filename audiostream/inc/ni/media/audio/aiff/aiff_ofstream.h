@@ -30,13 +30,13 @@ namespace audio
 
 class aiff_ofstream : public ofstream
 {
-    using base_t = ofstream;
 
 public:
     using info_type = aiff_ofstream_info;
 
-    aiff_ofstream()                  = default;
-    aiff_ofstream( aiff_ofstream&& ) = default;
+    aiff_ofstream();
+    aiff_ofstream( aiff_ofstream&& );
+    aiff_ofstream& operator=( aiff_ofstream&& );
 
     aiff_ofstream( const std::string& file, const info_type& info );
 

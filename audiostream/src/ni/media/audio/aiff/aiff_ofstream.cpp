@@ -22,14 +22,37 @@
 
 #include <ni/media/audio/aiff/aiff_ofstream.h>
 #include <ni/media/audio/sink/aiff_file_sink.h>
+#include <ni/media/iostreams/stream_buffer.h>
 
 namespace audio
 {
 
 //----------------------------------------------------------------------------------------------------------------------
 
+aiff_ofstream::aiff_ofstream()
+: ofstream( nullptr, std::make_unique<info_type>() )
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+aiff_ofstream::aiff_ofstream( aiff_ofstream&& other )
+: ofstream( std::move( other ) )
+{
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+aiff_ofstream& aiff_ofstream::operator=( aiff_ofstream&& other )
+{
+    ofstream::operator=( std::move( other ) );
+    return *this;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 aiff_ofstream::aiff_ofstream( const std::string& file, const info_type& info )
-: base_t( aiff_file_sink( info, file ) )
+: ofstream( make_stream_buffer( aiff_file_sink( info, file ) ), make_info( info ) )
 {
 }
 
@@ -37,7 +60,7 @@ aiff_ofstream::aiff_ofstream( const std::string& file, const info_type& info )
 
 const aiff_ofstream::info_type& aiff_ofstream::info() const
 {
-    return static_cast<const info_type&>( base_t::info() );
+    return static_cast<const info_type&>( ofstream::info() );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
