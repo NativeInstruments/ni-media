@@ -40,7 +40,7 @@ auto write_aiff_header( Sink& sink )
     write_obj( sink, boost::endian::big_uint32_t( aiff::tags::form ) );
     sink.file_size_offset( sink.tell() );
     write_obj( sink, boost::endian::big_uint32_t( 0 ) );
-    write_obj( sink, boost::endian::big_uint32_t( aiff::tags::aiff ) );
+    write_obj( sink, boost::endian::big_uint32_t( aiff::tags::aifc ) );
 
     // COMM
     write_obj( sink, boost::endian::big_uint32_t( aiff::tags::comm ) );
@@ -52,6 +52,31 @@ auto write_aiff_header( Sink& sink )
     uint8_t extSampleRateBuffer[10];
     double_to_ieee_80( static_cast<double>( sink.info().sample_rate() ), extSampleRateBuffer );
     write_obj( sink, extSampleRateBuffer );
+
+    // compression
+    if ( sink.info().format().endian() == pcm::endian_type::little_endian )
+    {
+        write_obj( sink, boost::endian::big_uint32_t( aiff::tags::sowt ) );
+    }
+    else if ( sink.info().format().number() == pcm::number_type::floating_point )
+    {
+        if ( sink.info().format().bitwidth() == pcm::bitwidth_type::_32bit )
+        {
+            write_obj( sink, boost::endian::big_uint32_t( aiff::tags::fl32 ) );
+        }
+        else if ( sink.info().format().bitwidth() == pcm::bitwidth_type::_64bit )
+        {
+            write_obj( sink, boost::endian::big_uint32_t( aiff::tags::fl64 ) );
+        }
+        else
+        {
+            throw std::runtime_error( "Unknown/unsupported floating point bitwidth" );
+        }
+    }
+    else
+    {
+        write_obj( sink, boost::endian::big_uint32_t( aiff::tags::none ) );
+    }
 
     // SSND
     write_obj( sink, boost::endian::big_uint32_t( aiff::tags::ssnd ) );
