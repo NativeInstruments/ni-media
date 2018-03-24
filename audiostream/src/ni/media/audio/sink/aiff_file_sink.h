@@ -24,7 +24,7 @@
 
 #include <ni/media/audio/sink/aiff_sink.h>
 
-#include <boost/iostreams/device/file.hpp> // basic_file
+#include <boost/iostreams/device/file.hpp>
 
 class aiff_file_sink : public aiff_sink<boost::iostreams::file_sink>
 {
