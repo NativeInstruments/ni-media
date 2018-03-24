@@ -86,7 +86,7 @@ gstreamer_file_source::gstreamer_file_source( const std::string&                
                                               audio::ifstream_info::container_type container,
                                               size_t                               stream )
 : m_pipeline( nullptr, gst_object_unref )
-, m_ring_buffer( new RingBuffer() )
+, m_ring_buffer( std::make_unique<RingBuffer>() )
 {
     init_gstreamer();
     setup_source( path, container );
@@ -259,38 +259,23 @@ std::streampos gstreamer_file_source::seek( offset_type off, BOOST_IOS::seekdir 
 {
     assert( 0 == off % m_info.bytes_per_frame() );
 
-    int64_t newPosition = 0;
+    const auto beg = std::streampos( 0 );
+    const auto end = std::streampos( info().num_bytes() );
+    const auto pos = absolute_position( m_position, beg, end, off, way );
 
-    if ( way == BOOST_IOS::seekdir::_S_beg )
+    if ( m_position != pos )
     {
-        newPosition = off;
-    }
-    else if ( way == BOOST_IOS::seekdir::_S_cur )
-    {
-        newPosition = m_position + off;
-    }
-    else if ( way == BOOST_IOS::seekdir::_S_end )
-    {
-        int64_t end = 0;
-        if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_BYTES, &end ) )
+        if ( gst_element_seek_simple( m_pipeline.get(),
+                                      GST_FORMAT_BYTES,
+                                      ( GstSeekFlags )( GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE ),
+                                      pos ) )
         {
-            throw std::runtime_error(
-                "gstreamer_file_source: seeking from end of file impossible - could not query duration" );
+            m_ring_buffer->flush();
+            m_position = pos;
         }
-        newPosition = end + off;
-    }
-
-    if ( m_position != newPosition )
-    {
-        m_position = newPosition;
-        m_ring_buffer->flush();
-
-        if ( !gst_element_seek_simple( m_pipeline.get(),
-                                       GST_FORMAT_BYTES,
-                                       ( GstSeekFlags )( GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE ),
-                                       m_position ) )
+        else
         {
-            throw std::runtime_error( "gstreamer_file_source: seeking failed" );
+            return -1;
         }
     }
 
