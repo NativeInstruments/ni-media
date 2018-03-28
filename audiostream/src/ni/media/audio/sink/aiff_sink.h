@@ -44,7 +44,7 @@ auto write_aiff_header( Sink& sink )
 
     // COMM
     write_obj( sink, boost::endian::big_uint32_t( aiff::tags::comm ) );
-    write_obj( sink, boost::endian::big_uint32_t( 18 ) );
+    write_obj( sink, boost::endian::big_uint32_t( 22 ) );
     write_obj( sink, boost::endian::big_uint16_t( sink.info().num_channels() ) );
     sink.num_frames_offset( sink.tell() );
     write_obj( sink, boost::endian::big_uint32_t( 0 ) );
