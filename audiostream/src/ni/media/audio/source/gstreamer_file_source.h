@@ -78,5 +78,5 @@ private:
 
     using RingBuffer = detail::RingBuffer<char, 65536>;
     std::unique_ptr<RingBuffer> m_ring_buffer;
-    int64_t                     m_position = 0;
+    std::streampos              m_position = 0;
 };

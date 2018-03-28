@@ -268,7 +268,7 @@ std::streampos gstreamer_file_source::seek( offset_type off, BOOST_IOS::seekdir 
         if ( gst_element_seek_simple( m_pipeline.get(),
                                       GST_FORMAT_BYTES,
                                       ( GstSeekFlags )( GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE ),
-                                      pos ) )
+                                      (gint64) pos ) )
         {
             m_ring_buffer->flush();
             m_position = pos;
