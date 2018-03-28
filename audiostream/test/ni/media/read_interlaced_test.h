@@ -28,7 +28,7 @@
 
 #include <ni/media/test_helper.h>
 
-#include <boost/range/algorithm/equal.hpp>
+#include <boost/range/algorithm/transform.hpp>
 #include <boost/range/iterator_range.hpp>
 
 
@@ -112,11 +112,25 @@ void read_interlaced_test( Stream&&       stream,
 
     auto samples2 = std::vector<float>( buffer2.begin(), buffer2.begin() + boost::size( samples1 ) );
 
-    auto float_compare = []( float lhs, float rhs ) {
-        return std::abs( lhs - rhs ) <= std::numeric_limits<float>::epsilon();
-    };
+    auto diff = std::vector<float>( samples1.size() );
+    boost::transform( samples1, samples2, diff.begin(), std::minus<float>{} );
 
-    bool samples_are_equal = boost::equal( samples1, samples2 );
+    size_t num_errors  = 0;
+    float  total_error = 0;
 
-    EXPECT_TRUE( samples_are_equal );
+    auto float_is_zero = []( float value ) { return std::abs( value ) <= std::numeric_limits<float>::epsilon(); };
+
+    for ( auto it = diff.begin(), end = diff.end(); //
+          it = std::find_if_not( it, end, float_is_zero ), it != end;
+          ++it, ++num_errors )
+    {
+        total_error += std::abs( *it );
+    }
+
+    auto error_rate    = (float) num_errors / diff.size();
+    auto average_error = total_error / diff.size();
+
+    EXPECT_EQ( num_errors, 0 );
+    EXPECT_FLOAT_EQ( error_rate, 0 );
+    EXPECT_FLOAT_EQ( average_error, 0 );
 }
