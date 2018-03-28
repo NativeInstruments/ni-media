@@ -54,53 +54,54 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#pragma once
+
 #include <math.h>
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
 
-/* #define MAIN	1	 to compile test routines */
-
-#define ULPOW2TO31 ( (unsigned long) 0x80000000L )
-#define DPOW2TO31 ( (double) 2147483648.0 ) /* 2^31 */
+constexpr unsigned long ulpow2to31 = 0x80000000L;
+constexpr double        dpow2to31  = 2147483648.0; /* 2^31 */
 
 /* have to deal with ulong's 32nd bit conditionally as double<->ulong casts
    don't work in some C compilers */
 
-static inline double        myUlongToDouble( unsigned long ul );
-static inline unsigned long myDoubleToUlong( double val );
+inline double        myUlongToDouble( unsigned long ul );
+inline unsigned long myDoubleToUlong( double val );
 
-static inline double myUlongToDouble( unsigned long ul )
+inline double myUlongToDouble( unsigned long ul )
 {
     double val;
 
     /* in THINK_C, ulong -> double apparently goes via long, so can only
        apply to 31 bit numbers.  If 32nd bit is set, explicitly add on its
        value */
-    if ( ul & ULPOW2TO31 )
-        val = DPOW2TO31 + ( ul & ( ~ULPOW2TO31 ) );
+    if ( ul & ulpow2to31 )
+        val = dpow2to31 + ( ul & ( ~ulpow2to31 ) );
     else
         val = ul;
     return val;
 }
 
-static inline unsigned long myDoubleToUlong( double val )
+inline unsigned long myDoubleToUlong( double val )
 {
     unsigned long ul;
 
     /* cannot cast negative numbers into unsigned longs */
     if ( val < 0 )
     {
-        fprintf( stderr, "IEEE80:DoubleToUlong: val < 0\n" );
+        throw std::runtime_error( "IEEE80:DoubleToUlong: val < 0" );
     }
 
     /* in ultrix 4.1's cc, double -> unsigned long loses the top bit,
        so we do the conversion only on the bottom 31 bits and set the
        last one by hand, if val is truly that big */
     /* should maybe test for val > (double)(unsigned long)0xFFFFFFFF ? */
-    if ( val < DPOW2TO31 )
+    if ( val < dpow2to31 )
         ul = (unsigned long) val;
     else
-        ul = ULPOW2TO31 | (unsigned long) ( val - DPOW2TO31 );
+        ul = ulpow2to31 | (unsigned long) ( val - dpow2to31 );
     return ul;
 }
 
@@ -109,7 +110,7 @@ static inline unsigned long myDoubleToUlong( double val )
  * Convert IEEE 80 bit floating point to double.
  * Should be portable to all C compilers.
  */
-static inline double ieee_80_to_double( unsigned char* p )
+inline double ieee_80_to_double( unsigned char* p )
 {
     char          sign;
     short         exp   = 0;
@@ -158,7 +159,7 @@ static inline double ieee_80_to_double( unsigned char* p )
  * 19aug91 aldel/dpwe  covered for MSB bug in Ultrix 'cc'
  */
 
-static inline void double_to_ieee_80( double val, unsigned char* p )
+inline void double_to_ieee_80( double val, unsigned char* p )
 {
     char          sign  = 0;
     short         exp   = 0;
