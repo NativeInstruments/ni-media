@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <cassert>
+
 #include <boost/algorithm/clamp.hpp>
 #include <boost/iostreams/positioning.hpp>
 
@@ -42,6 +44,11 @@ inline std::streampos absolute_position( std::streampos                  pos,
             break;
         case BOOST_IOS::cur:
             pos += boost::iostreams::offset_to_position( off );
+            break;
+        default:
+            assert( "This should never be reached. It is here to silence a warning from older versions of libstdc++ "
+                    "about '_S_ios_seekdir_en' not being handled." );
+            return -1;
     }
 
     return boost::algorithm::clamp( pos, beg, end );
