@@ -58,7 +58,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG
+  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON
     
 script:
   - export CTEST_OUTPUT_ON_FAILURE=TRUE
