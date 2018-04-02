@@ -7,6 +7,7 @@ endif()
 
 project( ni-media )
 
+option( NIMEDIA_TREAT_WARNINGS_AS_ERRORS      "Treat compile warnings as errors"      OFF)
 option( NIMEDIA_ENABLE_DEPRECATION_WARNINGS   "Enable ni-media deprecation warnings"  ON )
 if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
   option( NIMEDIA_TESTS "Build ni-media Tests" ON )
@@ -16,9 +17,9 @@ endif()
 
 
 if(WIN32 AND CMAKE_CL_64)
-set(WIN64 1)
+  set(WIN64 1)
 elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-set(LINUX 1)
+  set(LINUX 1)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -26,11 +27,10 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(ni_add_src_file)
 include(ni_add_src_group)
 include(ni_add_gtest)
-
+include(ni_treat_warnings_as_errors)
 
 if( NIMEDIA_TESTS )
   enable_testing()
-  
   include(ni_find_gtest)
   ni_find_gtest()
 endif()
@@ -48,6 +48,10 @@ endif()
 
 foreach( target audiostream audiostream_test pcm pcm_test )
   if( TARGET ${target} )
+    if( NIMEDIA_TREAT_WARNINGS_AS_ERRORS )
+      ni_treat_warnings_as_errors( ${target} )
+    endif()
+
     set_property( TARGET ${target} PROPERTY FOLDER ni-media )
     set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
   endif()
