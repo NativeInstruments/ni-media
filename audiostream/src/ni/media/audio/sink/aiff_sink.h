@@ -45,7 +45,7 @@ auto write_aiff_header( Sink& sink )
     // COMM
     write_obj( sink, boost::endian::big_uint32_t( aiff::tags::comm ) );
     write_obj( sink, boost::endian::big_uint32_t( 22 ) );
-    write_obj( sink, boost::endian::big_uint16_t( sink.info().num_channels() ) );
+    write_obj( sink, boost::endian::big_uint16_t( static_cast<uint_least16_t>( sink.info().num_channels() ) ) );
     sink.num_frames_offset( sink.tell() );
     write_obj( sink, boost::endian::big_uint32_t( 0 ) );
     write_obj( sink, boost::endian::big_uint16_t( sink.info().format().bitwidth() ) );
@@ -84,7 +84,7 @@ auto write_aiff_header( Sink& sink )
     write_obj( sink, boost::endian::big_uint32_t( 0 ) );
     write_obj( sink, aiff::SoundDataChunk{0, 0} );
 
-    sink.header_size( sink.tell() );
+    sink.header_size( static_cast<uint32_t>( sink.tell() ) );
 }
 
 template <class Sink>
@@ -96,8 +96,8 @@ auto close_aiff( Sink& sink )
     write_obj( sink, boost::endian::big_uint32_t( file_size - 8 ) );
 
     sink.seek( sink.num_frames_offset(), BOOST_IOS::beg );
-    uint32_t samples =
-        ( file_size - sink.header_size() ) / ( sink.info().num_channels() * sink.info().format().bitwidth() / 8 );
+    uint32_t samples = static_cast<uint32_t>( ( file_size - sink.header_size() )
+                                              / ( sink.info().num_channels() * sink.info().format().bitwidth() / 8 ) );
     write_obj( sink, boost::endian::big_uint32_t( samples ) );
 
     sink.seek( sink.ssnd_size_offset(), BOOST_IOS::beg );
