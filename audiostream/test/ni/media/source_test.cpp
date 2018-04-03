@@ -89,31 +89,40 @@ struct stream_opener<audio::ifvectorstream>
 
 //----------------------------------------------------------------------------------------------------------------------
 
+template <class Stream>
+void open_file_impl( Stream& stream, const std::string& filename )
+{
+
+    std::string error;
+    try
+    {
+        stream = detail::stream_opener<Stream>::open( filename );
+    }
+    catch ( const std::runtime_error& re )
+    {
+        error = std::string( "Runtime error: " ) + re.what();
+    }
+    catch ( const std::exception& ex )
+    {
+        error = std::string( "Unknown error: " ) + ex.what();
+    }
+    catch ( ... )
+    {
+        error = std::string( "Unknown error" );
+    }
+
+    ASSERT_TRUE( stream.good() ) << error;
+}
+
 } // namespace detail
 
 
 template <class Stream>
 Stream source_test::open_file_as()
 {
-    try
-    {
-        return {detail::stream_opener<Stream>::open( file_name() )};
-    }
-    catch ( const std::runtime_error& re )
-    {
-        ADD_FAILURE() << "Runtime error: " << re.what() << std::endl;
-    }
-    catch ( const std::exception& ex )
-    {
-        ADD_FAILURE() << "Error occurred: " << ex.what() << std::endl;
-    }
-    catch ( ... )
-    {
-        ADD_FAILURE() << "Unknown failure occurred";
-    }
-
-
-    return {};
+    Stream stream;
+    detail::open_file_impl( stream, file_name() );
+    return stream;
 }
 
 template audio::ifstream       source_test::open_file_as<audio::ifstream>();

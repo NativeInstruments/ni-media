@@ -28,8 +28,12 @@
 
 #include <ni/media/test_helper.h>
 
+#include <boost/range/algorithm/transform.hpp>
+#include <boost/range/iterator_range.hpp>
+
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -54,7 +58,7 @@ void read_interlaced_test( Stream&&       stream,
                            std::streamoff frame_offset = 0,
                            size_t         num_blocks   = 1 )
 {
-    std::vector<float> samples1, samples2;
+    std::vector<float> buffer1, buffer2;
 
     const auto num_samples = num_frames_per_block * stream.info().num_channels();
     const auto num_bytes   = std::streamoff( num_frames_per_block * stream.info().bytes_per_frame() );
@@ -77,7 +81,7 @@ void read_interlaced_test( Stream&&       stream,
         expected[0].first = expected[0].last;
         actual[0].first   = stream.seekg( expected[0].first ).tellg();
 
-        detail::push_back_samples( samples1, stream, num_samples );
+        detail::push_back_samples( buffer1, stream, num_samples );
 
         expected[0].last = expected[0].first + num_bytes;
         actual[0].last   = stream.tellg();
@@ -86,7 +90,7 @@ void read_interlaced_test( Stream&&       stream,
         expected[1].first = actual[0].first + byte_offset;
         actual[1].first   = stream.seekg( expected[1].first ).tellg();
 
-        detail::push_back_samples( samples2, stream, num_samples );
+        detail::push_back_samples( buffer2, stream, num_samples );
 
         expected[1].last = expected[1].first + num_bytes;
         actual[1].last   = stream.tellg();
@@ -98,12 +102,35 @@ void read_interlaced_test( Stream&&       stream,
     }
 
     if ( frame_offset < 0 )
-        std::swap( samples1, samples2 );
+        std::swap( buffer1, buffer2 );
 
-    const auto sample_offset = std::abs( frame_offset ) * stream.info().num_channels();
+    const auto offset = std::abs( frame_offset ) * stream.info().num_channels();
 
-    using samples_diff_type = std::iterator_traits<decltype( samples1.begin() )>::difference_type;
-    EXPECT_TRUE( std::equal( std::next( samples1.begin(), static_cast<samples_diff_type>( sample_offset ) ),
-                             samples1.end(),
-                             samples2.begin() ) );
+    using samples_diff_type = std::iterator_traits<decltype( buffer1.begin() )>::difference_type;
+    auto samples1 =
+        std::vector<float>( std::next( buffer1.begin(), static_cast<samples_diff_type>( offset ) ), buffer1.end() );
+
+    auto samples2 = std::vector<float>( buffer2.begin(), buffer2.begin() + boost::size( samples1 ) );
+
+    auto diff = std::vector<float>( samples1.size() );
+    boost::transform( samples1, samples2, diff.begin(), std::minus<float>{} );
+
+    size_t num_errors  = 0;
+    float  total_error = 0;
+
+    auto float_is_zero = []( float value ) { return std::abs( value ) <= std::numeric_limits<float>::epsilon(); };
+
+    for ( auto it = diff.begin(), end = diff.end(); //
+          it = std::find_if_not( it, end, float_is_zero ), it != end;
+          ++it, ++num_errors )
+    {
+        total_error += std::abs( *it );
+    }
+
+    auto error_rate    = (float) num_errors / diff.size();
+    auto average_error = total_error / diff.size();
+
+    EXPECT_EQ( num_errors, 0 );
+    EXPECT_FLOAT_EQ( error_rate, 0 );
+    EXPECT_FLOAT_EQ( average_error, 0 );
 }
