@@ -22,5 +22,25 @@
 
 #pragma once
 
-#include <ni/media/audio/sink/aiff_file_sink.h>
-#include <ni/media/audio/sink/wav_file_sink.h>
+#include <ni/media/audio/aiff/aiff_specific_info.h>
+#include <ni/media/audio/ofstream_info.h>
+
+namespace audio
+{
+
+class aiff_ofstream_info : public ofstream_info, public aiff_specific_info
+{
+public:
+    aiff_ofstream_info( const aiff_ofstream_info& ) = default;
+
+    aiff_ofstream_info( const ofstream_info& ofstream_info_ = {}, const aiff_specific_info& aiff_specific_info_ = {} )
+    : ofstream_info( ofstream_info_ )
+    , aiff_specific_info( aiff_specific_info_ )
+    {
+        lossless( true );
+        container( container_type::aiff );
+        codec( codec_type::aiff );
+    }
+};
+
+} // namespace audio

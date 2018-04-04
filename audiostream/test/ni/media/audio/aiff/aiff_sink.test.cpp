@@ -20,41 +20,41 @@
 // SOFTWARE.
 //
 
-#pragma once
+#include <ni/media/audio/aiff/aiff_ofstream.h>
+#include <ni/media/audio/ifstream.h>
+#include <ni/media/reference_test.h>
 
-#include <ni/media/audio/fstream_info.h>
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/ostream_info.h>
+#include <ni/media/sink_test.h>
 
-namespace audio
+//----------------------------------------------------------------------------------------------------------------------
+
+class aiff_sink_test : public sink_test
 {
-
-class ofstream_info : public fstream_info, public ostream_info
-{
-public:
-    enum class container_type
-    {
-        aiff,
-        wav
-    };
-
-    enum class codec_type
-    {
-        aiff,
-        wav
-    };
-
-    void codec( codec_type value );
-    auto codec() const -> codec_type;
-
-    void container( container_type value );
-    auto container() const -> container_type;
-
-private:
-    container_type m_container;
-    codec_type     m_codec;
 };
 
-} // namespace audio
+//----------------------------------------------------------------------------------------------------------------------
+
+TEST_P( aiff_sink_test, ofstream )
+{
+    auto is = audio::ifstream( input_name() );
+
+    audio::aiff_ofstream_info info;
+    info.format( is.info().format() );
+    info.num_channels( is.info().num_channels() );
+    info.sample_rate( is.info().sample_rate() );
+
+    {
+        audio::aiff_ofstream os( output_name(), info );
+        auto                 buffer = std::vector<int32_t>( is.info().num_samples() );
+        is >> buffer;
+        os << buffer;
+    }
+
+    reference_test( audio::ifstream( output_name() ), output_name() );
+}
+
+INSTANTIATE_TEST_CASE_P( reference_test,
+                         aiff_sink_test,
+                         reference_files( audio::ifstream_info::container_type::aiff ) );
 
 //----------------------------------------------------------------------------------------------------------------------

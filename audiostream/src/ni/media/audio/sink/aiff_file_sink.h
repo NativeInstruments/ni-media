@@ -22,5 +22,17 @@
 
 #pragma once
 
-#include <ni/media/audio/sink/aiff_file_sink.h>
-#include <ni/media/audio/sink/wav_file_sink.h>
+#include <ni/media/audio/sink/aiff_sink.h>
+
+#include <boost/iostreams/device/file.hpp>
+
+class aiff_file_sink : public aiff_sink<boost::iostreams::file_sink>
+{
+    using base_type = aiff_sink<boost::iostreams::file_sink>;
+
+public:
+    explicit aiff_file_sink( const info_type& info, const std::string& path )
+    : base_type( info, path, BOOST_IOS::binary | BOOST_IOS::out )
+    {
+    }
+};
