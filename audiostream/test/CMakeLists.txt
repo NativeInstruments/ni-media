@@ -44,6 +44,13 @@ add_src_group (FILES_test_all test_audio FILES_test_audio)
 if( NIMEDIA_ENABLE_AIFF_DECODING )
   add_src_file  (FILES_test_audio_aiff "ni/media/audio/aiff/aiff_ifstream_info.test.cpp")
   add_src_file  (FILES_test_audio_aiff "ni/media/audio/aiff/aiff_source.test.cpp")
+endif()
+
+if( NIMEDIA_ENABLE_AIFF_ENCODING )
+  add_src_file  (FILES_test_audio_wav "ni/media/audio/aiff/aiff_sink.test.cpp")
+endif()
+
+if( FILES_test_audio_aiff )
   add_src_group (FILES_test_all test_audio_aiff FILES_test_audio_aiff)
 endif()
 

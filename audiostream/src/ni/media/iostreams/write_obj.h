@@ -30,6 +30,6 @@ bool write_obj( Sink& sink, Args&&... args )
     using boost::algorithm::all_of_equal;
     using bools = bool[sizeof...( Args )];
 
-    return all_of_equal( bools{sizeof( Args ) == sink.write( reinterpret_cast<char*>( &args ), sizeof( Args ) )...},
-                         true );
+    return all_of_equal(
+        bools{sizeof( Args ) == sink.write( reinterpret_cast<const char*>( &args ), sizeof( Args ) )...}, true );
 }
