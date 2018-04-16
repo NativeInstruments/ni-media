@@ -28,7 +28,6 @@
 #include <boost/make_unique.hpp>
 
 #include <algorithm>
-#include <gst/app/gstappsink.h>
 
 namespace detail
 {
@@ -37,9 +36,9 @@ struct RingBuffer
 {
     static constexpr size_t size = s;
     static constexpr size_t mask = ( s - 1 );
-    std::array<T, s> m_buffer;
-    uint64_t m_write_head = 0;
-    uint64_t m_read_head  = 0;
+    std::array<T, s>        m_buffer;
+    uint64_t                m_write_head = 0;
+    uint64_t                m_read_head  = 0;
 
     void push( const T* data, size_t count )
     {
@@ -86,6 +85,7 @@ gstreamer_file_source::gstreamer_file_source( const std::string&                
                                               audio::ifstream_info::container_type container,
                                               size_t                               stream )
 : m_pipeline( nullptr, gst_object_unref )
+, m_sink( nullptr, gst_object_unref )
 , m_ring_buffer( new RingBuffer() )
 {
     init_gstreamer();
@@ -133,10 +133,10 @@ void gstreamer_file_source::init_gstreamer()
 
 void gstreamer_file_source::setup_source( const std::string& path, audio::ifstream_info::container_type container )
 {
-    GstElement* sink        = prepare_pipeline( path );
-    auto        sinkpad     = gst_element_get_static_pad( sink, "sink" );
-    auto        caps        = gst_pad_get_current_caps( sinkpad );
-    auto        caps_struct = gst_caps_get_structure( caps, 0 );
+    m_sink.reset( prepare_pipeline( path ) );
+    auto sinkpad     = gst_element_get_static_pad( m_sink.get(), "sink" );
+    auto caps        = gst_pad_get_current_caps( sinkpad );
+    auto caps_struct = gst_caps_get_structure( caps, 0 );
     fill_format_info( caps_struct, container );
 }
 
@@ -151,11 +151,12 @@ GstElement* gstreamer_file_source::prepare_pipeline( const std::string& path )
     GstElement* queue     = gst_element_factory_make( "queue", "queue" );
     GstElement* sink      = gst_element_factory_make( "appsink", "sink" );
 
-    gst_bin_add_many( GST_BIN( m_pipeline.get() ), source, decodebin, queue, sink, nullptr );
+    gst_bin_add_many( GST_BIN( m_pipeline.get() ), source, decodebin, queue, gst_object_ref( sink ), nullptr );
     gst_element_link_many( source, decodebin, NULL );
     gst_element_link_many( queue, sink, NULL );
 
     g_object_set( source, "location", path.c_str(), NULL );
+    g_object_set( sink, "sync", FALSE, NULL );
 
     g_signal_connect( decodebin, "pad-added", G_CALLBACK( &onPadAdded ), queue );
 
@@ -187,17 +188,18 @@ void gstreamer_file_source::fill_format_info( GstStructure*                     
     m_info.codec( audio::ifstream_info::codec_type::mp3 );
     m_info.lossless( false );
 
-    gint64 num_frames = 0;
-    if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_DEFAULT, &num_frames ) )
-        throw std::runtime_error( "gstreamer_file_source: could not query duration from gstreamer" );
-
-    m_info.num_frames( num_frames );
-
     int sample_rate = 0;
     if ( !gst_structure_get_int( caps_struct, "rate", &sample_rate ) )
         throw std::runtime_error( "gstreamer_file_source: could not query sample rate from gstreamer" );
 
     m_info.sample_rate( sample_rate );
+
+    gint64 num_ns = 0;
+    if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_TIME, &num_ns ) )
+        throw std::runtime_error( "gstreamer_file_source: could not query duration from gstreamer" );
+
+    gint64 num_frames = sample_rate * num_ns / GST_SECOND;
+    m_info.num_frames( num_frames );
 
     int num_channels = 0;
     if ( !gst_structure_get_int( caps_struct, "channels", &num_channels ) )
@@ -239,7 +241,21 @@ pcm::number_type gstreamer_file_source::gst_format_char_to_number_type( const gc
 void gstreamer_file_source::onPadAdded( GstElement* element, GstPad* pad, GstElement* sink )
 {
     tGstPtr<GstPad> sinkpad( gst_element_get_static_pad( sink, "sink" ), gst_object_unref );
-    gst_pad_link( pad, sinkpad.get() );
+
+    if ( gst_pad_is_linked( sinkpad.get() ) )
+        return; // already linked
+
+    tGstPtr<GstCaps> caps( gst_pad_get_current_caps( pad ), gst_object_unref );
+    auto             s    = gst_caps_get_structure( caps.get(), 0 );
+    auto             name = gst_structure_get_name( s );
+
+    if ( !g_str_has_prefix( name, "audio/" ) )
+        return; // not the kind of pad we are looking for, maybe video?
+
+    auto result = gst_pad_link( pad, sinkpad.get() );
+
+    if ( result != GST_PAD_LINK_OK )
+        throw std::runtime_error( "gstreamer_file_source: could not link pad" );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -305,14 +321,13 @@ std::streamsize gstreamer_file_source::recursive_read( char* dst, std::streamsiz
 
     if ( numBytesRequested )
     {
-        tGstPtr<GstElement> sink( gst_bin_get_by_name( GST_BIN( m_pipeline.get() ), "sink" ), gst_object_unref );
-        GstAppSink*         app_sink = reinterpret_cast<GstAppSink*>( sink.get() );
+        GstSample* samplePtr = nullptr;
+        g_signal_emit_by_name( m_sink.get(), "try-pull-sample", &samplePtr, nullptr );
 
-        tGstPtr<GstSample> sample( gst_app_sink_pull_sample( app_sink ), (GUnref) gst_sample_unref );
-
-        if ( sample )
+        if ( samplePtr )
         {
-            auto buffer = gst_sample_get_buffer( sample.get() );
+            tGstPtr<GstSample> sample( samplePtr, (GUnref) gst_sample_unref );
+            auto               buffer = gst_sample_get_buffer( sample.get() );
 
             GstMapInfo mapped;
 

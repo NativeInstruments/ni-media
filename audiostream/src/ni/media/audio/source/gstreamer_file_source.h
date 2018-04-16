@@ -59,13 +59,13 @@ public:
 private:
     static void                init_gstreamer();
     static pcm::runtime_format create_runtime_format( GstStructure* caps_struct );
-    static pcm::number_type gst_format_char_to_number_type( const gchar format );
+    static pcm::number_type    gst_format_char_to_number_type( const gchar format );
 
-    void setup_source( const std::string& path, audio::ifstream_info::container_type container );
-    GstElement* prepare_pipeline( const std::string& path );
-    void     preroll_pipeline();
-    GstState wait_for_async_operation();
-    void fill_format_info( GstStructure* caps_struct, audio::ifstream_info::container_type container );
+    void            setup_source( const std::string& path, audio::ifstream_info::container_type container );
+    GstElement*     prepare_pipeline( const std::string& path );
+    void            preroll_pipeline();
+    GstState        wait_for_async_operation();
+    void            fill_format_info( GstStructure* caps_struct, audio::ifstream_info::container_type container );
     std::streamsize recursive_read( char* dst, std::streamsize numBytesRequested );
 
     static void onPadAdded( GstElement* element, GstPad* pad, GstElement* sink );
@@ -74,7 +74,9 @@ private:
     using GUnref = void ( * )( gpointer );
     template <typename T>
     using tGstPtr = std::unique_ptr<T, GUnref>;
+
     tGstPtr<GstElement> m_pipeline;
+    tGstPtr<GstElement> m_sink;
 
     using RingBuffer = detail::RingBuffer<char, 65536>;
     std::unique_ptr<RingBuffer> m_ring_buffer;
