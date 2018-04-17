@@ -245,7 +245,7 @@ void gstreamer_file_source::onPadAdded( GstElement* element, GstPad* pad, GstEle
     if ( gst_pad_is_linked( sinkpad.get() ) )
         return; // already linked
 
-    tGstPtr<GstCaps> caps( gst_pad_get_current_caps( pad ), gst_object_unref );
+    std::unique_ptr<GstCaps, decltype((gst_caps_unref))> caps(gst_pad_get_current_caps(pad), gst_caps_unref);
     auto             s    = gst_caps_get_structure( caps.get(), 0 );
     auto             name = gst_structure_get_name( s );
 
@@ -322,7 +322,7 @@ std::streamsize gstreamer_file_source::recursive_read( char* dst, std::streamsiz
     if ( numBytesRequested )
     {
         GstSample* samplePtr = nullptr;
-        g_signal_emit_by_name( m_sink.get(), "try-pull-sample", &samplePtr, nullptr );
+        g_signal_emit_by_name( m_sink.get(), "try-pull-sample", 0, &samplePtr, nullptr );
 
         if ( samplePtr )
         {
