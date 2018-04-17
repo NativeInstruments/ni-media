@@ -25,9 +25,11 @@
 #include <ni/media/audio/iotools.h>
 #include <ni/media/iostreams/positioning.h>
 
+
 #include <boost/make_unique.hpp>
 
 #include <algorithm>
+#include <chrono>
 
 namespace detail
 {
@@ -86,7 +88,7 @@ gstreamer_file_source::gstreamer_file_source( const std::string&                
                                               size_t                               stream )
 : m_pipeline( nullptr, gst_object_unref )
 , m_sink( nullptr, gst_object_unref )
-, m_ring_buffer( new RingBuffer() )
+, m_ring_buffer( std::make_unique<RingBuffer>() )
 {
     init_gstreamer();
     setup_source( path, container );
@@ -152,6 +154,7 @@ GstElement* gstreamer_file_source::prepare_pipeline( const std::string& path )
     GstElement* sink      = gst_element_factory_make( "appsink", "sink" );
 
     gst_bin_add_many( GST_BIN( m_pipeline.get() ), source, decodebin, queue, gst_object_ref( sink ), nullptr );
+
     gst_element_link_many( source, decodebin, NULL );
     gst_element_link_many( queue, sink, NULL );
 
@@ -184,6 +187,8 @@ void gstreamer_file_source::preroll_pipeline()
 void gstreamer_file_source::fill_format_info( GstStructure*                        caps_struct,
                                               audio::ifstream_info::container_type container )
 {
+    using namespace std::chrono;
+
     m_info.container( container );
     m_info.codec( audio::ifstream_info::codec_type::mp3 );
     m_info.lossless( false );
@@ -194,12 +199,19 @@ void gstreamer_file_source::fill_format_info( GstStructure*                     
 
     m_info.sample_rate( sample_rate );
 
-    gint64 num_ns = 0;
-    if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_TIME, &num_ns ) )
-        throw std::runtime_error( "gstreamer_file_source: could not query duration from gstreamer" );
+    gint64 num_frames = 0;
+    if ( gst_element_query_duration( m_pipeline.get(), GST_FORMAT_DEFAULT, &num_frames ) && num_frames >= 0 )
+    {
+        m_info.num_frames( size_t( num_frames ) );
+    }
+    else // retrieving num_frames failed: fallback to retrieve time information instead (less precise)
+    {
+        gint64 duration_ns = 0; // in nanoseconds
+        if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_TIME, &duration_ns ) )
+            throw std::runtime_error( "gstreamer_file_source: could not query duration from gstreamer" );
 
-    gint64 num_frames = sample_rate * num_ns / GST_SECOND;
-    m_info.num_frames( num_frames );
+        m_info.num_frames( size_t( duration<double>( nanoseconds( duration_ns ) ).count() * sample_rate ) );
+    }
 
     int num_channels = 0;
     if ( !gst_structure_get_int( caps_struct, "channels", &num_channels ) )
@@ -264,38 +276,23 @@ std::streampos gstreamer_file_source::seek( offset_type off, BOOST_IOS::seekdir 
 {
     assert( 0 == off % m_info.bytes_per_frame() );
 
-    int64_t newPosition = 0;
+    const auto beg = std::streampos( 0 );
+    const auto end = std::streampos( info().num_bytes() );
+    const auto pos = absolute_position( m_position, beg, end, off, way );
 
-    if ( way == BOOST_IOS::seekdir::_S_beg )
+    if ( m_position != pos )
     {
-        newPosition = off;
-    }
-    else if ( way == BOOST_IOS::seekdir::_S_cur )
-    {
-        newPosition = m_position + off;
-    }
-    else if ( way == BOOST_IOS::seekdir::_S_end )
-    {
-        int64_t end = 0;
-        if ( !gst_element_query_duration( m_pipeline.get(), GST_FORMAT_BYTES, &end ) )
+        if ( gst_element_seek_simple( m_pipeline.get(),
+                                      GST_FORMAT_BYTES,
+                                      ( GstSeekFlags )( GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE ),
+                                      (gint64) pos ) )
         {
-            throw std::runtime_error(
-                "gstreamer_file_source: seeking from end of file impossible - could not query duration" );
+            m_ring_buffer->flush();
+            m_position = pos;
         }
-        newPosition = end + off;
-    }
-
-    if ( m_position != newPosition )
-    {
-        m_position = newPosition;
-        m_ring_buffer->flush();
-
-        if ( !gst_element_seek_simple( m_pipeline.get(),
-                                       GST_FORMAT_BYTES,
-                                       ( GstSeekFlags )( GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE ),
-                                       m_position ) )
+        else
         {
-            throw std::runtime_error( "gstreamer_file_source: seeking failed" );
+            return -1;
         }
     }
 
