@@ -150,7 +150,6 @@ if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE
 
     find_package(Glib REQUIRED)
     find_package(GStreamer REQUIRED)
-    find_package(GStreamerApp REQUIRED)
     find_package(GObject REQUIRED)
 
     if ( NOT TARGET GSTREAMER::gstreamer )
@@ -163,7 +162,6 @@ if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE
     endif()
 
     list(APPEND codec_libraries GSTREAMER::gstreamer)
-    list(APPEND codec_libraries GSTREAMERAPP::gstreamerapp)
     list(APPEND codec_libraries glib-2.0)
     list(APPEND codec_libraries gobject-2.0)
 
