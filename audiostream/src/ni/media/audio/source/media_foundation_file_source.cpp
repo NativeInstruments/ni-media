@@ -539,10 +539,13 @@ auto media_foundation_file_source::searchAndRetrieveBlock( offset_type target ) 
     if ( !block )
         return nullptr;
 
-    const auto& range = block->range;
+    const auto range = block->range;
     if ( boost::icl::contains( range, target ) )
         return block;
-    else if ( target >= range.upper() )
+
+    block.reset();
+
+    if ( target >= range.upper() )
         return searchForwardAndRetrieveBlock( target );
     else
         return searchBackwardAndRetrieveBlock( target, 0 );
@@ -581,10 +584,13 @@ auto media_foundation_file_source::searchBackwardAndRetrieveBlock( offset_type t
         if ( !block )
             return nullptr;
 
-        const auto& range = block->range;
+        const auto range = block->range;
         if ( boost::icl::contains( range, target ) )
             return block;
-        else if ( target >= range.upper() )
+
+        block.reset();
+
+        if ( target >= range.upper() )
             return searchForwardAndRetrieveBlock( target );
         else
         {

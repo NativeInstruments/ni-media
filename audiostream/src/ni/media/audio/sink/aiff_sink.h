@@ -82,7 +82,7 @@ auto write_aiff_header( Sink& sink )
     write_obj( sink, boost::endian::big_uint32_t( aiff::tags::ssnd ) );
     sink.ssnd_size_offset( sink.tell() );
     write_obj( sink, boost::endian::big_uint32_t( 0 ) );
-    write_obj( sink, aiff::SoundDataChunk{0, 0} );
+    write_obj( sink, aiff::SoundDataChunk{} );
 
     sink.header_size( static_cast<uint32_t>( sink.tell() ) );
 }
