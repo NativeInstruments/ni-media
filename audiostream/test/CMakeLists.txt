@@ -149,7 +149,7 @@ endif()
 # reference generator
 #--------------------------------------------------------------------
 
-if(NIMEDIA_ENABLE_WAV_ENCODING)
+if(0) # do not build the reference file generator on the github CI for now
 
     add_src_file  (FILES_generator "generator.cpp"    )
     add_src_group (FILES_generator generator FILES_generator)
