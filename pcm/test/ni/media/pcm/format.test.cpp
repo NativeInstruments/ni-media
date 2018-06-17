@@ -40,6 +40,25 @@ TEST( pcm_format_test, constructor_throws_invalid_bitwidth )
     EXPECT_THROW( pcm::format f( pcm::signed_integer, 23, pcm::little_endian ), std::runtime_error );
 }
 
+TEST( pcm_format_test, constructor_throws_invalid_format_string )
+{
+    EXPECT_THROW( pcm::format( "foo" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "bar" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "42" ), std::runtime_error );
+
+    EXPECT_NO_THROW( pcm::format( "s16be" ) );
+    EXPECT_THROW( pcm::format( "_s16be" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( " s16be" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "s16be " ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "s16 e" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "u16se" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "be16s" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "be16u" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "bes16" ), std::runtime_error );
+    EXPECT_THROW( pcm::format( "16sbe" ), std::runtime_error );
+}
+
 
 TEST( pcm_format_test, constructor_s8be )
 {

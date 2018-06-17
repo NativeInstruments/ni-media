@@ -23,14 +23,19 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
-
-constexpr uint32_t big_endian_fourcc( char const p[5] )
+constexpr inline uint32_t big_endian_fourcc( char const p[5] )
 {
     return ( p[0] << 24 ) | ( p[1] << 16 ) | ( p[2] << 8 ) | p[3];
 }
 
-constexpr uint32_t little_endian_fourcc( char const p[5] )
+constexpr inline uint32_t little_endian_fourcc( char const p[5] )
 {
     return ( p[3] << 24 ) | ( p[2] << 16 ) | ( p[1] << 8 ) | p[0];
+}
+
+inline std::string fourcc_to_string( uint32_t x )
+{
+    return std::string( reinterpret_cast<const char*>( &x ), sizeof( x ) );
 }

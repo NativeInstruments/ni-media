@@ -24,6 +24,7 @@
 
 #include <ni/media/pcm/description.h>
 
+#include <ostream>
 #include <tuple>
 #include <type_traits>
 
@@ -62,6 +63,16 @@ template <number_type ln, bitwidth_type lb, endian_type le, number_type rn, bitw
 constexpr auto operator!=( compiletime_format<ln, lb, le>, compiletime_format<rn, rb, re> )
 {
     return !std::is_same<compiletime_format<ln, lb, le>, compiletime_format<rn, rb, re>>::value;
+}
+
+template <number_type n, bitwidth_type b, endian_type e>
+constexpr std::ostream& operator<<( std::ostream& stream, const compiletime_format<n, b, e>& fmt )
+{
+    constexpr auto number   = fmt.number() == floating_point ? "f" : fmt.number() == signed_integer ? "s" : "u";
+    constexpr auto bitwidth = fmt.bitwidth();
+    constexpr auto endian   = fmt.endian() == big_endian ? "be" : "le";
+
+    return stream << number << bitwidth << endian;
 }
 
 inline constexpr auto compiletime_formats()

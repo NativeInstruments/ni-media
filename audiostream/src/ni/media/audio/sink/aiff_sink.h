@@ -28,10 +28,51 @@
 #include <ni/media/iostreams/device/subview.h>
 #include <ni/media/iostreams/write_obj.h>
 
+#include <boost/optional.hpp>
+
 //----------------------------------------------------------------------------------------------------------------------
 
 namespace detail
 {
+
+
+inline auto format_to_tag( const pcm::format& fmt ) -> boost::optional<uint32_t>
+{
+    const auto number        = fmt.number();
+    const auto bitwidth      = fmt.bitwidth();
+    const bool little_endian = fmt.endian() == pcm::little_endian;
+
+    // compression
+    if ( number == pcm::signed_integer )
+    {
+        if ( bitwidth == pcm::bitwidth_type::_8bit || bitwidth == pcm::bitwidth_type::_16bit
+             || bitwidth == pcm::bitwidth_type::_24bit || bitwidth == pcm::bitwidth_type::_32bit )
+        {
+            return little_endian ? aiff::tags::sowt : aiff::tags::none;
+        }
+    }
+    else if ( number == pcm::unsigned_integer )
+    {
+        if ( bitwidth == pcm::bitwidth_type::_8bit )
+        {
+            return aiff::tags::raw;
+        }
+    }
+    else if ( number == pcm::floating_point )
+    {
+        if ( bitwidth == pcm::bitwidth_type::_32bit )
+        {
+            return aiff::tags::fl32;
+        }
+        else if ( bitwidth == pcm::bitwidth_type::_64bit )
+        {
+            return aiff::tags::fl64;
+        }
+    }
+
+    return boost::none;
+}
+
 
 template <class Sink>
 auto write_aiff_header( Sink& sink )
@@ -53,30 +94,10 @@ auto write_aiff_header( Sink& sink )
     double_to_ieee_80( static_cast<double>( sink.info().sample_rate() ), extSampleRateBuffer );
     write_obj( sink, extSampleRateBuffer );
 
-    // compression
-    if ( sink.info().format().endian() == pcm::endian_type::little_endian )
-    {
-        write_obj( sink, boost::endian::big_uint32_t( aiff::tags::sowt ) );
-    }
-    else if ( sink.info().format().number() == pcm::number_type::floating_point )
-    {
-        if ( sink.info().format().bitwidth() == pcm::bitwidth_type::_32bit )
-        {
-            write_obj( sink, boost::endian::big_uint32_t( aiff::tags::fl32 ) );
-        }
-        else if ( sink.info().format().bitwidth() == pcm::bitwidth_type::_64bit )
-        {
-            write_obj( sink, boost::endian::big_uint32_t( aiff::tags::fl64 ) );
-        }
-        else
-        {
-            throw std::runtime_error( "Unknown/unsupported floating point bitwidth" );
-        }
-    }
+    if ( auto tag = format_to_tag( sink.info().format() ) )
+        write_obj( sink, boost::endian::big_uint32_t( *tag ) );
     else
-    {
-        write_obj( sink, boost::endian::big_uint32_t( aiff::tags::none ) );
-    }
+        throw std::runtime_error( "Invalid format" );
 
     // SSND
     write_obj( sink, boost::endian::big_uint32_t( aiff::tags::ssnd ) );

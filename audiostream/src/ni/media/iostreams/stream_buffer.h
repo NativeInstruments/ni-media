@@ -77,7 +77,7 @@ public:
     stream_buffer_owner& operator=( const stream_buffer_owner& ) = delete;
     stream_buffer_owner& operator=( stream_buffer_owner&& ) = delete;
 };
-}
+} // namespace detail
 
 //----------------------------------------------------------------------------------------------------------------------
 
