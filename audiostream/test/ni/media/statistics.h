@@ -22,6 +22,10 @@
 
 #pragma once
 
+#include <boost/range/combine.hpp>
+
+#include <boost/range/adaptor/transformed.hpp>
+#include <boost/range/algorithm/max_element.hpp>
 #include <boost/range/numeric.hpp>
 #include <boost/range/value_type.hpp>
 
@@ -51,7 +55,7 @@ auto xcorr( Range1 const& r1, Range2 const& r2 ) -> double
 //----------------------------------------------------------------------------------------------------------------------
 
 template <typename Range1, typename Range2>
-auto mean_difference( Range1 const& r1, Range2 const& r2 ) -> double
+auto dc_offset( Range1 const& r1, Range2 const& r2 ) -> double
 {
     using value_t = typename boost::range_value<Range1>::type;
 
@@ -59,4 +63,16 @@ auto mean_difference( Range1 const& r1, Range2 const& r2 ) -> double
     double mean_r2 = boost::accumulate( r2, value_t{} ) / r2.size();
 
     return std::abs( mean_r1 - mean_r2 );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template <typename Range1, typename Range2>
+auto max_difference( Range1 const& r1, Range2 const& r2 )
+{
+    auto diff       = []( const auto& x ) { return std::abs( boost::get<0>( x ) - boost::get<1>( x ) ); };
+    auto diff_range = boost::combine( r1, r2 ) | boost::adaptors::transformed( std::ref( diff ) );
+
+    auto it = boost::max_element( diff_range );
+    return it == std::end( diff_range ) ? decltype( *it ){} : *it;
 }

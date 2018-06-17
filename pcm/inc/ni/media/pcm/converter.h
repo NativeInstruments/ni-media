@@ -37,22 +37,6 @@ namespace pcm
 namespace detail
 {
 
-template <typename Real, size_t Bits>
-struct promote
-{
-    using type = typename std::conditional<( 23 < Bits ), double, float>::type;
-};
-
-template <size_t Bits>
-struct promote<double, Bits>
-{
-    using type = double;
-};
-
-template <typename Real, size_t Bits>
-using promote_t = typename promote<Real, Bits>::type;
-
-
 template <typename Source>
 Source sign_cast( Source val )
 {
@@ -113,16 +97,13 @@ template <typename Target, typename Source>
 Target convert_to(
     Source src, std::enable_if_t<std::is_integral<Target>::value && std::is_floating_point<Source>::value>* = nullptr )
 {
-    using boost::algorithm::clamp;
+    using SignedTarget = std::make_signed_t<Target>;
 
-    using SignedTarget   = std::make_signed_t<Target>;
-    using PromotedSource = promote_t<Source, sizeof( Target ) * 8>;
+    static constexpr auto scale = Source{1ull << ( sizeof( Target ) * 8 - 1 )};
+    static constexpr auto min   = Source{-1};
+    static constexpr auto max   = Source{1} - std::max( 1 / scale, std::numeric_limits<Source>::epsilon() );
 
-    static constexpr auto scale = PromotedSource{1ull << ( sizeof( Target ) * 8 - 1 )};
-    static constexpr auto lo    = PromotedSource{-1};
-    static constexpr auto hi    = ( scale - PromotedSource{1} ) / scale;
-
-    return sign_cast<Target>( round_cast<SignedTarget>( scale * clamp( PromotedSource{src}, lo, hi ) ) );
+    return sign_cast<Target>( round_cast<SignedTarget>( scale * boost::algorithm::clamp( src, min, max ) ) );
 }
 
 // floating point <- fixed point
@@ -131,10 +112,9 @@ template <typename Target, typename Source>
 Target convert_to(
     Source src, std::enable_if_t<std::is_floating_point<Target>::value && std::is_integral<Source>::value>* = nullptr )
 {
-    using SignedSource   = std::make_signed_t<Source>;
-    using PromotedTarget = promote_t<Target, sizeof( Source ) * 8>;
+    using SignedSource = std::make_signed_t<Source>;
 
-    static constexpr auto scale = PromotedTarget{1} / ( 1ull << ( sizeof( Source ) * 8 - 1 ) );
+    static constexpr auto scale = Target{1} / ( 1ull << ( sizeof( Source ) * 8 - 1 ) );
 
     return static_cast<Target>( scale * sign_cast<SignedSource>( src ) );
 }

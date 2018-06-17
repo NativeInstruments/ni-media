@@ -21,7 +21,6 @@
 //
 
 #include <ni/media/audio/iotools.h>
-#include <ni/media/signals.h>
 #include <ni/media/test_helper.h>
 
 #include <boost/preprocessor/stringize.hpp>
@@ -63,7 +62,7 @@ auto supported_files( const boost::filesystem::path&                        root
     return boost::make_iterator_range( beg, end ) | transformed( []( const path& p ) { return p.string(); } )
            | filtered( can_read_file );
 }
-}
+} // namespace
 
 //----------------------------------------------------------------------------------------------------------------------
 

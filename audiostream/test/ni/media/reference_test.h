@@ -26,140 +26,115 @@
 #include <ni/media/pcm/iterator.h>
 #include <ni/media/pcm/range/converted.h>
 
-#include <ni/media/signals.h>
+#include <ni/media/generators.h>
 #include <ni/media/statistics.h>
 #include <ni/media/test_helper.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 #include <boost/range/algorithm/generate.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <boost/tokenizer.hpp>
 
 #include <algorithm>
+#include <functional>
 #include <map>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
-
 
 namespace detail
 {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline audio::ifstream_info parse_reference_file( const std::string& file_name )
+inline auto format_to_string( const pcm::format& fmt )
 {
-    audio::ifstream_info info;
-
-    const auto separator = boost::char_separator<char>{"."};
-    const auto tokens    = boost::tokenizer<boost::char_separator<char>>{file_name, separator};
-
-    auto it = tokens.begin();
-    if ( it == tokens.end() )
-        return info;
-    // first token is the generator - ignore
-
-    ++it;
-    if ( it == tokens.end() )
-        return info;
-    try
-    {
-        info.num_channels( std::stoi( *it ) );
-    }
-    catch ( const std::invalid_argument& )
-    {
-    }
-
-    ++it;
-    if ( it == tokens.end() )
-        return info;
-    try
-    {
-        info.sample_rate( std::stoi( *it ) );
-    }
-    catch ( const std::invalid_argument& )
-    {
-    }
-
-    ++it;
-    if ( it == tokens.end() )
-        return info;
-    try
-    {
-        info.num_frames( std::stoi( *it ) );
-    }
-    catch ( const std::invalid_argument& )
-    {
-    }
-
-    return info;
+    std::ostringstream tmp;
+    tmp << fmt;
+    return tmp.str();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline std::string parse_generator( const std::string& file_name )
+inline auto parse_reference_file( const std::string& file_name )
 {
     const auto separator = boost::char_separator<char>{"."};
     const auto tokens    = boost::tokenizer<boost::char_separator<char>>{file_name, separator};
-
-    if ( tokens.begin() != tokens.end() )
-        return *tokens.begin();
-
-    return {};
+    return boost::copy_range<std::vector<std::string>>( tokens );
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-
-inline std::map<std::string, sin440_mod> generator_map( size_t num_channels, float sample_rate )
+template <class T>
+inline constexpr auto epsilon( const pcm::format& fmt )
 {
-    return {{"sin440", sin440_mod( num_channels, sample_rate, 0 )},
-            {"sin_mod440", sin440_mod( num_channels, sample_rate, 1 )}};
+    if ( fmt.number() == pcm::floating_point && fmt.bitwidth() == pcm::_32bit )
+        return static_cast<T>( std::numeric_limits<float>::epsilon() );
+    else if ( fmt.number() == pcm::floating_point && fmt.bitwidth() == pcm::_64bit )
+        return static_cast<T>( std::numeric_limits<double>::epsilon() );
+    else if ( fmt.number() != pcm::floating_point )
+        return static_cast<T>( 2 ) / ( 1ull << fmt.bitwidth() );
+
+    throw std::runtime_error( "Unknown format" );
 }
 
-//----------------------------------------------------------------------------------------------------------------------
 
-inline boost::optional<sin440_mod> get_generator( const std::string& generator_name,
-                                                  size_t             num_channels,
-                                                  size_t             sample_rate )
-{
-    const auto map = generator_map( num_channels, (float) sample_rate );
-    const auto it  = map.find( generator_name );
-    if ( it != map.end() )
-        return it->second;
-
-    return boost::none;
-}
-
-} // detail
+} // namespace detail
 
 //----------------------------------------------------------------------------------------------------------------------
 
 template <typename Stream>
 void reference_test( Stream&& stream, const boost::filesystem::path& file )
 {
+    using value_type = double;
+
     const auto file_name = file.filename().string();
+    const auto tokens    = detail::parse_reference_file( file_name );
+    ASSERT_GE( tokens.size(), size_t( 4 ) ) << "Unable to parse reference filename: " << file_name;
 
-    auto info_expected = detail::parse_reference_file( file_name );
-    auto info_actual   = stream.info();
+    const auto info = stream.info();
 
-    EXPECT_EQ( info_expected.num_channels(), info_actual.num_channels() );
-    EXPECT_EQ( info_expected.sample_rate(), info_actual.sample_rate() );
-    EXPECT_EQ( info_expected.num_frames(), info_actual.num_frames() );
+    size_t num_channels;
+    ASSERT_NO_THROW( num_channels = std::stoul( tokens[1] ) ) << "Invalid token for num_channels: " << tokens[1];
+    EXPECT_EQ( info.num_channels(), num_channels );
 
-    auto generator_name = detail::parse_generator( file_name );
-    auto generator = detail::get_generator( generator_name, info_actual.num_channels(), info_actual.sample_rate() );
+    size_t sample_rate;
+    ASSERT_NO_THROW( sample_rate = std::stoul( tokens[2] ) ) << "Invalid token for sample_rate: " << tokens[2];
+    EXPECT_EQ( info.sample_rate(), sample_rate );
+
+    size_t num_frames;
+    ASSERT_NO_THROW( num_frames = std::stoul( tokens[3] ) ) << "Invalid token for num_frames: " << tokens[3];
+    EXPECT_EQ( info.num_frames(), num_frames );
+
+    if ( info.lossless() )
+    {
+        auto format = detail::format_to_string( info.format() );
+        EXPECT_EQ( format, tokens[4] );
+    }
+
+    auto generator_name = tokens[0];
+    auto generator      = make_generator<value_type>( generator_name, info.num_channels(), info.sample_rate() );
 
     ASSERT_TRUE( generator != boost::none ) << "Invalid generator: " << generator_name;
 
-    auto samples = std::vector<float>( info_actual.num_samples() );
+    auto samples = std::vector<value_type>( info.num_samples() );
     stream >> samples;
 
-    auto signal = std::vector<float>( info_actual.num_samples() );
+    auto signal = std::vector<value_type>( info.num_samples() );
     boost::generate( signal, *generator );
 
     EXPECT_EQ( samples.size(), signal.size() );
 
-    EXPECT_GT( xcorr( samples, signal ), 0.9997 );
-
-    EXPECT_LT( mean_difference( signal, samples ), 0.005 );
+    if ( info.lossless() )
+    {
+        // we set the lower bound of epsilon to 1e-12 (approx 40 bit precision) because std math implementation used in
+        // the generators produce sligthly different results depending on the compiler / platform.
+        auto epsilon = std::max( value_type( 1e-12 ), detail::epsilon<value_type>( info.format() ) );
+        EXPECT_LE( max_difference( signal, samples ), epsilon );
+    }
+    else
+    {
+        EXPECT_GT( xcorr( samples, signal ), 0.9998 );
+        EXPECT_LT( dc_offset( signal, samples ), 0.0003 );
+    }
 }

@@ -94,9 +94,9 @@ auto readAiffHeader( Source& src )
                 throw std::runtime_error( "Could not read \'COMM\' chunk." );
             }
 
-            pcm::number_type    numberType = pcm::signed_integer;
-            size_t              bitWidth = commChunk.sampleSize;
-            bool                littleEndian = false;
+            pcm::number_type numberType   = pcm::signed_integer;
+            size_t           bitWidth     = commChunk.sampleSize;
+            bool             littleEndian = false;
 
             if ( aiffTag.subType == aiff::tags::aifc )
             {
@@ -114,27 +114,32 @@ auto readAiffHeader( Source& src )
                 switch ( compression )
                 {
                     case aiff::tags::none:
+                    case aiff::tags::twos:
+                    case aiff::tags::in24:
+                    case aiff::tags::in32:
                         break;
                     case aiff::tags::sowt:
                         littleEndian = true;
                         break;
+                    case aiff::tags::raw:
+                        numberType = pcm::unsigned_integer;
+                        break;
                     case aiff::tags::fl32:
                     case aiff::tags::FL32:
-                        bitWidth = 32;
+                        bitWidth   = 32;
                         numberType = pcm::floating_point;
                         break;
                     case aiff::tags::fl64:
                     case aiff::tags::FL64:
-                        bitWidth = 64;
+                        bitWidth   = 64;
                         numberType = pcm::floating_point;
                         break;
                     default:
-                        throw std::runtime_error( "Unsupported compressor." );
+                        throw std::runtime_error( "Unsupported compression: " + fourcc_to_string( compression ) );
                 }
             }
 
-            auto format = pcm::format(
-                numberType, bitWidth, littleEndian ? pcm::little_endian : pcm::big_endian );
+            auto format = pcm::format( numberType, bitWidth, littleEndian ? pcm::little_endian : pcm::big_endian );
 
             info.format( format );
             info.num_channels( commChunk.numChannels );

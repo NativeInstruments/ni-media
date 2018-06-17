@@ -1,7 +1,7 @@
 
 set( SCOPED_DISABLE_UNITY_BUILDS 1 )
 
-add_src_file  ( FILES_main "main.cpp" )
+add_src_file  ( FILES_main "gtest_main.cpp" )
 add_src_group ( FILES_test_all test_main FILES_main )
 
 
@@ -9,7 +9,7 @@ add_src_group ( FILES_test_all test_main FILES_main )
 #
 
 add_src_file  (FILES_test "ni/media/test_helper.cpp" WITH_HEADER)
-add_src_file  (FILES_test "ni/media/signals.h")
+add_src_file  (FILES_test "ni/media/generators.h")
 add_src_file  (FILES_test "ni/media/statistics.h")
 add_src_file  (FILES_test "ni/media/read_interlaced_test.h")
 add_src_file  (FILES_test "ni/media/reference_test.h")
@@ -17,6 +17,13 @@ add_src_file  (FILES_test "ni/media/sink_test.h" )
 add_src_file  (FILES_test "ni/media/source_test.cpp" WITH_HEADER)
 
 add_src_group (FILES_test_all test FILES_test )
+
+#--------------------------------------------------------------------
+# generators
+
+add_src_file  (FILES_test_generators "ni/media/generators/modulated_sine.h")
+add_src_group (FILES_test_all test_generators FILES_test_generators)
+
 
 #--------------------------------------------------------------------
 # iostreams
@@ -137,3 +144,21 @@ file(MAKE_DIRECTORY ${output_files_path})
 if(NIMEDIA_AUDIOSTREAM_TESTS_WITH_USER_FILES)
   target_compile_definitions  ( audiostream_test PRIVATE "NI_MEDIA_RUN_USER_FILE_TESTS=1" )
 endif()
+
+#--------------------------------------------------------------------
+# reference generator
+#--------------------------------------------------------------------
+
+if(NIMEDIA_ENABLE_WAV_ENCODING)
+
+    add_src_file  (FILES_generator "generator.cpp"    )
+    add_src_group (FILES_generator generator FILES_generator)
+
+    add_executable        ( generator ${FILES_generator} )
+    target_include_directories  ( generator PRIVATE . )
+    target_link_libraries ( generator PRIVATE audiostream boost_program_options )
+
+endif()
+
+
+
