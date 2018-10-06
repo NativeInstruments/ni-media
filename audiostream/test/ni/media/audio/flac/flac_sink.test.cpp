@@ -45,7 +45,7 @@ TEST_P( flac_sink_test, ofstream )
 
     {
         audio::ofstream os( output_name(), info );
-        auto            buffer = std::vector<int32_t>( instream.info().num_samples() );
+        auto            buffer = std::vector<double>( instream.info().num_samples() );
         instream >> buffer;
         os << buffer;
     }
