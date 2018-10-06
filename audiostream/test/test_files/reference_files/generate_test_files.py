@@ -1,9 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
-from wavfile import savewav
-import numpy as np
 import subprocess
 import platform
 
@@ -11,39 +9,48 @@ import platform
 #                                HELPER
 #############################################################################
 
+def generate(generator, outfile, sample_rate, num_channels, num_frames, format ):
+    subprocess.check_call(
+        ['./generator', '-g', generator, '-r', str(sample_rate), '-c', str(num_channels), '-l', str(num_frames), '-f', format, '-o', outfile]
+   )
 
-def convert_to_aiff(infile, outfile, format):
-    subprocess.call(
-        ['afconvert', '-f', 'AIFF', '-d', format, infile, outfile]
+def sndfile_convert(infile, outfile, format):
+    subprocess.check_call(
+        ['sndfile-convert', infile, outfile]
+   )
+
+def convert_to_aiff(infile, outfile, format ):
+    subprocess.check_call(
+        ['afconvert', '-f', 'AIFF' if format.is_signed_integer() else 'AIFC', '-d', format.to_afconvertformat(), infile, outfile]
     )
 
 def convert_to_mp3(infile, outfile, bitrate):
-    subprocess.call(
+    subprocess.check_call(
         ['lame', '-h', '-b', str(bitrate), infile, outfile]
     )
 
 def convert_to_mp4_aac(infile, outfile, bitrate):
-    subprocess.call(
+    subprocess.check_call(
         ['afconvert', '-f', 'm4af', '-d', 'aac', '-b', str(bitrate * 1000), infile, outfile]
     )
 
 
 def convert_to_mp4_alac(infile, outfile):
-    subprocess.call(
+    subprocess.check_call(
         ['afconvert', '-f', 'm4af', '-d', 'alac', infile, outfile]
     )
 
 
 def convert_to_ogg(infile, outfile):
     devnull = open(os.devnull, 'w')
-    subprocess.call(
+    subprocess.check_call(
         ['ffmpeg', '-y', '-i', infile, '-qscale:a', '10', '-acodec', 'libvorbis', outfile],
         stdout=devnull,
         stderr=devnull
     )
 
 
-def can_use_afconvert():
+def check_afconvert():
     if platform.system() != 'Darwin':
         print('afconvert not available on this system (must be on OSX)')
         print('skipping generation of AIFF, ALAC and AAC files')
@@ -51,27 +58,26 @@ def can_use_afconvert():
     else:
         return True
 
-def can_use_ffmpeg():
+def check_ffmpeg():
     try:
         devnull = open(os.devnull, 'w')
         subprocess.call('ffmpeg', stdout=devnull, stderr=devnull)
-        return True
     except FileNotFoundError:
-        print('ffmpeg is not installed!')
-        print('run: brew install ffmpeg --with-libvorbis')
-        print('skipping generation of OGG files')
-        return False
+        raise Exception('ffmpeg is not installed! To install run: brew install ffmpeg')
 
-def can_use_lame():
+def check_lame():
     try:
         devnull = open(os.devnull, 'w')
         subprocess.call('lame', stdout=devnull, stderr=devnull)
-        return True
     except FileNotFoundError:
-        print('lame is not installed!')
-        print('run: brew install lame')
-        print('skipping generation of MP3 files')
-        return False
+        raise Exception('lame is not installed! To install run: brew install lame')
+
+def check_libsndfile():
+    try:
+        devnull = open(os.devnull, 'w')
+        subprocess.call('sndfile-convert', stdout=devnull, stderr=devnull)
+    except FileNotFoundError:
+        raise Exception('libsndfile is not installed! To install run: brew install libsndfile')
 
 
 
@@ -84,18 +90,24 @@ class PcmFormat:
     def to_string(self):
         return self.typeprefix + str(self.numbits) + self.endian
 
-    def to_dtype(self):
-        endianstring = '='
-        if self.endian == 'le':
-            endianstring = '<'
-        elif self.endian == 'be':
-            endianstring = '>'
+    def is_native_endian(self):
+        return self.endian == 'ne'
 
-        typeprefixstring = self.typeprefix
-        if self.typeprefix == 's':
-            typeprefixstring = 'i'
+    def is_little_endian(self):
+        return self.endian == 'le'
 
-        return np.dtype(endianstring + typeprefixstring + str(int(self.numbits / 8)))
+    def is_big_endian(self):
+        return self.endian == 'be'
+
+    def is_floating_point(self):
+        return self.typeprefix == 'f'
+
+    def is_signed_integer(self):
+        return self.typeprefix == 's'
+
+    def is_unsigned_integer(self):
+        return self.typeprefix == 'u'
+
 
     def to_afconvertformat(self):
         typeprefixstring = ''
@@ -111,48 +123,17 @@ class PcmFormat:
         return self.endian.upper() + typeprefixstring + str(self.numbits)
 
 
-def wavformat_to_aiffformat(wavformat):
-    aiffformat = PcmFormat(wavformat.typeprefix, wavformat.numbits, wavformat.endian)
-    if wavformat.typeprefix == 'u':
-        aiffformat.typeprefix = 's'
-    aiffformat.endian = 'be'
-    return aiffformat
+    def to_little_endian_format(self):
+        return PcmFormat(self.typeprefix, self.numbits, 'le')
 
+    def to_big_endian_format(self):
+        return PcmFormat(self.typeprefix, self.numbits, 'be')
 
-class SinGenerator:
-    def __init__(self, freqHz):
-        self.freqHz = freqHz
-        self.name = 'sin' + str(self.freqHz)
+    def to_native_endian_format(self):
+        return PcmFormat(self.typeprefix, self.numbits, 'be')
 
-    def data(self, numchannels, samplerate):
-        ts = np.arange(samplerate)
-        freq = self.freqHz * 2 * np.pi / samplerate
-        if numchannels == 1:
-            return np.sin(freq * ts)
-        elif numchannels == 2:
-            return [np.sin(freq * ts), np.cos(freq * ts)]
-        else:
-            raise Exception("unsupported number of channels: " + numchannels)
-
-
-class ModulatedSinGenerator:
-    def __init__(self, freqHz):
-        self.freqHz = freqHz
-        self.name = 'sin_mod' + str(self.freqHz)
-
-    def data(self, numchannels, samplerate):
-        ts = np.arange(samplerate)
-        freq = self.freqHz * 2 * np.pi / samplerate
-        mod_freq = 23 * 2 * np.pi / samplerate
-        mod_amp = 16
-        mod_left = np.sin(freq * ts + mod_amp * np.sin(mod_freq * ts))
-        mod_right = np.cos(freq * ts + mod_amp * np.sin(mod_freq * ts))
-        if numchannels == 1:
-            return mod_left
-        elif numchannels == 2:
-            return [mod_left, mod_right]
-        else:
-            raise Exception("unsupported number of channels: " + numchannels)
+    def to_signed_format(self):
+        return PcmFormat('s' if self.typeprefix == 'u' else self.typeprefix, self.numbits, self.endian)
 
 
 #############################################################################
@@ -161,15 +142,17 @@ class ModulatedSinGenerator:
 
 if __name__ == '__main__':
 
-    can_use_lame = can_use_lame()
-    can_use_afconvert = can_use_afconvert()
-    can_use_ffmpeg = can_use_ffmpeg()
+    check_ffmpeg()
+    check_afconvert()
+    check_lame()
+    check_libsndfile()
 
-    generators = [SinGenerator(440), ModulatedSinGenerator(440)]
+
+    generators = ['sin440', 'sin_mod440']
     channelconfigs = [1, 2]
     samplerates = [44100, 48000, 96000] # Hz 
     bitrates = [192]  # kbps  
-    formats = [PcmFormat('u', 8, 'le'), PcmFormat('s', 16, 'le'), PcmFormat('s', 32, 'le')]
+    formats = [PcmFormat('u', 8, 'le'), PcmFormat('s', 16, 'le'), PcmFormat('s', 24, 'le'), PcmFormat('s', 32, 'le'), PcmFormat('f', 32, 'le'), PcmFormat('f', 64, 'le') ]
 
     for generator in generators:
         for numchannels in channelconfigs:
@@ -177,25 +160,33 @@ if __name__ == '__main__':
                 for format in formats:
 
                     # file name is composed of: generator.numChannels.samplerate.numFrames.pcmFormat
-                    name = generator.name + '.' + str(numchannels) + '.' + str(samplerate) + '.' + str(samplerate) + '.'
-                    wavfilename = name + format.to_string() + '.wav'
-                    savewav(wavfilename, generator.data(numchannels, samplerate), samplerate, format.to_dtype())
+                    name = generator + '.' + str(numchannels) + '.' + str(samplerate) + '.' + str(samplerate) + '.'
+                    inputfilename = name + format.to_string() + '.wav'
 
-                    if can_use_afconvert:
-                        aiffformat = wavformat_to_aiffformat(format)
-                        convert_to_aiff(wavfilename, name + aiffformat.to_string() + '.aiff', aiffformat.to_afconvertformat())
+                    # wav
+                    generate(generator, inputfilename, samplerate, numchannels, samplerate, format.to_string()  )
 
-                    # 16 bit WAV files are used for encoding of compressed formats
-                    if format.numbits == 16:
-                        if samplerate <= 48000:
-                            for bitrate in bitrates:       
-                                if can_use_lame:
-                                    convert_to_mp3(wavfilename, name + 'cbr' + str(bitrate) + '.mp3', bitrate)
-                                if can_use_afconvert:
-                                    convert_to_mp4_aac(wavfilename, name + 'aac' + str(bitrate) + '.m4a', bitrate)
+                    # aiff
+                    aiff_format = format.to_signed_format().to_big_endian_format()
+                    convert_to_aiff( inputfilename, name + aiff_format.to_string() + '.aiff', aiff_format )
 
-                        if can_use_afconvert:
-                            convert_to_mp4_alac(wavfilename, name + 'alac.m4a')
+                    if format.is_signed_integer():
+                        # flac
+                        if format.numbits >= 16 and format.numbits <= 24 :
+                            sndfile_convert(inputfilename, name + format.to_string() + '.flac', format )
 
-                        if can_use_ffmpeg:
-                            convert_to_ogg(wavfilename, name + 'ogg')
+                        # alac
+                        if format.numbits >= 16:
+                            convert_to_mp4_alac(inputfilename, name + format.to_string() + '.alac.m4a')
+
+                        # 16 bit WAV files are used for encoding of compressed formats
+                        if format.numbits == 16:
+                            if samplerate <= 48000:
+                                for bitrate in bitrates:       
+                                    convert_to_mp3(inputfilename, name + format.to_string() + '.cbr' + str(bitrate) + '.mp3', bitrate)
+                                    convert_to_mp4_aac(inputfilename, name + format.to_string() + '.aac' + str(bitrate) + '.m4a', bitrate)
+
+                            # ogg
+                            convert_to_ogg(inputfilename, name + format.to_string() + '.ogg')
+
+

@@ -45,7 +45,7 @@ TEST_P( aiff_sink_test, ofstream )
 
     {
         audio::ofstream os( output_name(), info );
-        auto            buffer = std::vector<int32_t>( is.info().num_samples() );
+        auto            buffer = std::vector<double>( is.info().num_samples() );
         is >> buffer;
         os << buffer;
     }

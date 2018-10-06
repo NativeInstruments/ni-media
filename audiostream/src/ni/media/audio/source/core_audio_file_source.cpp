@@ -83,6 +83,21 @@ auto mp4_codec_type( UInt32 codecId )
     return codec_type::aac;
 }
 
+AudioFormatFlags formatToAudioFormatFlags( const pcm::format& format )
+{
+    AudioFormatFlags flags = 0;
+
+    if ( format.endian() == pcm::big_endian )
+        flags |= kAudioFormatFlagIsBigEndian;
+
+    if ( format.number() == pcm::floating_point )
+        flags |= kAudioFormatFlagIsFloat;
+
+    if ( format.number() == pcm::signed_integer )
+        flags |= kAudioFormatFlagIsSignedInteger;
+
+    return flags;
+}
 //----------------------------------------------------------------------------------------------------------------------
 
 audio::ifstream_info buildOutStreamInfo( ExtAudioFileRef& media, audio::ifstream_info::container_type container )
@@ -95,7 +110,6 @@ audio::ifstream_info buildOutStreamInfo( ExtAudioFileRef& media, audio::ifstream
     if ( ExtAudioFileGetProperty( media, kExtAudioFileProperty_FileDataFormat, &size, &descriptor ) != noErr )
         throw std::runtime_error( "Could not retrieve the audio format." );
 
-    info.format( make_format<floating_point, _32bit, little_endian>() );
     info.sample_rate( descriptor.mSampleRate );
     info.num_channels( descriptor.mChannelsPerFrame );
 
@@ -122,6 +136,9 @@ audio::ifstream_info buildOutStreamInfo( ExtAudioFileRef& media, audio::ifstream
         using codec_type     = audio::ifstream_info::codec_type;
         using container_type = audio::ifstream_info::container_type;
 
+        // we set the default format to 32bit float
+        info.format( make_format<floating_point, _32bit, native_endian>() );
+
         if ( container_type::mp3 == container && kAudioFileMP3Type == fileFormat )
         {
             info.codec( codec_type::mp3 );
@@ -131,7 +148,23 @@ audio::ifstream_info buildOutStreamInfo( ExtAudioFileRef& media, audio::ifstream
                   && ( kAudioFileMPEG4Type == fileFormat || kAudioFileM4AType == fileFormat ) )
         {
             info.codec( mp4_codec_type( descriptor.mFormatID ) );
-            info.lossless( info.codec() == codec_type::alac );
+            if ( info.codec() == codec_type::alac )
+            {
+                if ( descriptor.mFormatFlags == kAppleLosslessFormatFlag_16BitSourceData )
+                    info.format( make_format<signed_integer, _16bit, native_endian>() );
+                else if ( descriptor.mFormatFlags == kAppleLosslessFormatFlag_20BitSourceData )
+                    info.format( make_format<signed_integer, _24bit, native_endian>() );
+                else if ( descriptor.mFormatFlags == kAppleLosslessFormatFlag_24BitSourceData )
+                    info.format( make_format<signed_integer, _24bit, native_endian>() );
+                else if ( descriptor.mFormatFlags == kAppleLosslessFormatFlag_32BitSourceData )
+                    info.format( make_format<signed_integer, _32bit, native_endian>() );
+
+                info.lossless( true );
+            }
+            else
+            {
+                info.lossless( false );
+            }
         }
         else
             throw std::runtime_error( "Unsupported file format" );
@@ -142,7 +175,7 @@ audio::ifstream_info buildOutStreamInfo( ExtAudioFileRef& media, audio::ifstream
     return info;
 }
 
-} // namespace anonymous
+} // namespace
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -172,16 +205,16 @@ core_audio_file_source::core_audio_file_source( const std::string&              
     else if ( stream != 0 )
         throw std::runtime_error( "Invalid stream" );
 
-    auto outStreamInfo = buildOutStreamInfo( m_media, container );
+    auto info = buildOutStreamInfo( m_media, container );
 
     AudioStreamBasicDescription description{.mFormatID         = kAudioFormatLinearPCM,
-                                            .mChannelsPerFrame = UInt32( outStreamInfo.num_channels() ),
-                                            .mSampleRate       = Float64( outStreamInfo.sample_rate() ),
-                                            .mFormatFlags      = kAudioFormatFlagIsFloat,
+                                            .mChannelsPerFrame = UInt32( info.num_channels() ),
+                                            .mSampleRate       = Float64( info.sample_rate() ),
+                                            .mFormatFlags      = formatToAudioFormatFlags( info.format() ),
                                             .mFramesPerPacket  = 1,
-                                            .mBitsPerChannel   = UInt32( outStreamInfo.bits_per_sample() ),
-                                            .mBytesPerPacket   = UInt32( outStreamInfo.bytes_per_frame() ),
-                                            .mBytesPerFrame    = UInt32( outStreamInfo.bytes_per_frame() )};
+                                            .mBitsPerChannel   = UInt32( info.bits_per_sample() ),
+                                            .mBytesPerPacket   = UInt32( info.bytes_per_frame() ),
+                                            .mBytesPerFrame    = UInt32( info.bytes_per_frame() )};
 
     if ( ExtAudioFileSetProperty( m_media, kExtAudioFileProperty_ClientDataFormat, sizeof( description ), &description )
          != noErr )
@@ -189,7 +222,8 @@ core_audio_file_source::core_audio_file_source( const std::string&              
         throw std::runtime_error( "Could not set the output format." );
     }
 
-    m_info = outStreamInfo;
+
+    m_info = info;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

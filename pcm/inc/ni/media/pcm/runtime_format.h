@@ -30,6 +30,8 @@
 #include <boost/range/algorithm/find_if.hpp>
 
 #include <array>
+#include <ostream>
+#include <regex>
 #include <stdexcept>
 #include <type_traits>
 
@@ -91,10 +93,38 @@ struct runtime_format
                 bw = _64bit;
                 break;
             default:
-                throw std::runtime_error( "Invalid bitwidth" );
+                throw std::runtime_error( "Invalid bitwidth: " + std::to_string( bw ) );
         };
 
         *this = runtime_format( n, bw, e );
+    }
+
+    // TODO c++17: replace with std::string_view
+    runtime_format( const std::string& str )
+    {
+        std::regex  regex( "([fsu])([0-9]{1,2})(le|be|ne)" );
+        std::smatch match;
+
+        if ( std::regex_match( str, match, regex ) && ( match.size() == 4 ) )
+        {
+            const auto to_number = []( const auto& str ) {
+                return str == "f" ? floating_point : str == "s" ? signed_integer : unsigned_integer;
+            };
+
+            const auto to_bitwidth = []( const auto& str ) { return std::stoul( str ); };
+
+            const auto to_endian = []( const auto& str ) {
+                return str == "le" ? little_endian : str == "be" ? big_endian : native_endian;
+            };
+
+
+            *this = runtime_format( to_number( match[1].str() ), //
+                                    to_bitwidth( match[2].str() ),
+                                    to_endian( match[3].str() ) );
+            return;
+        }
+
+        throw std::runtime_error( "Invalid format: " + str );
     }
 
     auto number() const
@@ -132,6 +162,15 @@ inline bool operator==( const runtime_format& lhs, const runtime_format& rhs )
 inline bool operator!=( const runtime_format& lhs, const runtime_format& rhs )
 {
     return lhs.index() != rhs.index();
+}
+
+inline std::ostream& operator<<( std::ostream& stream, const runtime_format& fmt )
+{
+    const auto number   = fmt.number() == floating_point ? "f" : fmt.number() == signed_integer ? "s" : "u";
+    const auto bitwidth = fmt.bitwidth();
+    const auto endian   = fmt.endian() == big_endian ? "be" : "le";
+
+    return stream << number << bitwidth << endian;
 }
 
 
