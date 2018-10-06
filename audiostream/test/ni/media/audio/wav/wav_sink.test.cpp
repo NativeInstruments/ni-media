@@ -44,8 +44,8 @@ TEST_P( wav_sink_test, ofstream )
     info.sample_rate( is.info().sample_rate() );
 
     {
-        audio::wav_ofstream os( output_name(), info );
-        auto                buffer = std::vector<int32_t>( is.info().num_samples() );
+        audio::ofstream os( output_name(), info );
+        auto            buffer = std::vector<int32_t>( is.info().num_samples() );
         is >> buffer;
         os << buffer;
     }

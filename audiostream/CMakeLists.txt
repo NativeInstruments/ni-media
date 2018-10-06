@@ -5,6 +5,7 @@
 option( NIMEDIA_ENABLE_AIFF_DECODING "Enable ni-media aiff decoding" ON )
 option( NIMEDIA_ENABLE_AIFF_ENCODING "Enable ni-media aiff encoding" ON )
 option( NIMEDIA_ENABLE_FLAC_DECODING "Enable ni-media flac decoding" ON )
+option( NIMEDIA_ENABLE_FLAC_ENCODING "Enable ni-media flac encoding" ON )
 option( NIMEDIA_ENABLE_OGG_DECODING  "Enable ni-media ogg decoding" ON )
 
 if ( APPLE OR WIN32 )
@@ -44,6 +45,14 @@ endif()
 
 if( NOT NIMEDIA_ENABLE_FLAC_DECODING )
   set( COMPILE_WITH_FLAC_DECODING     DONT_COMPILE)
+endif()
+
+if( NOT NIMEDIA_ENABLE_FLAC_ENCODING )
+  set( COMPILE_WITH_FLAC_ENCODING    DONT_COMPILE)
+endif()
+
+if( NOT NIMEDIA_ENABLE_FLAC_DECODING AND NOT NIMEDIA_ENABLE_FLAC_ENCODING )
+  set( COMPILE_WITH_FLAC              DONT_COMPILE)
 endif()
 
 if( NOT NIMEDIA_ENABLE_OGG_DECODING )
@@ -256,10 +265,11 @@ add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/wma_file_sour
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/avassetreader_source.mm"          ${COMPILE_WITH_AVASSETREADER}     WITH_HEADER )
 add_src_group (FILES_All media_audio_source FILES_media_audio_source)
 
-add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/container_sink.h"                                  )
-add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/aiff_file_sink.h"    ${COMPILE_WITH_AIFF_ENCODING} )
-add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/aiff_sink.h"         ${COMPILE_WITH_AIFF_ENCODING} )
-add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/wav_file_sink.h"     ${COMPILE_WITH_WAV_ENCODING}  )
+add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/container_sink.h"                                                  )
+add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/aiff_file_sink.h"    ${COMPILE_WITH_AIFF_ENCODING}                 )
+add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/aiff_sink.h"         ${COMPILE_WITH_AIFF_ENCODING}                 )
+add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/flac_file_sink.cpp"  ${COMPILE_WITH_FLAC_ENCODING}     WITH_HEADER )
+add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/wav_file_sink.h"     ${COMPILE_WITH_WAV_ENCODING}                  )
 add_src_group (FILES_All media_audio_sink FILES_media_audio_sink)
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -286,6 +296,8 @@ target_compile_definitions( audiostream PRIVATE
   NIMEDIA_ENABLE_OGG_DECODING=$<BOOL:${NIMEDIA_ENABLE_OGG_DECODING}>
   NIMEDIA_ENABLE_WAV_DECODING=$<BOOL:${NIMEDIA_ENABLE_WAV_DECODING}>
   NIMEDIA_ENABLE_WMA_DECODING=$<BOOL:${NIMEDIA_ENABLE_WMA_DECODING}>
+  NIMEDIA_ENABLE_AIFF_ENCODING=$<BOOL:${NIMEDIA_ENABLE_AIFF_ENCODING}>
+  NIMEDIA_ENABLE_FLAC_ENCODING=$<BOOL:${NIMEDIA_ENABLE_FLAC_ENCODING}>
   NIMEDIA_ENABLE_WAV_ENCODING=$<BOOL:${NIMEDIA_ENABLE_WAV_ENCODING}>
   NIMEDIA_ENABLE_ITUNES_DECODING=$<BOOL:${NIMEDIA_ENABLE_ITUNES_DECODING}>
   )

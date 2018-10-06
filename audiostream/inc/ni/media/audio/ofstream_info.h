@@ -35,12 +35,14 @@ public:
     enum class container_type
     {
         aiff,
+        flac,
         wav
     };
 
     enum class codec_type
     {
         aiff,
+        flac,
         wav
     };
 

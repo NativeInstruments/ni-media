@@ -20,8 +20,42 @@
 // SOFTWARE.
 //
 
-#pragma once
+#include <ni/media/audio/ifstream.h>
 
-#include <ni/media/audio/sink/aiff_file_sink.h>
+#include <ni/media/audio/ofstream.h>
 #include <ni/media/audio/sink/flac_file_sink.h>
-#include <ni/media/audio/sink/wav_file_sink.h>
+#include <ni/media/reference_test.h>
+#include <ni/media/sink_test.h>
+
+
+class flac_sink_test : public sink_test
+{
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+TEST_P( flac_sink_test, ofstream )
+{
+    auto instream = audio::ifstream( input_name() );
+
+    audio::ofstream_info info;
+    info.format( instream.info().format() );
+    info.num_channels( instream.info().num_channels() );
+    info.sample_rate( instream.info().sample_rate() );
+
+    {
+        audio::ofstream os( output_name(), info );
+        auto            buffer = std::vector<int32_t>( instream.info().num_samples() );
+        instream >> buffer;
+        os << buffer;
+    }
+
+    // reference_test( audio::ifstream( output_name() ), output_name() );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+INSTANTIATE_TEST_CASE_P( reference_test,
+                         flac_sink_test,
+                         reference_files( audio::ifstream_info::container_type::flac ) );
