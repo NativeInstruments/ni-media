@@ -79,8 +79,6 @@ auto readAiffHeader( Source& src )
     if ( !fetch( src, aiffTag.id, aiffTag.length, aiffTag.subType ) || aiffTag.id != aiff::tags::form )
         throw std::runtime_error( "Could not read \'FORM\' tag." );
 
-    aiffTag.start = src.seek( 0, BOOST_IOS::cur );
-
     while ( fetch( src, aiffTag.id, aiffTag.length ) )
     {
         // Retrieve the 'COMM' subchunk, which contains the audio format information
