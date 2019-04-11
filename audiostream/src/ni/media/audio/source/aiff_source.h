@@ -81,6 +81,8 @@ auto readAiffHeader( Source& src )
 
     while ( fetch( src, aiffTag.id, aiffTag.length ) )
     {
+        const auto currentOffset = static_cast<uint32_t>( src.seek( 0, BOOST_IOS::cur ) );
+
         // Retrieve the 'COMM' subchunk, which contains the audio format information
         if ( aiffTag.id == aiff::tags::comm )
         {
@@ -205,13 +207,11 @@ auto readAiffHeader( Source& src )
             return info;
         }
 
-        else
-        {
-            static const size_t padSize   = 2;
-            auto                remainder = aiffTag.length % padSize;
-            auto                target    = aiffTag.length + ( remainder != 0 ? padSize - remainder : 0 );
-            src.seek( target, BOOST_IOS::cur );
-        }
+        static const size_t padSize   = 2;
+        auto                remainder = aiffTag.length % padSize;
+        auto                target    = currentOffset + aiffTag.length
+                                        + ( remainder != 0 ? padSize - remainder : 0 );
+        src.seek( target, BOOST_IOS::beg );
     }
 
     throw std::runtime_error( "Could not read \'data\' tag." );
