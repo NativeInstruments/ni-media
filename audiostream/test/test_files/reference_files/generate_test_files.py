@@ -4,6 +4,8 @@ import os
 import sys
 import subprocess
 import platform
+import chunk
+import struct
 
 #############################################################################
 #                                HELPER
@@ -136,6 +138,49 @@ class PcmFormat:
         return PcmFormat('s' if self.typeprefix == 'u' else self.typeprefix, self.numbits, self.endian)
 
 
+
+def convert_to_file_with_gaps_between_chunks(src_file, gap_size, bigendian):
+    name, ext = os.path.splitext(src_file)
+    dst_file = name + '.gap' + ext
+    int_format = '>L' if bigendian else '<L'
+    with open(src_file, 'rb') as fdin:
+        with open(dst_file, 'wb') as fdout:
+            riff_or_form_chunk = chunk.Chunk(fdin, bigendian=bigendian)
+            if riff_or_form_chunk.getname() == b'RIFF':
+                format = riff_or_form_chunk.read(4)
+                if format != b'WAVE':
+                    raise Exception('not a WAVE file')
+            elif riff_or_form_chunk.getname() == b'FORM':
+                format = riff_or_form_chunk.read(4)
+                if format not in (b'AIFF', b'AIFC'):
+                    raise Exception('not an AIFF file')
+            else:
+                raise Exception('file does not start with RIFF or FORM id')
+
+            fdout.write(riff_or_form_chunk.getname())
+            fdout.write(b'xxxx') # will fill this in at the end
+            fdout.write(format)
+
+            while True:
+                try:
+                    subchunk = chunk.Chunk(riff_or_form_chunk, bigendian=bigendian)
+                except EOFError:
+                    break
+                chunkname = subchunk.getname()
+                gap_size = 0 if chunkname in (b'data', b'SSND') else gap_size
+                fdout.write(chunkname)
+                fdout.write(struct.pack(int_format, subchunk.getsize() + gap_size))
+                fdout.write(subchunk.read())
+                for i in range(gap_size + (gap_size % 2)):
+                    fdout.write(b'0')
+                subchunk.close()
+
+            riff_or_form_chunk_size = fdout.tell() - 8
+            fdout.seek(4)
+            fdout.write(struct.pack(int_format, riff_or_form_chunk_size))
+
+
+
 #############################################################################
 #                          GENERATE TEST DATA
 #############################################################################
@@ -153,6 +198,7 @@ if __name__ == '__main__':
     samplerates = [44100, 48000, 96000] # Hz 
     bitrates = [192]  # kbps  
     formats = [PcmFormat('u', 8, 'le'), PcmFormat('s', 16, 'le'), PcmFormat('s', 24, 'le'), PcmFormat('s', 32, 'le'), PcmFormat('f', 32, 'le'), PcmFormat('f', 64, 'le') ]
+    gap_size = 1
 
     for generator in generators:
         for numchannels in channelconfigs:
@@ -168,7 +214,13 @@ if __name__ == '__main__':
 
                     # aiff
                     aiff_format = format.to_signed_format().to_big_endian_format()
-                    convert_to_aiff( inputfilename, name + aiff_format.to_string() + '.aiff', aiff_format )
+                    aiff_filename = name + aiff_format.to_string() + '.aiff'
+                    convert_to_aiff( inputfilename, aiff_filename, aiff_format )
+
+                    if generator == generators[0] and format == formats[0]:
+                        convert_to_file_with_gaps_between_chunks(inputfilename, gap_size, bigendian=False)
+                        convert_to_file_with_gaps_between_chunks(aiff_filename, gap_size, bigendian=True)
+                        gap_size += 3
 
                     if format.is_signed_integer():
                         # flac
