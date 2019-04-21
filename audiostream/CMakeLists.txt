@@ -269,7 +269,7 @@ add_src_group (FILES_All media_audio_sink FILES_media_audio_sink)
 add_library                 ( audiostream ${FILES_All} )
 target_include_directories  ( audiostream
                                 PUBLIC
-                                  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc> 
+                                  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
                                   $<INSTALL_INTERFACE:include>
                                 PRIVATE
                                   src
