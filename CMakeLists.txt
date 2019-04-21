@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.8)
 
 
 if( TARGET ni-media )
@@ -60,7 +60,7 @@ foreach( target audiostream audiostream_test pcm pcm_test )
     endif()
 
     set_property( TARGET ${target} PROPERTY FOLDER ni-media )
-    set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
+    target_compile_features(${target} PRIVATE cxx_std_14)
   endif()
 endforeach()
 
