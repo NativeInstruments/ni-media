@@ -8,7 +8,7 @@ git:
 matrix:
   include:
     - os: osx
-      osx_image: xcode7.3
+      osx_image: xcode9.4
       compiler: clang
       env: MATRIX_EVAL="CONFIG=Release" 
       
@@ -34,12 +34,12 @@ before_install:
   - mkdir deps && cd deps
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update && brew install git-lfs libogg libvorbis flac;
+      brew install git-lfs libogg libvorbis flac;
       git lfs install;
     else
-      wget http://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.bz2;
-      tar -xvjf boost_1_63_0.tar.bz2 | tail -n 50;
-      cd boost_1_63_0;
+      wget http://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2;
+      tar -xvjf boost_1_69_0.tar.bz2 | tail -n 50;
+      cd boost_1_69_0;
       sudo ./bootstrap.sh --with-libraries="filesystem,system,iostreams";
       sudo ./b2 install | tail -n 50;
       cd ..;
