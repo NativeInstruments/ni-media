@@ -30,7 +30,7 @@ install:
   - vcpkg install boost-icl:custom-triplet
   - vcpkg install boost-iostreams:custom-triplet
   - vcpkg install boost-program-options:custom-triplet
-  - vcpkg install boost-system
+  - vcpkg install boost-system:custom-triplet
   - vcpkg install gtest:custom-triplet
   - vcpkg install libOgg:custom-triplet
   - vcpkg install libFlac:custom-triplet
