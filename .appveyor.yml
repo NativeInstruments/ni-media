@@ -19,15 +19,18 @@ environment:
       TARGET_ARCHITECTURE: x64
 
 install:
-  - cd /d C:\tools\vcpkg
-  - git checkout  751015f6a44d6f89ca71ac63d7c5cab83cf531c0 -- ports/boost
-  - cd %APPVEYOR_BUILD_FOLDER%
-
   - echo set(VCPKG_TARGET_ARCHITECTURE %TARGET_ARCHITECTURE%) > C:\tools\vcpkg\triplets\custom-triplet.cmake
   - echo set(VCPKG_CRT_LINKAGE %CRT_LINKAGE%) >> C:\tools\vcpkg\triplets\custom-triplet.cmake
   - echo set(VCPKG_LIBRARY_LINKAGE %LIBRARY_LINKAGE%) >> C:\tools\vcpkg\triplets\custom-triplet.cmake
 
-  - vcpkg install boost:custom-triplet
+  - vcpkg install boost-algorithm:custom-triplet
+  - vcpkg install boost-endian:custom-triplet
+  - vcpkg install boost-filesystem:custom-triplet
+  - vcpkg install boost-format:custom-triplet
+  - vcpkg install boost-icl:custom-triplet
+  - vcpkg install boost-iostreams:custom-triplet
+  - vcpkg install boost-program-options:custom-triplet
+  - vcpkg install boost-system:custom-triplet
   - vcpkg install gtest:custom-triplet
   - vcpkg install libOgg:custom-triplet
   - vcpkg install libFlac:custom-triplet
