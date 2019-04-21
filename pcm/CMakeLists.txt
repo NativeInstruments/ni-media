@@ -42,9 +42,35 @@ add_src_group (FILES_All media_pcm_algorithm FILES_media_pcm_algorithm)
 #--------------------------------------------------------------------
 
 add_library                 ( pcm EXCLUDE_FROM_ALL ${FILES_All} )
-target_include_directories  ( pcm PUBLIC inc
-                                  PRIVATE src )
+target_include_directories  ( pcm
+                                PUBLIC
+                                  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc> 
+                                  $<INSTALL_INTERFACE:include>
+                                PRIVATE
+                                  src
+                            )
+
+
 target_link_libraries       ( pcm PUBLIC Boost::boost)
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+# install
+#-----------------------------------------------------------------------------------------------------------------------
+
+if(NOT DISABLE_INSTALL_HEADERS)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/inc/
+    DESTINATION include
+  )
+endif()
+
+install(
+  TARGETS pcm
+  EXPORT ni-mediaExport
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
 #--------------------------------------------------------------------
 # testing

@@ -38,6 +38,13 @@ endif()
 add_subdirectory( pcm )
 add_subdirectory( audiostream )
 
+install(
+    EXPORT ni-mediaExport
+    FILE ni-mediaConfig.cmake
+    NAMESPACE ni::
+    DESTINATION share/ni-media
+)
+
 # for backwards compatibility:
 add_library( ni-media INTERFACE )
 target_link_libraries( ni-media INTERFACE audiostream pcm )
