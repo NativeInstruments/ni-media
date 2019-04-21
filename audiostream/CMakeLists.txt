@@ -266,7 +266,7 @@ add_src_group (FILES_All media_audio_sink FILES_media_audio_sink)
 # linking
 #-----------------------------------------------------------------------------------------------------------------------
 
-add_library                 ( audiostream EXCLUDE_FROM_ALL ${FILES_All} )
+add_library                 ( audiostream ${FILES_All} )
 target_include_directories  ( audiostream
                                 PUBLIC
                                   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc> 
