@@ -59,8 +59,7 @@ before_script:
   - mkdir build
   - cd build
   - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON
-  - git lfs pull -X ""
     
 script:
   - export CTEST_OUTPUT_ON_FAILURE=TRUE
-  - cmake --build . && cmake --build . --target test
+  - cmake --build . && git lfs pull -X "" && cmake --build . --target test
