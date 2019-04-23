@@ -72,7 +72,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON
+  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON -DNIMEDIA_PCM_TESTS=OFF
     
 script:
   - export CTEST_OUTPUT_ON_FAILURE=TRUE
