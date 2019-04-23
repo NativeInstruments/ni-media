@@ -7,25 +7,25 @@ git:
    
 matrix:
   include:
-    - os: osx
-      osx_image: xcode9.4
-      compiler: clang
-      env: MATRIX_EVAL="CONFIG=Release"
+#    - os: osx
+#      osx_image: xcode9.4
+#      compiler: clang
+#      env: MATRIX_EVAL="CONFIG=Release"
       
-    - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources:
-          - ubuntu-toolchain-r-test
-          packages:
-          - g++-5
-          - cmake
-          - libogg-dev
-          - libvorbis-dev
-          - libflac++-dev
+#    - os: linux
+#      compiler: gcc
+#      addons:
+#        apt:
+#          sources:
+#          - ubuntu-toolchain-r-test
+#          packages:
+#          - g++-5
+#          - cmake
+#          - libogg-dev
+#          - libvorbis-dev
+#          - libflac++-dev
 
-      env: MATRIX_EVAL="CONFIG=Release && CXX=g++-5"
+#      env: MATRIX_EVAL="CONFIG=Release && CXX=g++-5"
 
     - os: linux
       compiler: gcc
@@ -77,3 +77,11 @@ before_script:
 script:
   - export CTEST_OUTPUT_ON_FAILURE=TRUE
   - cmake --build . && git lfs pull -X "" && cmake --build . --target test
+
+after_success:
+  - if [ "$CONFIG" == "Coverage" ]; then
+      lcov --gcov-tool $(which ${GCOV}) -d . -c -o coverage.info;
+      lcov --gcov-tool $(which ${GCOV}) -l coverage.info;
+      lcov --gcov-tool $(which ${GCOV}) -r coverage.info '/usr/*' 'tests/*' -o coverage.info;
+      lcov --gcov-tool $(which ${GCOV}) -l coverage.info;
+    fi
