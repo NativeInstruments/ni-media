@@ -58,6 +58,8 @@ auto readWavHeader( Source& src )
 
     while ( fetch( src, riffTag.id, riffTag.length ) && riffTag.length > 0 )
     {
+        const auto currentOffset = static_cast<uint32_t>( src.seek( 0, std::ios_base::cur ) );
+
         // seek through wav chunks
         if ( riffTag.id == little_endian_fourcc( "fmt " ) )
         {
@@ -87,12 +89,6 @@ auto readWavHeader( Source& src )
                 {
                     fmtChunk.formatTag = wavFormatTagIeeeFloat;
                 }
-
-                src.seek( riffTag.length - 16 - sizeof( FormatExtensible ), std::ios::cur );
-            }
-            else
-            {
-                src.seek( riffTag.length - 16, std::ios::cur );
             }
 
             if ( fmtChunk.formatTag == wavFormatTagPcm )
@@ -153,15 +149,6 @@ auto readWavHeader( Source& src )
 
                     info.sample_loops( sampleLoops );
                 }
-                else
-                {
-                    const size_t nBytes = ( ( riffTag.length + 1 ) & 0xfffffe ) - sizeof( SampleChunk );
-                    src.seek( nBytes, std::ios::cur );
-                }
-            }
-            else
-            {
-                src.seek( ( riffTag.length + 1 ) & 0xfffffe, std::ios::cur );
             }
         }
         else if ( riffTag.id == little_endian_fourcc( "inst" ) )
@@ -174,20 +161,10 @@ auto readWavHeader( Source& src )
 
                 info.instrument_chunk(
                     *reinterpret_cast<const audio::wav_specific_info::InstrumentChunk*>( &instrumentChunk ) );
+            }
+        }
 
-                const size_t nBytes = ( ( ( riffTag.length + 1 ) & 0xfffffe ) ) - sizeof( InstrumentChunk );
-                src.seek( nBytes, std::ios::cur );
-            }
-            else
-            {
-                src.seek( ( riffTag.length + 1 ) & 0xfffffe, std::ios::cur );
-            }
-        }
-        else
-        {
-            // make chunk size even
-            src.seek( ( riffTag.length + 1 ) & 0xfffffe, std::ios::cur );
-        }
+        src.seek( ( currentOffset + riffTag.length + 1 ) & 0xfffffe, std::ios_base::beg );
     }
 
     throw std::runtime_error( "Could not read \'data\' tag." );

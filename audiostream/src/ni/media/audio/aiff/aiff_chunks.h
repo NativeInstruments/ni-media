@@ -66,7 +66,6 @@ struct Tag
     boost::endian::big_uint32_t id      = 0;
     boost::endian::big_uint32_t length  = 0;
     boost::endian::big_uint32_t subType = 0;
-    std::streamoff              start   = 0;
 };
 
 
