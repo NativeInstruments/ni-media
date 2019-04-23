@@ -19,7 +19,6 @@ if( CMAKE_BUILD_TYPE MATCHES Coverage )
   add_compile_options( -g -O0 --coverage )
   set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov --coverage" )
   set( CMAKE_BUILD_TYPE Debug FORCE )
-  message( STATUS "it is coverage!!!!!!!!!!!!!!!!!" )
 endif()
 
 if(WIN32 AND CMAKE_CL_64)
