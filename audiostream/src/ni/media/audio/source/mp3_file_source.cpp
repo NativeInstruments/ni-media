@@ -26,6 +26,8 @@
 #include "core_audio_file_source.h"
 #elif BOOST_OS_WINDOWS
 #include "media_foundation_file_source.h"
+#elif BOOST_OS_LINUX
+#include "gstreamer_file_source.h"
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -55,6 +57,8 @@ void mp3_file_source::open( const std::string& path )
     m_impl.reset( new core_audio_file_source( path, audio::ifstream_info::container_type::mp3 ) );
 #elif BOOST_OS_WINDOWS
     m_impl.reset( new media_foundation_file_source( path, audio::ifstream_info::container_type::mp3 ) );
+#elif BOOST_OS_LINUX
+    m_impl.reset( new gstreamer_file_source( path, audio::ifstream_info::container_type::mp3 ) );
 #endif
 }
 

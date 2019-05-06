@@ -22,7 +22,11 @@
 
 #include <ni/media/audio/source/wma_file_source.h>
 
+#if BOOST_OS_WINDOWS
 #include "media_foundation_file_source.h"
+#elif BOOST_OS_LINUX
+#include "gstreamer_file_source.h"
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -47,7 +51,11 @@ wma_file_source::wma_file_source( const std::string& path )
 
 void wma_file_source::open( const std::string& path )
 {
+#if BOOST_OS_WINDOWS
     m_impl.reset( new media_foundation_file_source( path, audio::ifstream_info::container_type::wma ) );
+#elif BOOST_OS_LINUX
+    m_impl.reset( new gstreamer_file_source( path, audio::ifstream_info::container_type::wma ) );
+#endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------

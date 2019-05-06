@@ -7,7 +7,7 @@ option( NIMEDIA_ENABLE_AIFF_ENCODING "Enable ni-media aiff encoding" ON )
 option( NIMEDIA_ENABLE_FLAC_DECODING "Enable ni-media flac decoding" ON )
 option( NIMEDIA_ENABLE_OGG_DECODING  "Enable ni-media ogg decoding" ON )
 
-if ( APPLE OR WIN32 )
+if ( APPLE OR WIN32 OR LINUX )
   option( NIMEDIA_ENABLE_MP3_DECODING  "Enable ni-media mp3 decoding" ON )
   option( NIMEDIA_ENABLE_MP4_DECODING  "Enable ni-media mp4 decoding" ON )
 else()
@@ -21,7 +21,7 @@ else()
   option( NIMEDIA_ENABLE_ITUNES_DECODING "Enable ni-media iTunes decoding" OFF )
 endif()
 
-if( WIN32 )
+if( WIN32 OR LINUX )
   option( NIMEDIA_ENABLE_WMA_DECODING "Enable ni-media wma decoding" ON )
 else()
   option( NIMEDIA_ENABLE_WMA_DECODING "Enable ni-media wma decoding" OFF )
@@ -80,6 +80,7 @@ endif()
 
 set( COMPILE_WITH_COREAUDIO         DONT_COMPILE)
 set( COMPILE_WITH_MEDIA_FOUNDATION  DONT_COMPILE)
+set( COMPILE_WITH_GSTREAMER         DONT_COMPILE)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # dependencies
@@ -142,6 +143,27 @@ if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE
     set(COMPILE_WITH_MEDIA_FOUNDATION)
 
     list(APPEND codec_libraries mfplat.lib mfreadwrite.lib mfuuid.lib Propsys.lib)
+
+  elseif( LINUX )
+
+    set(COMPILE_WITH_GSTREAMER)
+
+    find_package(Glib REQUIRED)
+    find_package(GStreamer REQUIRED)
+    find_package(GObject REQUIRED)
+
+    if ( NOT TARGET GSTREAMER::gstreamer )
+      message(FATAL_ERROR
+	"You are building ni-media with GStreamer decoding support but the required gstreamer-1.0 library was not found\n"
+	"Make sure library can be found or disable GSTREAMER decoding by setting:\n"
+	" * NIMEDIA_ENABLE_MP3_DECODING = OFF\n"
+	" * NIMEDIA_ENABLE_MP4_DECODING = OFF\n"
+	" * NIMEDIA_ENABLE_WMA_DECODING = OFF\n")
+    endif()
+
+    list(APPEND codec_libraries GSTREAMER::gstreamer)
+    list(APPEND codec_libraries glib-2.0)
+    list(APPEND codec_libraries gobject-2.0)
 
   else()
 
@@ -242,6 +264,7 @@ add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/container_sou
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/core_audio_file_source.cpp"       ${COMPILE_WITH_COREAUDIO}         WITH_HEADER )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/media_foundation_helper.h"        ${COMPILE_WITH_MEDIA_FOUNDATION}              )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/media_foundation_file_source.cpp" ${COMPILE_WITH_MEDIA_FOUNDATION}  WITH_HEADER )
+add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/gstreamer_file_source.cpp"        ${COMPILE_WITH_GSTREAMER}         WITH_HEADER )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_source.h"                    ${COMPILE_WITH_AIFF_DECODING}                 )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_file_source.h"               ${COMPILE_WITH_AIFF_DECODING}                 )
 add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_vector_source.h"             ${COMPILE_WITH_AIFF_DECODING}                 )
