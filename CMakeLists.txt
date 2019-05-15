@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5)
 if(POLICY CMP0063)
   cmake_policy(SET CMP0063 NEW)
 endif()
@@ -34,10 +34,12 @@ if( NIMEDIA_OPEN_SOURCE )
   endif()
 
   if( CMAKE_BUILD_TYPE MATCHES Coverage )
-	add_compile_options( -g -O0 --coverage )
-	set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov --coverage" )
-	set( CMAKE_BUILD_TYPE Debug FORCE )
+    add_compile_options( -g -O0 --coverage )
+    set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov --coverage" )
+    set( CMAKE_BUILD_TYPE Debug FORCE )
   endif()
+
+  find_package(Boost "1.61.0" REQUIRED COMPONENTS iostreams filesystem system program_options)
 
 else()
 
@@ -55,6 +57,13 @@ else()
   if( NOT NIMEDIA_UNITY_BUILDS )
     set( SCOPED_DISABLE_UNITY_BUILDS 1 )
   endif()
+
+  find_package(NIBoost REQUIRED)
+  add_library(Boost::boost              ALIAS boost_header_only_interface)
+  add_library(Boost::iostreams          ALIAS boost_iostreams)
+  add_library(Boost::filesystem         ALIAS boost_filesystem)
+  add_library(Boost::system             ALIAS boost_system)
+  add_library(Boost::program_options    ALIAS boost_program_options)
 
 endif()
 

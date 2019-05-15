@@ -156,7 +156,7 @@ if(NIMEDIA_ENABLE_WAV_ENCODING)
 
     add_executable        ( generator ${FILES_generator} )
     target_include_directories  ( generator PRIVATE . )
-    target_link_libraries ( generator PRIVATE audiostream boost_program_options )
+    target_link_libraries ( generator PRIVATE audiostream Boost::program_options )
 
 endif()
 

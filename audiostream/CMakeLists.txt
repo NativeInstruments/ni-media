@@ -82,14 +82,6 @@ set( COMPILE_WITH_MEDIA_FOUNDATION  DONT_COMPILE)
 # dependencies
 #-----------------------------------------------------------------------------------------------------------------------
 
-if( NIMEDIA_OPEN_SOURCE )
-  set(BOOST_MIN_VERSION "1.61.0")
-  find_package(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS iostreams filesystem system)
-else()
-  find_package(NIBoost REQUIRED)
-  set(Boost_LIBRARIES boost_iostreams boost_filesystem boost_system)
-endif()
-
 if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE_WMA_DECODING)
 
   if( APPLE )
@@ -317,7 +309,7 @@ target_include_directories  ( audiostream PUBLIC inc
                                           PRIVATE src )
 
 target_link_libraries       ( audiostream PUBLIC pcm
-                                          PRIVATE ${Boost_LIBRARIES} ${codec_libraries})
+                                          PRIVATE Boost::iostreams Boost::filesystem Boost::system ${codec_libraries})
 
 if(MSVC)
   target_compile_options( audiostream PRIVATE /wd4351 )  # MSVC new behaviour warning
