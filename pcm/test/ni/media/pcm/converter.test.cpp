@@ -63,7 +63,7 @@ struct from
 template <class Traits>
 class pcm_convert_test : public testing::Test
 {
-protected:
+public:
     using source_t = typename Traits::source_t;
     using target_t = typename Traits::target_t;
 
