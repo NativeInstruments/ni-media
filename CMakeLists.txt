@@ -25,6 +25,7 @@ if( NIMEDIA_OPEN_SOURCE )
   include(ni_add_src_file)
   include(ni_add_src_group)
   include(ni_add_test)
+  include(ni_treat_warnings_as_errors)
   
   if(WIN32 AND CMAKE_CL_64)
     set(WIN64 1)
