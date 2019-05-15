@@ -51,10 +51,10 @@ before_install:
       brew install git-lfs libogg libvorbis flac;
       git lfs install;
     else
-      wget http://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2;
-      tar -xvjf boost_1_69_0.tar.bz2 | tail -n 50;
-      cd boost_1_69_0;
-      sudo ./bootstrap.sh --with-libraries="filesystem,system,iostreams";
+      wget http://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.bz2;
+      tar -xvjf boost_1_64_0.tar.bz2 | tail -n 50;
+      cd boost_1_64_0;
+      sudo ./bootstrap.sh --with-libraries="filesystem,system,iostreams,program_options,regex";
       sudo ./b2 install | tail -n 50;
       cd ..;
     fi

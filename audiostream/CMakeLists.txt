@@ -21,14 +21,11 @@ else()
   option( NIMEDIA_ENABLE_ITUNES_DECODING "Enable ni-media iTunes decoding" OFF )
 endif()
 
-if( WIN32 )
-  option( NIMEDIA_ENABLE_WMA_DECODING "Enable ni-media wma decoding" ON )
-else()
-  option( NIMEDIA_ENABLE_WMA_DECODING "Enable ni-media wma decoding" OFF )
-endif()
-
 option( NIMEDIA_ENABLE_WAV_DECODING  "Enable ni-media wav decoding" ON )
 option( NIMEDIA_ENABLE_WAV_ENCODING  "Enable ni-media wav encoding" ON )
+
+# Wma decoding is only supported on windows and is currently untested. Use at your own risk!
+option( NIMEDIA_ENABLE_WMA_DECODING "Enable ni-media wma decoding" OFF )
 
 if( NOT NIMEDIA_ENABLE_AIFF_DECODING )
   set( COMPILE_WITH_AIFF_DECODING   DONT_COMPILE)
@@ -84,9 +81,6 @@ set( COMPILE_WITH_MEDIA_FOUNDATION  DONT_COMPILE)
 #-----------------------------------------------------------------------------------------------------------------------
 # dependencies
 #-----------------------------------------------------------------------------------------------------------------------
-
-set(BOOST_MIN_VERSION "1.61.0")
-find_package(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS iostreams filesystem system)
 
 if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE_WMA_DECODING)
 
@@ -158,7 +152,12 @@ endif()
 
 if( NIMEDIA_ENABLE_FLAC_DECODING )
 
-  find_package(FLAC REQUIRED)
+  if( NIMEDIA_OPEN_SOURCE )
+    find_package(FLAC REQUIRED)
+  else()
+    find_package(NIFLAC REQUIRED)
+    add_library(FLAC::flacpp ALIAS flacpp)
+  endif()
 
   if ( NOT TARGET FLAC::flacpp )
     message(FATAL_ERROR
@@ -172,7 +171,12 @@ endif()
 
 if ( NIMEDIA_ENABLE_OGG_DECODING )
 
-  find_package(Vorbis REQUIRED)
+  if( NIMEDIA_OPEN_SOURCE )
+    find_package(Vorbis REQUIRED)
+  else()
+    find_package(NILibVorbis REQUIRED)
+    add_library(Vorbis::vorbisfile ALIAS libvorbis)
+  endif()
 
   if ( NOT TARGET Vorbis::vorbisfile)
     message(FATAL_ERROR
@@ -199,6 +203,7 @@ add_src_file  (FILES_media_iostreams_device "src/ni/media/iostreams/device/subvi
 add_src_file  (FILES_media_iostreams_device "src/ni/media/iostreams/device/container.h"   )
 add_src_group (FILES_All media_iostreams_device FILES_media_iostreams_device)
 
+
 add_src_file  (FILES_media_audio "src/ni/media/audio/fourcc.h"                                )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ieee80.h"                                )
 add_src_file  (FILES_media_audio "src/ni/media/audio/iotools.cpp"          WITH_HEADER        )
@@ -216,6 +221,7 @@ add_src_file  (FILES_media_audio "src/ni/media/audio/ifstream_info.cpp"    WITH_
 add_src_file  (FILES_media_audio "inc/ni/media/audio/ifstream_support.h"                      )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ofstream_info.cpp"    WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/source.h"                                )
+add_src_file  (FILES_media_audio "src/ni/media/audio/source_impl.h"                           )
 add_src_file  (FILES_media_audio "src/ni/media/audio/sink.h"                                  )
 add_src_file  (FILES_media_audio "inc/ni/media/audio/streambuf.h"                             )
 add_src_group (FILES_All media_audio FILES_media_audio)
@@ -223,44 +229,76 @@ add_src_group (FILES_All media_audio FILES_media_audio)
 
 add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_ifstream_info.h"  ${COMPILE_WITH_AIFF_DECODING} )
 add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_ofstream_info.h"  ${COMPILE_WITH_AIFF_ENCODING} )
-add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_specific_info.h"  ${COMPILE_WITH_AIFF} )
-add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_chunks.h"         ${COMPILE_WITH_AIFF} )
+add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_specific_info.h"  ${COMPILE_WITH_AIFF}          )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_source.h"         ${COMPILE_WITH_AIFF_DECODING} )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_file_source.h"    ${COMPILE_WITH_AIFF_DECODING} )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_vector_source.h"  ${COMPILE_WITH_AIFF_DECODING} )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_chunks.h"         ${COMPILE_WITH_AIFF}          )
 add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_ofstream.cpp"     ${COMPILE_WITH_AIFF_ENCODING} WITH_PUBLIC_HEADER )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_file_sink.h"      ${COMPILE_WITH_AIFF_ENCODING} )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_sink.h"           ${COMPILE_WITH_AIFF_ENCODING} )
 add_src_group (FILES_All media_audio_aiff FILES_media_audio_aiff)
 
 
-add_src_file  (FILES_media_audio_wav "inc/ni/media/audio/wav/wav_ifstream_info.h"     ${COMPILE_WITH_WAV_DECODING}  )
-add_src_file  (FILES_media_audio_wav "inc/ni/media/audio/wav/wav_ofstream_info.h"     ${COMPILE_WITH_WAV_ENCODING}  )
-add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_ofstream.cpp"        ${COMPILE_WITH_WAV_ENCODING}  WITH_PUBLIC_HEADER )
+add_src_file  (FILES_media_audio_flac "src/ni/media/audio/flac/flac_source.h"            ${COMPILE_WITH_FLAC_DECODING} )
+add_src_file  (FILES_media_audio_flac "src/ni/media/audio/flac/flac_file_source.h"       ${COMPILE_WITH_FLAC_DECODING} )
+add_src_file  (FILES_media_audio_flac "src/ni/media/audio/flac/flac_vector_source.h"     ${COMPILE_WITH_FLAC_DECODING} )
+add_src_group (FILES_All media_audio_flac FILES_media_audio_flac)
+
+
+add_src_file  (FILES_media_audio_iostreams "src/ni/media/audio/iostreams/container_source.h" )
+add_src_file  (FILES_media_audio_iostreams "src/ni/media/audio/iostreams/container_sink.h"   )
+add_src_group (FILES_All media_audio_iostreams FILES_media_audio_iostreams)
+
+
+add_src_file  (FILES_media_audio_mp3 "src/ni/media/audio/mp3/mp3_file_source.h"       ${COMPILE_WITH_MP3_DECODING} )
+add_src_file  (FILES_media_audio_mp3 "src/ni/media/audio/mp3/mp3_vector_source.h"     ${COMPILE_WITH_MP3_DECODING} )
+add_src_group (FILES_All media_audio_mp3 FILES_media_audio_mp3)
+
+
+add_src_file  (FILES_media_audio_mp4 "src/ni/media/audio/mp4/mp4_file_source.h"       ${COMPILE_WITH_MP4_DECODING} )
+add_src_file  (FILES_media_audio_mp4 "src/ni/media/audio/mp4/mp4_vector_source.h"     ${COMPILE_WITH_MP4_DECODING} )
+add_src_group (FILES_All media_audio_mp4 FILES_media_audio_mp4)
+
+
+add_src_file  (FILES_media_audio_os "src/ni/media/audio/os/os_source.h" )
+add_src_group (FILES_All media_audio_os FILES_media_audio_os)
+
+add_src_file  (FILES_media_audio_os_mac "src/ni/media/audio/os/mac/core_audio_source.h"  ${COMPILE_WITH_COREAUDIO} )
+add_src_group (FILES_All media_audio_os_mac FILES_media_audio_os_mac)
+
+
+add_src_file  (FILES_media_audio_os_win "src/ni/media/audio/os/win/media_foundation_helper.h"  ${COMPILE_WITH_MEDIA_FOUNDATION} )
+add_src_file  (FILES_media_audio_os_win "src/ni/media/audio/os/win/media_foundation_source.h"  ${COMPILE_WITH_MEDIA_FOUNDATION} )
+add_src_group (FILES_All media_audio_os_win FILES_media_audio_os_win)
+
+
+add_src_file  (FILES_media_audio_os_ios "src/ni/media/audio/os/ios/avassetreader_source.mm"  ${COMPILE_WITH_AVASSETREADER} WITH_HEADER)
+add_src_group (FILES_All media_audio_os_ios FILES_media_audio_os_ios)
+
+add_src_file  (FILES_media_audio_ogg "src/ni/media/audio/ogg/ogg_source.h"            ${COMPILE_WITH_OGG_DECODING} )
+add_src_file  (FILES_media_audio_ogg "src/ni/media/audio/ogg/ogg_file_source.h"       ${COMPILE_WITH_OGG_DECODING} )
+add_src_file  (FILES_media_audio_ogg "src/ni/media/audio/ogg/ogg_vector_source.h"     ${COMPILE_WITH_OGG_DECODING} )
+add_src_group (FILES_All media_audio_ogg FILES_media_audio_ogg)
+
+
 add_src_file  (FILES_media_audio_wav "inc/ni/media/audio/wav/wav_specific_info.h"     ${COMPILE_WITH_WAV} )
 add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_chunks.h"            ${COMPILE_WITH_WAV} )
 add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_format.h"            ${COMPILE_WITH_WAV} )
+add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_source.h"            ${COMPILE_WITH_WAV_DECODING} )
+add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_file_source.h"       ${COMPILE_WITH_WAV_DECODING} )
+add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_vector_source.h"     ${COMPILE_WITH_WAV_DECODING} )
+add_src_file  (FILES_media_audio_wav "inc/ni/media/audio/wav/wav_ifstream_info.h"     ${COMPILE_WITH_WAV_DECODING} )
+add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_file_sink.h"         ${COMPILE_WITH_WAV_ENCODING} )
+add_src_file  (FILES_media_audio_wav "inc/ni/media/audio/wav/wav_ofstream_info.h"     ${COMPILE_WITH_WAV_ENCODING} )
+add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_ofstream.cpp"        ${COMPILE_WITH_WAV_ENCODING}  WITH_PUBLIC_HEADER )
 add_src_group (FILES_All media_audio_wav FILES_media_audio_wav)
 
 
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/container_source.h"                                                             )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/core_audio_file_source.cpp"       ${COMPILE_WITH_COREAUDIO}         WITH_HEADER )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/media_foundation_helper.h"        ${COMPILE_WITH_MEDIA_FOUNDATION}              )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/media_foundation_file_source.cpp" ${COMPILE_WITH_MEDIA_FOUNDATION}  WITH_HEADER )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_source.h"                    ${COMPILE_WITH_AIFF_DECODING}                 )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_file_source.h"               ${COMPILE_WITH_AIFF_DECODING}                 )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/aiff_vector_source.h"             ${COMPILE_WITH_AIFF_DECODING}                 )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/flac_file_source.cpp"             ${COMPILE_WITH_FLAC_DECODING}     WITH_HEADER )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/mp3_file_source.cpp"              ${COMPILE_WITH_MP3_DECODING}      WITH_HEADER )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/mp4_file_source.cpp"              ${COMPILE_WITH_MP4_DECODING}      WITH_HEADER )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/ogg_file_source.cpp"              ${COMPILE_WITH_OGG_DECODING}      WITH_HEADER )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/wav_source.h"                     ${COMPILE_WITH_WAV_DECODING}                  )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/wav_file_source.h"                ${COMPILE_WITH_WAV_DECODING}                  )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/wav_vector_source.h"              ${COMPILE_WITH_WAV_DECODING}                  )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/wma_file_source.cpp"              ${COMPILE_WITH_WMA_DECODING}      WITH_HEADER )
-add_src_file  (FILES_media_audio_source "src/ni/media/audio/source/avassetreader_source.mm"          ${COMPILE_WITH_AVASSETREADER}     WITH_HEADER )
-add_src_group (FILES_All media_audio_source FILES_media_audio_source)
+add_src_file  (FILES_media_audio_wma "src/ni/media/audio/wma/wma_file_source.h"       ${COMPILE_WITH_WMA_DECODING} )
+add_src_file  (FILES_media_audio_wma "src/ni/media/audio/wma/wma_vector_source.h"     ${COMPILE_WITH_WMA_DECODING} )
+add_src_group (FILES_All media_audio_wma FILES_media_audio_wma)
 
-add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/container_sink.h"                                  )
-add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/aiff_file_sink.h"    ${COMPILE_WITH_AIFF_ENCODING} )
-add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/aiff_sink.h"         ${COMPILE_WITH_AIFF_ENCODING} )
-add_src_file  (FILES_media_audio_sink "src/ni/media/audio/sink/wav_file_sink.h"     ${COMPILE_WITH_WAV_ENCODING}  )
-add_src_group (FILES_All media_audio_sink FILES_media_audio_sink)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # linking
@@ -271,14 +309,13 @@ target_include_directories  ( audiostream PUBLIC inc
                                           PRIVATE src )
 
 target_link_libraries       ( audiostream PUBLIC pcm
-                                          PRIVATE ${Boost_LIBRARIES} ${codec_libraries})
+                                          PRIVATE Boost::iostreams Boost::filesystem Boost::system ${codec_libraries})
 
 if(MSVC)
   target_compile_options( audiostream PRIVATE /wd4351 )  # MSVC new behaviour warning
 endif()
 
 target_compile_definitions( audiostream PRIVATE
-  NI_MEDIA_BOOST_IOSTREAMS_MOVE_SEMANTICS_WORKAROUND=1
   NIMEDIA_ENABLE_AIFF_DECODING=$<BOOL:${NIMEDIA_ENABLE_AIFF_DECODING}>
   NIMEDIA_ENABLE_FLAC_DECODING=$<BOOL:${NIMEDIA_ENABLE_FLAC_DECODING}>
   NIMEDIA_ENABLE_MP3_DECODING=$<BOOL:${NIMEDIA_ENABLE_MP3_DECODING}>
@@ -296,7 +333,7 @@ target_compile_definitions( audiostream PRIVATE
 
 include(CMakeDependentOption)
 cmake_dependent_option(NIMEDIA_AUDIOSTREAM_TESTS "Enable audiostream tests" ON "NIMEDIA_TESTS" OFF)
-cmake_dependent_option(NIMEDIA_AUDIOSTREAM_TESTS_WITH_USER_FILES "Enable audiostream tests with user files" OFF "NIMEDIA_AUDIOSTREAM_TESTS" OFF)
+cmake_dependent_option(NIMEDIA_AUDIOSTREAM_TESTS_WITH_USER_FILES "Enable audiostream tests with user files" ON "NIMEDIA_AUDIOSTREAM_TESTS" OFF)
 
 if(NIMEDIA_AUDIOSTREAM_TESTS)
   add_subdirectory(test)

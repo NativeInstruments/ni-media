@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,12 @@
 namespace audio
 {
 
-class ifvectorstream : public ifstream
+class ifvectorstream : public istream
 {
 
 public:
+    using info_type = ifstream::info_type;
+
     ifvectorstream();
 
     ifvectorstream( std::vector<char> vec, const info_type& info );
@@ -43,7 +45,9 @@ public:
     ifvectorstream( ifvectorstream&& other );
     ifvectorstream& operator=( ifvectorstream&& );
 
+    const info_type& info() const override;
+
 protected:
     ifvectorstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
 };
-}
+} // namespace audio

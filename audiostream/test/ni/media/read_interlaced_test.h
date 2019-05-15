@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -130,7 +130,7 @@ void read_interlaced_test( Stream&&       stream,
     auto error_rate    = (float) num_errors / diff.size();
     auto average_error = total_error / diff.size();
 
-    EXPECT_EQ( num_errors, 0 );
-    EXPECT_FLOAT_EQ( error_rate, 0 );
-    EXPECT_FLOAT_EQ( average_error, 0 );
+    EXPECT_EQ( num_errors, 0u );
+    EXPECT_FLOAT_EQ( error_rate, 0.f );
+    EXPECT_FLOAT_EQ( average_error, 0.f );
 }

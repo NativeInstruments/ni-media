@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,37 +23,42 @@
 #pragma once
 
 #if NIMEDIA_ENABLE_AIFF_DECODING
-#include <ni/media/audio/source/aiff_file_source.h>
-#include <ni/media/audio/source/aiff_vector_source.h>
+#include <ni/media/audio/aiff/aiff_file_source.h>
+#include <ni/media/audio/aiff/aiff_vector_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_FLAC_DECODING
-#include <ni/media/audio/source/flac_file_source.h>
+#include <ni/media/audio/flac/flac_file_source.h>
+#include <ni/media/audio/flac/flac_vector_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_MP3_DECODING
-#include <ni/media/audio/source/mp3_file_source.h>
+#include <ni/media/audio/mp3/mp3_file_source.h>
+#include <ni/media/audio/mp3/mp3_vector_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_MP4_DECODING
-#include <ni/media/audio/source/mp4_file_source.h>
+#include <ni/media/audio/mp4/mp4_file_source.h>
+#include <ni/media/audio/mp4/mp4_vector_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_OGG_DECODING
-#include <ni/media/audio/source/ogg_file_source.h>
+#include <ni/media/audio/ogg/ogg_file_source.h>
+#include <ni/media/audio/ogg/ogg_vector_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_WAV_DECODING
-#include <ni/media/audio/source/wav_file_source.h>
-#include <ni/media/audio/source/wav_vector_source.h>
+#include <ni/media/audio/wav/wav_file_source.h>
+#include <ni/media/audio/wav/wav_vector_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_WMA_DECODING
-#include <ni/media/audio/source/wma_file_source.h>
+#include <ni/media/audio/wma/wma_file_source.h>
+#include <ni/media/audio/wma/wma_vector_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_ITUNES_DECODING
-#include <ni/media/audio/source/avassetreader_source.h>
+#include <ni/media/audio/os/ios/avassetreader_source.h>
 #endif
 
-#include <ni/media/audio/source/container_source.h>
+#include <ni/media/audio/iostreams/container_source.h>

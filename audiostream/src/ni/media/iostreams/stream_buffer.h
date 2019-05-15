@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@
 
 // this is a workaround for boost::iostreams::stream_buffer lack of support for move semantics
 // can be removed once boost::iostreams support move semantics
-#ifdef NI_MEDIA_BOOST_IOSTREAMS_MOVE_SEMANTICS_WORKAROUND
+#if 1
 
 namespace detail
 {

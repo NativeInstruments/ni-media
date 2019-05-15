@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
 //
 
 #include <ni/media/audio/ifstream.h>
+#include <ni/media/audio/ifvectorstream.h>
 
 #include <ni/media/reference_test.h>
 #include <ni/media/source_test.h>
@@ -37,6 +38,15 @@ TEST_P( mp3_source_test, ifstream )
     auto stream = open_file_as<audio::ifstream>();
     reference_test( stream, file_name() );
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+TEST_P( mp3_source_test, ifvectorstream )
+{
+    auto stream = open_file_as<audio::ifvectorstream>();
+    reference_test( stream, file_name() );
+}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 

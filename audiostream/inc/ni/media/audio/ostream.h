@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -65,13 +65,14 @@ public:
     template <class Range>
     auto operator<<( const Range& rng ) -> std::enable_if_t<boost::has_range_iterator<Range>::value, ostream&>;
 
-    using std::ostream::rdstate;
+    using std::ostream::bad;
     using std::ostream::clear;
-    using std::ostream::setstate;
-    using std::ostream::good;
     using std::ostream::eof;
     using std::ostream::fail;
-    using std::ostream::bad;
+    using std::ostream::good;
+    using std::ostream::rdbuf;
+    using std::ostream::rdstate;
+    using std::ostream::setstate;
 
 
     using std::ostream::tellp;
@@ -118,4 +119,4 @@ auto ostream::operator<<( const Range& rng ) -> std::enable_if_t<boost::has_rang
 
     return *this;
 }
-}
+} // namespace audio

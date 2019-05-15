@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -50,13 +50,14 @@ auto generate_range()
     auto range = std::vector<char>( 256 );
     boost::algorithm::iota( range, std::numeric_limits<char>::lowest() );
 
-    auto format = std::is_signed<char>() ? pcm::make_format<pcm::signed_integer, pcm::_8bit>()
-                                         : pcm::make_format<pcm::unsigned_integer, pcm::_8bit>();
+    static_assert( std::is_signed<char>(), "char must be signed" );
+
+    auto format = pcm::make_format<pcm::signed_integer, pcm::_8bit>();
 
     using Value = typename boost::range_value<Container>::type;
     return boost::copy_range<Container>( range | pcm::converted_to<Value>( format ) );
 }
-}
+} // namespace
 
 
 template <class Traits>
