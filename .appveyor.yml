@@ -23,19 +23,23 @@ install:
   - echo set(VCPKG_CRT_LINKAGE %CRT_LINKAGE%) >> C:\tools\vcpkg\triplets\custom-triplet.cmake
   - echo set(VCPKG_LIBRARY_LINKAGE %LIBRARY_LINKAGE%) >> C:\tools\vcpkg\triplets\custom-triplet.cmake
 
-  - vcpkg install boost-algorithm:custom-triplet
-  - vcpkg install boost-endian:custom-triplet
-  - vcpkg install boost-filesystem:custom-triplet
-  - vcpkg install boost-format:custom-triplet
-  - vcpkg install boost-icl:custom-triplet
-  - vcpkg install boost-iostreams:custom-triplet
-  - vcpkg install boost-program-options:custom-triplet
-  - vcpkg install boost-system:custom-triplet
-  - vcpkg install gtest:custom-triplet
-  - vcpkg install libOgg:custom-triplet
-  - vcpkg install libFlac:custom-triplet
-  - vcpkg install libVorbis:custom-triplet
-
+  - vcpkg install
+      boost-algorithm 
+      boost-endian 
+      boost-filesystem 
+      boost-format 
+      boost-icl 
+      boost-iostreams
+      boost-locale
+      boost-program-options
+      boost-regex 
+      boost-system
+      gtest 
+      libOgg 
+      libFlac 
+      libVorbis
+      --triplet custom-triplet
+    
 build_script:
   - mkdir build
   - cd build
