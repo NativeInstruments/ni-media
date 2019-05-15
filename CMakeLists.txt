@@ -9,7 +9,8 @@ endif()
 
 project( ni-media )
 
-option( NIMEDIA_OPEN_SOURCE                   "Build ni-media open source version"    OFF)
+option( NIMEDIA_OPEN_SOURCE                   "Build ni-media open source version"    ON )
+option( NIMEDIA_TREAT_WARNINGS_AS_ERRORS      "Treat compile warnings as errors"      OFF)
 option( NIMEDIA_ENABLE_DEPRECATION_WARNINGS   "Enable ni-media deprecation warnings"  ON )
 if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
   option( NIMEDIA_TESTS "Build ni-media Tests" ON )
@@ -19,17 +20,23 @@ endif()
 
 if( NIMEDIA_OPEN_SOURCE )
 
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+  include(ni_add_src_file)
+  include(ni_add_src_group)
+  include(ni_add_test)
+  
   if(WIN32 AND CMAKE_CL_64)
     set(WIN64 1)
   elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(LINUX 1)
   endif()
 
-  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-  include(ni_add_src_file)
-  include(ni_add_src_group)
-  include(ni_add_test)
+  if( CMAKE_BUILD_TYPE MATCHES Coverage )
+	add_compile_options( -g -O0 --coverage )
+	set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov --coverage" )
+	set( CMAKE_BUILD_TYPE Debug FORCE )
+  endif()
 
 else()
 
@@ -78,14 +85,13 @@ endif()
 
 foreach( target audiostream audiostream_test pcm pcm_test )
   if( TARGET ${target} )
+    if( NIMEDIA_OPEN_SOURCE )
+      set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
+      if( NIMEDIA_TREAT_WARNINGS_AS_ERRORS )
+        ni_treat_warnings_as_errors( ${target} )
+      endif()
+    endif()
     set_property( TARGET ${target} PROPERTY FOLDER ni-media )
   endif()
 endforeach()
 
-if( NIMEDIA_OPEN_SOURCE )
-  foreach( target audiostream audiostream_test pcm pcm_test )
-    if( TARGET ${target} )
-      set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
-    endif()
-  endforeach()
-endif()
