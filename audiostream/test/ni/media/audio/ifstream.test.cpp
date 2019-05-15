@@ -48,21 +48,21 @@ TEST( ni_media_audio_ifstream, default_constructor )
 
 TEST( ni_media_audio_ifstream, string_constructor )
 {
-    EXPECT_THROW( audio::ifstream is( "/fake.aiff" ), std::runtime_error );
+    EXPECT_THROW( audio::ifstream is( "/fake.aiff" ), std::exception );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 TEST( ni_media_audio_ifstream, string_container_constructor_correct_extension )
 {
-    EXPECT_THROW( audio::ifstream is( "/fake.aiff", audio::ifstream_info::container_type::aiff ), std::runtime_error );
+    EXPECT_THROW( audio::ifstream is( "/fake.aiff", audio::ifstream_info::container_type::aiff ), std::exception);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 TEST( ni_media_audio_ifstream, string_container_constructor_wrong_extension )
 {
-    EXPECT_THROW( audio::ifstream is( "/fake.aiff", audio::ifstream_info::container_type::wav ), std::runtime_error );
+    EXPECT_THROW( audio::ifstream is( "/fake.aiff", audio::ifstream_info::container_type::wav ), std::exception );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
