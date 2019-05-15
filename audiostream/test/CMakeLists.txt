@@ -131,7 +131,7 @@ if(MSVC)
   target_compile_options      ( audiostream_test PRIVATE /wd4512 /bigobj)
 endif()
 
-ni_add_gtest( audiostream_test )
+ni_add_test( audiostream_test GTEST )
 
 set( test_files_path ${CMAKE_CURRENT_SOURCE_DIR}/test_files)
 set( output_files_path ${CMAKE_CURRENT_BINARY_DIR}/test_files)
@@ -149,7 +149,7 @@ endif()
 # reference generator
 #--------------------------------------------------------------------
 
-if(0) # do not build the reference file generator on the github CI for now
+if(NIMEDIA_ENABLE_WAV_ENCODING)
 
     add_src_file  (FILES_generator "generator.cpp"    )
     add_src_group (FILES_generator generator FILES_generator)

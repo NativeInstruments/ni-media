@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ namespace detail
 TEST( tuple_find_test, empty )
 {
     auto index = tuple_find<int, std::tuple<>>::value;
-    EXPECT_EQ( 0, index );
+    EXPECT_EQ( 0u, index );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ TEST( tuple_find_test, empty )
 TEST( tuple_find_test, single_element_one_match )
 {
     auto index = tuple_find<float, std::tuple<float>>::value;
-    EXPECT_EQ( 0, index );
+    EXPECT_EQ( 0u, index );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ TEST( tuple_find_test, single_element_one_match )
 TEST( tuple_find_test, single_element_no_matches )
 {
     auto index = tuple_find<int, std::tuple<float>>::value;
-    EXPECT_EQ( 1, index );
+    EXPECT_EQ( 1u, index );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ TEST( tuple_find_test, single_element_no_matches )
 TEST( tuple_find_test, multiple_elements_one_match )
 {
     auto index = tuple_find<int, std::tuple<float, int, float>>::value;
-    EXPECT_EQ( 1, index );
+    EXPECT_EQ( 1u, index );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ TEST( tuple_find_test, multiple_elements_one_match )
 TEST( tuple_find_test, multiple_elements_two_matches )
 {
     auto index = tuple_find<float, std::tuple<float, int, float>>::value;
-    EXPECT_EQ( 0, index );
+    EXPECT_EQ( 0u, index );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ TEST( tuple_find_test, multiple_elements_two_matches )
 TEST( tuple_find_test, multiple_elements_no_matches )
 {
     auto index = tuple_find<char, std::tuple<float, int, float>>::value;
-    EXPECT_EQ( 3, index );
+    EXPECT_EQ( 3u, index );
 }
 
 } // namespace detail

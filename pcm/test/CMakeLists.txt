@@ -39,4 +39,4 @@ if(MSVC)
   target_compile_options    ( pcm_test PRIVATE /wd4512 /bigobj)
 endif()
 
-ni_add_gtest( pcm_test )
+ni_add_test( pcm_test GTEST )

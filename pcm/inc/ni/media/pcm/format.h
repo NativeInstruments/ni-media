@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,14 +33,14 @@ using format = runtime_format;
 
 
 template <number_type n, bitwidth_type b, endian_type e = native_endian>
-constexpr auto make_format( const compiletime_format<n, b, e>& = {} ) -> format
+constexpr auto make_format()
 {
     return compiletime_format<n, b, e>{};
 }
 
-inline auto make_format( number_type n, bitwidth_type b, endian_type e ) -> format
+inline auto make_format( number_type n, bitwidth_type b, endian_type e )
 {
-    return {n, b, e};
+    return runtime_format{n, b, e};
 }
 
 

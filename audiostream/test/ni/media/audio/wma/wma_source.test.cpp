@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ni/media/audio/source/wma_file_source.h>
+#include <ni/media/audio/wma/wma_file_source.h>
 
 #include <ni/media/reference_test.h>
 #include <ni/media/source_test.h>

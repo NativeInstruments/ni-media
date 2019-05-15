@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -40,13 +40,6 @@ public:
     }
 };
 
-class copy_only_device : public device
-{
-public:
-    copy_only_device( const copy_only_device& ) = default;
-    copy_only_device( copy_only_device&& )      = delete;
-};
-
 class move_only_device : public device
 {
 public:
@@ -62,9 +55,6 @@ TEST( ni_media_stream_buffer, prerequisites )
     ASSERT_TRUE( std::is_copy_constructible<device>() );
     ASSERT_TRUE( std::is_move_constructible<device>() );
 
-    ASSERT_TRUE( std::is_copy_constructible<copy_only_device>() );
-    ASSERT_FALSE( std::is_move_constructible<copy_only_device>() );
-
     ASSERT_FALSE( std::is_copy_constructible<move_only_device>() );
     ASSERT_TRUE( std::is_move_constructible<move_only_device>() );
 }
@@ -72,11 +62,6 @@ TEST( ni_media_stream_buffer, prerequisites )
 TEST( ni_media_stream_buffer, constructible_from_device )
 {
     EXPECT_TRUE( is_stream_buffer_constructible_from<device>() );
-}
-
-TEST( ni_media_stream_buffer, constructible_from_copy_only_device )
-{
-    EXPECT_TRUE( is_stream_buffer_constructible_from<copy_only_device>() );
 }
 
 TEST( ni_media_stream_buffer, constructible_from_move_only_device )

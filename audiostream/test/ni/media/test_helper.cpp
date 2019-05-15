@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,30 +23,32 @@
 #include <ni/media/audio/iotools.h>
 #include <ni/media/test_helper.h>
 
+#include <boost/locale.hpp>
+#include <boost/predef/os.h>
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/tokenizer.hpp>
 
-
+#include <codecvt>
 #include <cstdlib>
 #include <iterator>
-
 
 //--------------------------------------------------------------------------------------------------------------------
 
 namespace
 {
-std::string get_test_files_path()
+
+bool init()
 {
-#ifdef NI_MEDIA_TEST_FILES_PATH
-    return BOOST_PP_STRINGIZE( NI_MEDIA_TEST_FILES_PATH );
-#else
-    const char* test_files_path_env = std::getenv( "NI_MEDIA_TEST_FILES_PATH" );
-    return test_files_path_env ? test_files_path_env : "./";
+#if BOOST_OS_WINDOWS
+    boost::filesystem::path::imbue( std::locale( std::locale(), new std::codecvt_utf8_utf16<wchar_t>() ) );
 #endif
+    return true;
 }
+
+const bool initialized = init();
 
 auto supported_files( const boost::filesystem::path&                        root_path,
                       boost::optional<audio::ifstream_info::container_type> container )
@@ -62,40 +64,6 @@ auto supported_files( const boost::filesystem::path&                        root
     return boost::make_iterator_range( beg, end ) | transformed( []( const path& p ) { return p.string(); } )
            | filtered( can_read_file );
 }
-} // namespace
-
-//----------------------------------------------------------------------------------------------------------------------
-
-std::string get_user_files_path()
-{
-    return get_test_files_path() + "/user_files";
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-std::string get_reference_files_path()
-{
-    return get_test_files_path() + "/reference_files";
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-std::string get_fuzz_files_path()
-{
-    return get_test_files_path() + "/fuzz_files";
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-std::string get_output_files_path()
-{
-#ifdef NI_MEDIA_OUTPUT_FILES_PATH
-    return BOOST_PP_STRINGIZE( NI_MEDIA_OUTPUT_FILES_PATH );
-#else
-    const char* output_files_path_env = std::getenv( "NI_MEDIA_OUTPUT_FILES_PATH" );
-    return output_files_path_env ? output_files_path_env : "./";
-#endif
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -105,3 +73,45 @@ std::vector<std::string> collect_supported_files( const boost::filesystem::path&
     using Files = std::vector<std::string>;
     return boost::copy_range<Files>( supported_files( root_path, container ) );
 }
+
+} // namespace
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+boost::filesystem::path test_files_input_path()
+{
+    return {BOOST_PP_STRINGIZE( NI_MEDIA_TEST_FILES_PATH )};
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+boost::filesystem::path test_files_output_path()
+{
+    return {BOOST_PP_STRINGIZE( NI_MEDIA_OUTPUT_FILES_PATH )};
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+TestFiles user_files( boost::optional<audio::ifstream_info::container_type> container )
+{
+    return ::testing::ValuesIn( collect_supported_files( test_files_input_path() / "user_files", container ) );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+TestFiles reference_files( boost::optional<audio::ifstream_info::container_type> container )
+{
+    return ::testing::ValuesIn( collect_supported_files( test_files_input_path() / "reference_files", container ) );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+TestFiles fuzz_files( boost::optional<audio::ifstream_info::container_type> container )
+{
+    return ::testing::ValuesIn( collect_supported_files( test_files_input_path() / "fuzz_files", container ) );
+}
+
+//----------------------------------------------------------------------------------------------------------------------

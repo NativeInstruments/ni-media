@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 namespace audio
 {
 
-class ivectorstream : public istream
+class ivectorstream final : public istream
 {
 public:
     ivectorstream();
@@ -44,4 +44,4 @@ public:
 protected:
     ivectorstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
 };
-}
+} // namespace audio

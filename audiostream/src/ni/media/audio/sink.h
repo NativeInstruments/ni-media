@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,5 +22,5 @@
 
 #pragma once
 
-#include <ni/media/audio/sink/aiff_file_sink.h>
-#include <ni/media/audio/sink/wav_file_sink.h>
+#include <ni/media/audio/aiff/aiff_file_sink.h>
+#include <ni/media/audio/wav/wav_file_sink.h>

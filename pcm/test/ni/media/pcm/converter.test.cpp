@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ struct from
 template <class Traits>
 class pcm_convert_test : public testing::Test
 {
-public:
+protected:
     using source_t = typename Traits::source_t;
     using target_t = typename Traits::target_t;
 
