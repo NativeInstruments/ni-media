@@ -39,7 +39,7 @@ if( NIMEDIA_OPEN_SOURCE )
     set( CMAKE_BUILD_TYPE Debug FORCE )
   endif()
 
-  find_package(Boost "1.61.0" REQUIRED COMPONENTS iostreams filesystem system program_options)
+  find_package(Boost "1.61.0" REQUIRED COMPONENTS iostreams filesystem system program_options regex)
 
 else()
 
