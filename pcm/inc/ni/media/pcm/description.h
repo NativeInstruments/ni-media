@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <boost/detail/endian.hpp> // BOOST_LITTLE_ENDIAN
+#include <boost/predef/other/endian.h> // BOOST_ENDIAN_LITTLE_BYTE
 
 #include <cstdint>
 
@@ -49,9 +49,9 @@ enum endian_type : uint8_t
 {
     big_endian = 0,
     little_endian,
-#if defined( BOOST_BIG_ENDIAN )
+#if BOOST_ENDIAN_BIG_BYTE
     native_endian = big_endian,
-#elif defined( BOOST_LITTLE_ENDIAN )
+#elif BOOST_ENDIAN_LITTLE_BYTE
     native_endian = little_endian,
 #else
 #error "unable to determine system endianness."

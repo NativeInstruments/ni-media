@@ -207,9 +207,10 @@ avassetreader_source::Impl::Impl( const std::string& avAssetUrl,
 : m_avAssetUrl( avAssetUrl )
 , m_streamIndex( streamIndex )
 {
-    @try
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    try
     {
-        @autoreleasepool
+        @try
         {
             NSDictionary* songOptions = @{
                 AVURLAssetPreferPreciseDurationAndTimingKey :
@@ -298,11 +299,16 @@ avassetreader_source::Impl::Impl( const std::string& avAssetUrl,
             m_reader      = [reader retain];
             m_trackOutput = [output retain];
         }
+        @catch ( NSException* ex )
+        {
+            throw std::runtime_error( boost::str( boost::format( "Failure creating decoder for asset %s. %s" )
+                                                  % avAssetUrl % [ex.reason UTF8String] ) );
+        }
     }
-    @catch ( NSException* ex )
+    catch ( const std::exception& )
     {
-        throw std::runtime_error( boost::str( boost::format( "Failure creating decoder for asset %s. %s" ) % avAssetUrl
-                                              % [ex.reason UTF8String] ) );
+        [pool drain];
+        throw;
     }
 }
 

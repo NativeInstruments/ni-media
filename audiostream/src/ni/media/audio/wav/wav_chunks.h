@@ -103,15 +103,9 @@ static_assert( sizeof( InstrumentChunk ) == 7, "sizeof(InstrumentChunk) is wrong
 
 struct FormatExtensible
 {
-    union
-    {
-        uint16_t validBitsPerSample;
-        uint16_t samplesPerBlock;
-        uint16_t reserved;
-    } Samples = {0};
-
-    uint32_t channelMask   = 0;
-    uint8_t  subFormat[16] = {}; // a GUID in fact
+    uint16_t validBitsPerSample = 0;
+    uint32_t channelMask        = 0;
+    uint8_t  subFormat[16]      = {}; // a GUID in fact
 };
 static_assert( sizeof( FormatExtensible ) == 22, "sizeof(FormatExtensible) is wrong" );
 
