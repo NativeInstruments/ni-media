@@ -43,6 +43,8 @@ namespace detail
 template <class Source>
 auto readWavHeader( Source& src )
 {
+    // reference: http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
+
     using namespace wav;
     using SampleLoops = audio::wav_specific_info::SampleLoops;
 
@@ -65,6 +67,11 @@ auto readWavHeader( Source& src )
         // seek through wav chunks
         if ( riffTag.id == little_endian_fourcc( "fmt " ) )
         {
+            using ExtensionSize = uint16_t;
+
+            if ( riffTag.length < sizeof( FmtChunk ) )
+                throw std::runtime_error( "Invalid size of \'fmtChunk\': " + std::to_string( riffTag.length ) );
+
             FmtChunk fmtChunk;
             if ( !fetch( src, fmtChunk ) )
                 throw std::runtime_error( "Could not read \'fmtChunk\'." );
@@ -72,27 +79,32 @@ auto readWavHeader( Source& src )
             if ( fmtChunk.blockAlign == 0 || fmtChunk.blockAlign * 8 != fmtChunk.bitsPerSample * fmtChunk.numChannels )
                 throw std::runtime_error( "Invalid block align" );
 
-            // determine format
-            audio::ifstream_info::format_type format;
-            if ( fmtChunk.formatTag == wavFormatTagExtensible )
+            if ( riffTag.length >= sizeof( FmtChunk ) + sizeof( ExtensionSize ) + sizeof( FormatExtensible ) )
             {
-                // read extended chunk
-                FormatExtensible formatExtensible;
-                if ( !fetch( src, formatExtensible ) )
-                    throw std::runtime_error( "Could not read \'formatExtensible\'." );
+                ExtensionSize extensionSize;
+                if ( !fetch( src, extensionSize ) )
+                    throw std::runtime_error( "Could not read \'extensionSize\'." );
 
-                if ( boost::equal( formatExtensible.subFormat, wavFormatExtSubFormatPCM )
-                     || boost::equal( formatExtensible.subFormat, wavFormatExtSubFormatPCM_2 ) )
+                if ( fmtChunk.formatTag == wavFormatTagExtensible && extensionSize == sizeof( FormatExtensible ) )
                 {
-                    fmtChunk.formatTag = wavFormatTagPcm;
-                }
-                else if ( boost::equal( formatExtensible.subFormat, wavFormatExtSubFormatFloat )
-                          || boost::equal( formatExtensible.subFormat, wavFormatExtSubFormatFloat_2 ) )
-                {
-                    fmtChunk.formatTag = wavFormatTagIeeeFloat;
+                    // read extended chunk
+                    FormatExtensible formatExtensible;
+                    if ( !fetch( src, formatExtensible ) )
+                        throw std::runtime_error( "Could not read \'formatExtensible\'." );
+
+                    if ( boost::equal( formatExtensible.subFormat, wavFormatExtSubFormatPCM ) )
+                    {
+                        fmtChunk.formatTag = wavFormatTagPcm;
+                    }
+                    else if ( boost::equal( formatExtensible.subFormat, wavFormatExtSubFormatFloat ) )
+                    {
+                        fmtChunk.formatTag = wavFormatTagIeeeFloat;
+                    }
                 }
             }
 
+            // determine format
+            audio::ifstream_info::format_type format;
             if ( fmtChunk.formatTag == wavFormatTagPcm )
             {
                 if ( 8 == fmtChunk.bitsPerSample )
@@ -104,8 +116,18 @@ auto readWavHeader( Source& src )
             {
                 format = pcm::format( pcm::floating_point, fmtChunk.bitsPerSample, pcm::little_endian );
             }
+            else if ( fmtChunk.formatTag == wavFormatTagALaw )
+            {
+                throw std::runtime_error( "ALaw format is not supported" );
+            }
+            else if ( fmtChunk.formatTag == wavFormatTagMuLaw )
+            {
+                throw std::runtime_error( "uLaw format is not supported" );
+            }
             else
+            {
                 throw std::runtime_error( "Unknown format." );
+            }
 
             info.format( format );
 
