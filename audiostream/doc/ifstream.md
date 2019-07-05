@@ -3,8 +3,8 @@
 The base class for all audio file input streaming. Inherits from [`audio::istream`](istream.md).
 
 Similar to `std::ifstrem`, its contructor takes a filepath as argument. Here the filepath must point to an audio file currently supported by ni-media. At this date supported containers are:
- - **wav**: native support, enabled through CMake Option `NIMEDIA_ENABLE_AIFF_DECODING`
- - **aiff**: native support, enabled through CMake Option `NIMEDIA_ENABLE_WAV_DECODING`
+ - **wav**: native support, enabled through CMake Option `NIMEDIA_ENABLE_WAV_DECODING`
+ - **aiff**: native support, enabled through CMake Option `NIMEDIA_ENABLE_AIFF_DECODING`
  - **flac**: requires libFlac & LibOgg, enabled through CMake Option `NIMEDIA_ENABLE_FLAC_DECODING`
  - **ogg**: requires libVorbis & LibOgg, enabled through CMake Option `NIMEDIA_ENABLE_OGG_DECODING`
  - **mp3**: not supported on linux, enabled through CMake Option `NIMEDIA_ENABLE_MP3_DECODING`

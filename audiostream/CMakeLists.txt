@@ -304,7 +304,7 @@ add_src_group (FILES_All media_audio_wma FILES_media_audio_wma)
 # linking
 #-----------------------------------------------------------------------------------------------------------------------
 
-add_library                 ( audiostream EXCLUDE_FROM_ALL ${FILES_All} )
+add_library                 ( audiostream ${FILES_All} )
 target_include_directories  ( audiostream PUBLIC inc
                                           PRIVATE src )
 
