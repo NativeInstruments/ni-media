@@ -80,7 +80,7 @@ cmake -G YOUR-PROJECT-GENERATOR -DCMAKE_PREFIX_PATH=path/to/dependencies/ -DNIME
 
 Before running the tests some reference test files need to be downloaded using [git-lfs](https://github.com/git-lfs/git-lfs):
 ```
-git lfs pull -X
+git lfs pull -X ""
 ```
 
 To execute the tests run:

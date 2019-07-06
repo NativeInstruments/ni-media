@@ -31,7 +31,7 @@ add_src_group (FILES_All media_pcm_algorithm FILES_media_pcm_algorithm)
 # linking
 #--------------------------------------------------------------------
 
-add_library                 ( pcm EXCLUDE_FROM_ALL ${FILES_All} )
+add_library                 ( pcm ${FILES_All} )
 target_include_directories  ( pcm PUBLIC inc
                                   PRIVATE src )
 target_link_libraries       ( pcm PUBLIC Boost::boost)
