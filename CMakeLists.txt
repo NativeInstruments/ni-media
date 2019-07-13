@@ -105,3 +105,11 @@ foreach( target audiostream audiostream_test pcm pcm_test generator )
   endif()
 endforeach()
 
+
+install(
+    EXPORT ni-mediaExport
+    FILE ni-mediaConfig.cmake
+    NAMESPACE ni::
+    DESTINATION lib/cmake/ni-media
+)
+

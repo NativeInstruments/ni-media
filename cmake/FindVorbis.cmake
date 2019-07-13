@@ -16,9 +16,10 @@ if( VORBIS_FOUND )
     set_target_properties(Vorbis::vorbis PROPERTIES
       IMPORTED_LINK_INTERFACE_LANGUAGES "C"
       IMPORTED_LOCATION ${Vorbis_LIBRARIES}
-      INTERFACE_INCLUDE_DIRECTORIES "${Vorbis_INCLUDE_DIRS};${Ogg_INCLUDE_DIRS}"
-      INTERFACE_LINK_LIBRARIES "${Ogg_LIBRARIES}"
+      INTERFACE_INCLUDE_DIRECTORIES "${Vorbis_INCLUDE_DIRS}"
     )
+
+    target_link_libraries(Vorbis::vorbis INTERFACE Ogg::ogg)
   endif()
 
   # TODO: make vorbisfile and vorbisenc optional components
@@ -28,9 +29,10 @@ if( VORBIS_FOUND )
     set_target_properties(Vorbis::vorbisfile PROPERTIES
       IMPORTED_LINK_INTERFACE_LANGUAGES "C"
       IMPORTED_LOCATION ${Vorbisfile_LIBRARIES}
-      INTERFACE_INCLUDE_DIRECTORIES "${Vorbis_INCLUDE_DIRS};${Ogg_INCLUDE_DIRS}"
-      INTERFACE_LINK_LIBRARIES "${Vorbisfile_LIBRARIES};${Vorbis_LIBRARIES};${Ogg_LIBRARIES}"
     )
+
+    target_link_libraries(Vorbis::vorbisfile INTERFACE Vorbis::vorbis)
+
   endif()
 
 
@@ -39,9 +41,10 @@ if( VORBIS_FOUND )
     set_target_properties(Vorbis::vorbisenc PROPERTIES
       IMPORTED_LINK_INTERFACE_LANGUAGES "C"
       IMPORTED_LOCATION ${Vorbisenc_LIBRARIES}
-      INTERFACE_INCLUDE_DIRECTORIES "${Vorbis_INCLUDE_DIRS};${Ogg_INCLUDE_DIRS}"
-      INTERFACE_LINK_LIBRARIES "${Vorbisenc_LIBRARIES};${Vorbis_LIBRARIES};${Ogg_LIBRARIES}"
     )
+
+    target_link_libraries(Vorbis::vorbisenc INTERFACE Vorbis::vorbis)
+
   endif()
 endif()
 

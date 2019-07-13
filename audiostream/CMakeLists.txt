@@ -305,8 +305,13 @@ add_src_group (FILES_All media_audio_wma FILES_media_audio_wma)
 #-----------------------------------------------------------------------------------------------------------------------
 
 add_library                 ( audiostream ${FILES_All} )
-target_include_directories  ( audiostream PUBLIC inc
-                                          PRIVATE src )
+target_include_directories  ( audiostream
+                                PUBLIC
+                                  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+                                  $<INSTALL_INTERFACE:include>
+                                PRIVATE
+                                  src
+                            )
 
 target_link_libraries       ( audiostream PUBLIC pcm
                                           PRIVATE Boost::iostreams Boost::filesystem Boost::system ${codec_libraries})
@@ -326,6 +331,24 @@ target_compile_definitions( audiostream PRIVATE
   NIMEDIA_ENABLE_WAV_ENCODING=$<BOOL:${NIMEDIA_ENABLE_WAV_ENCODING}>
   NIMEDIA_ENABLE_ITUNES_DECODING=$<BOOL:${NIMEDIA_ENABLE_ITUNES_DECODING}>
   )
+
+#-----------------------------------------------------------------------------------------------------------------------
+# install
+#-----------------------------------------------------------------------------------------------------------------------
+
+if(NOT DISABLE_INSTALL_HEADERS)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/inc/
+    DESTINATION include
+  )
+endif()
+
+install(
+  TARGETS audiostream
+  EXPORT ni-mediaExport
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # testing
