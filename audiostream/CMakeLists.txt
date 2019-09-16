@@ -318,11 +318,6 @@ target_link_libraries       ( audiostream PUBLIC pcm
 
 if(MSVC)
   target_compile_options( audiostream PRIVATE /wd4351 )  # MSVC new behaviour warning
-  
-  # https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4103?view=vs-2019
-  # C4103 alignment changed after including header, may be due to missing #pragma pack(pop)
-  # C5038 data member 'SyncronousByteStream<Source>::ReadResult::m_bytesRead' will be initialized after data member 'SyncronousByteStream<Source>::ReadResult::m_references'
-  target_compile_options( audiostream PRIVATE /wd4103 /wd5038 )
 endif()
 
 target_compile_definitions( audiostream PRIVATE
