@@ -304,10 +304,13 @@ avassetreader_source::Impl::Impl( const std::string& avAssetUrl,
             throw std::runtime_error( boost::str( boost::format( "Failure creating decoder for asset %s. %s" )
                                                   % avAssetUrl % [ex.reason UTF8String] ) );
         }
+        @finally
+        {
+            [pool drain];
+        }
     }
     catch ( const std::exception& )
     {
-        [pool drain];
         throw;
     }
 }
