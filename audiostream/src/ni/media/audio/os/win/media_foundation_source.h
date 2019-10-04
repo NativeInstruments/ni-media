@@ -131,7 +131,7 @@ const auto losslessFormats = {MFAudioFormat_PCM, //
 //----------------------------------------------------------------------------------------------------------------------
 
 template <class Source, typename MfType>
-using MfTypePtr = typename media_foundation_source<Source>::MfTypePtr<MfType>;
+using MfTypePtr = typename media_foundation_source<Source>::template MfTypePtr<MfType>;
 
 template <class C>
 struct get_MF_type_impl : get_MF_type_impl<decltype( &C::operator() )>
@@ -199,7 +199,7 @@ typename media_foundation_source<Source>::offset_type time100nsToFrames( LONGLON
     // We need to be accurate to a single frame when doing this conversion, and the timestamp provided by WMF can be
     // off by a few nanoseconds, so we round it off.
 
-    using return_type = media_foundation_source<Source>::offset_type;
+    using return_type = media_foundation_source<Source>::template offset_type;
     return return_type( std::round( double( time100ns ) * sampleRate / secTo100ns ) );
 }
 
