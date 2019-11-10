@@ -11,7 +11,7 @@ project( ni-media )
 
 option( NIMEDIA_OPEN_SOURCE                   "Build ni-media open source version"    ON )
 option( NIMEDIA_TREAT_WARNINGS_AS_ERRORS      "Treat compile warnings as errors"      OFF)
-option( NIMEDIA_ENABLE_DEPRECATION_WARNINGS   "Enable ni-media deprecation warnings"  ON )
+
 if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
   option( NIMEDIA_TESTS "Build ni-media Tests" ON )
 else()
@@ -87,9 +87,6 @@ add_subdirectory( audiostream )
 # for backwards compatibility:
 add_library( ni-media INTERFACE )
 target_link_libraries( ni-media INTERFACE audiostream pcm )
-if( NOT NIMEDIA_ENABLE_DEPRECATION_WARNINGS )
-  target_compile_definitions( ni-media INTERFACE NI_MEDIA_NO_DEPRECATION_WARNINGS )
-endif()
 
 
 foreach( target audiostream audiostream_test pcm_test generator )
