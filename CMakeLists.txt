@@ -1,7 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
-if(POLICY CMP0063)
-  cmake_policy(SET CMP0063 NEW)
-endif()
+cmake_minimum_required(VERSION 3.15)
 
 if( TARGET ni-media )
   return()
@@ -73,8 +70,7 @@ if( NIMEDIA_TESTS )
   enable_testing()
 
   if( NIMEDIA_OPEN_SOURCE )
-  	include(ni_find_gtest)
-  	ni_find_gtest()
+    find_package(GTest REQUIRED)
   else()
     find_package(NIGTest REQUIRED)
     add_library(GTest::GTest ALIAS gtest)
