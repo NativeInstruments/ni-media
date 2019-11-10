@@ -92,7 +92,7 @@ if( NOT NIMEDIA_ENABLE_DEPRECATION_WARNINGS )
 endif()
 
 
-foreach( target audiostream audiostream_test pcm pcm_test generator )
+foreach( target audiostream audiostream_test pcm_test generator )
   if( TARGET ${target} )
     if( NIMEDIA_OPEN_SOURCE )
       set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
