@@ -63,7 +63,10 @@ install(
 # testing
 #--------------------------------------------------------------------
 
-if(NIMEDIA_TESTS)
+include(CMakeDependentOption)
+cmake_dependent_option(NIMEDIA_PCM_TESTS "Enable pcm tests" ON "NIMEDIA_TESTS" OFF)
+
+if(NIMEDIA_PCM_TESTS)
   add_subdirectory(test)
 endif()
 

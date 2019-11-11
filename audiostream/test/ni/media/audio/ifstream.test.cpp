@@ -55,7 +55,7 @@ TEST( ni_media_audio_ifstream, string_constructor )
 
 TEST( ni_media_audio_ifstream, string_container_constructor_correct_extension )
 {
-    EXPECT_THROW( audio::ifstream is( "/fake.aiff", audio::ifstream_info::container_type::aiff ), std::exception );
+    EXPECT_THROW( audio::ifstream is( "/fake.aiff", audio::ifstream_info::container_type::aiff ), std::exception);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
