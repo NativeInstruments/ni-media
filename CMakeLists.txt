@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.5)
-if(POLICY CMP0063)
-  cmake_policy(SET CMP0063 NEW)
+cmake_minimum_required(VERSION 3.12.4)
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
 endif()
 
 if( TARGET ni-media )
@@ -11,7 +11,7 @@ project( ni-media )
 
 option( NIMEDIA_OPEN_SOURCE                   "Build ni-media open source version"    ON )
 option( NIMEDIA_TREAT_WARNINGS_AS_ERRORS      "Treat compile warnings as errors"      OFF)
-option( NIMEDIA_ENABLE_DEPRECATION_WARNINGS   "Enable ni-media deprecation warnings"  ON )
+
 if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
   option( NIMEDIA_TESTS "Build ni-media Tests" ON )
 else()
@@ -73,8 +73,7 @@ if( NIMEDIA_TESTS )
   enable_testing()
 
   if( NIMEDIA_OPEN_SOURCE )
-  	include(ni_find_gtest)
-  	ni_find_gtest()
+    find_package(GTest REQUIRED)
   else()
     find_package(NIGTest REQUIRED)
     add_library(GTest::GTest ALIAS gtest)
@@ -88,12 +87,9 @@ add_subdirectory( audiostream )
 # for backwards compatibility:
 add_library( ni-media INTERFACE )
 target_link_libraries( ni-media INTERFACE audiostream pcm )
-if( NOT NIMEDIA_ENABLE_DEPRECATION_WARNINGS )
-  target_compile_definitions( ni-media INTERFACE NI_MEDIA_NO_DEPRECATION_WARNINGS )
-endif()
 
 
-foreach( target audiostream audiostream_test pcm pcm_test generator )
+foreach( target audiostream audiostream_test pcm_test generator )
   if( TARGET ${target} )
     if( NIMEDIA_OPEN_SOURCE )
       set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)

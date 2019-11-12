@@ -48,6 +48,8 @@ before_install:
   - mkdir deps && cd deps
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      brew update
+      brew upgrade cmake
       brew install git-lfs libogg libvorbis flac;
       git lfs install;
     else
