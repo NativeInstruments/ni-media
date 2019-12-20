@@ -1,8 +1,6 @@
 @PACKAGE_INIT@
 
-set_and_check(NI_MEDIA_CONFIG_DIR "@PACKAGE_CONFIG_DESTINATION@")
-
-list(APPEND CMAKE_MODULE_PATH ${NI_MEDIA_CONFIG_DIR})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 find_package(Boost "1.61.0" REQUIRED COMPONENTS iostreams filesystem system program_options regex)
 
@@ -14,4 +12,4 @@ if(@NIMEDIA_ENABLE_OGG_DECODING@)
   find_package(Vorbis REQUIRED)
 endif()
 
-include(${NI_MEDIA_CONFIG_DIR}/ni-mediaTargets.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/ni-mediaTargets.cmake)

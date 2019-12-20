@@ -114,7 +114,6 @@ if( NIMEDIA_OPEN_SOURCE )
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ni-mediaConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfig.cmake"
     INSTALL_DESTINATION ${CONFIG_DESTINATION}
-    PATH_VARS CONFIG_DESTINATION
   )
 
   write_basic_package_version_file(
@@ -127,7 +126,7 @@ if( NIMEDIA_OPEN_SOURCE )
     EXPORT ni-mediaExport
     FILE ni-mediaTargets.cmake
     NAMESPACE ni::
-    DESTINATION  ${CONFIG_DESTINATION}
+    DESTINATION ${CONFIG_DESTINATION}
   )
 
   install(
