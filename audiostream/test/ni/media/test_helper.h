@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,31 +32,11 @@
 #include <string>
 #include <vector>
 
-//----------------------------------------------------------------------------------------------------------------------
+using TestFiles = decltype( ::testing::ValuesIn( std::declval<std::vector<std::string>>() ) );
 
-std::string get_reference_files_path();
-std::string get_user_files_path();
-std::string get_fuzz_files_path();
+boost::filesystem::path test_files_input_path();
+boost::filesystem::path test_files_output_path();
 
-std::string get_output_files_path();
-
-
-std::vector<std::string> collect_supported_files( const boost::filesystem::path&,
-                                                  boost::optional<audio::ifstream_info::container_type> container );
-
-//----------------------------------------------------------------------------------------------------------------------
-
-inline auto user_files( boost::optional<audio::ifstream_info::container_type> container = boost::none )
-{
-    return ::testing::ValuesIn( collect_supported_files( get_user_files_path(), container ) );
-}
-
-inline auto reference_files( boost::optional<audio::ifstream_info::container_type> container = boost::none )
-{
-    return ::testing::ValuesIn( collect_supported_files( get_reference_files_path(), container ) );
-}
-
-inline auto fuzz_files( boost::optional<audio::ifstream_info::container_type> container = boost::none )
-{
-    return ::testing::ValuesIn( collect_supported_files( get_fuzz_files_path(), container ) );
-}
+TestFiles user_files( boost::optional<audio::ifstream_info::container_type> container = boost::none );
+TestFiles reference_files( boost::optional<audio::ifstream_info::container_type> container = boost::none );
+TestFiles fuzz_files( boost::optional<audio::ifstream_info::container_type> container = boost::none );

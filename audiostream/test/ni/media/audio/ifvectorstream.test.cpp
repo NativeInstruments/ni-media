@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,6 @@ TEST( ni_media_audio_ifvectorstream, default_constructor )
 
     EXPECT_EQ( -1, is.tellg() );
     EXPECT_TRUE( is.bad() );
-    
-    EXPECT_EQ( is.info().num_bytes(), 0 );
+
+    EXPECT_EQ( is.info().num_bytes(), 0u );
 }

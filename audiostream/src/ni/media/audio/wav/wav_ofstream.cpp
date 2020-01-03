@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,8 @@
 // SOFTWARE.
 //
 
-#include <ni/media/audio/sink/wav_file_sink.h>
+#include <ni/media/audio/wav/wav_file_sink.h>
 #include <ni/media/audio/wav/wav_ofstream.h>
-
 #include <ni/media/iostreams/stream_buffer.h>
 
 namespace audio

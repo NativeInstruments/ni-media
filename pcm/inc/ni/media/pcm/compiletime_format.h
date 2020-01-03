@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@ constexpr auto operator!=( compiletime_format<ln, lb, le>, compiletime_format<rn
 }
 
 template <number_type n, bitwidth_type b, endian_type e>
-constexpr std::ostream& operator<<( std::ostream& stream, const compiletime_format<n, b, e>& fmt )
+constexpr std::ostream& operator<<( std::ostream& stream, compiletime_format<n, b, e> fmt )
 {
     constexpr auto number   = fmt.number() == floating_point ? "f" : fmt.number() == signed_integer ? "s" : "u";
     constexpr auto bitwidth = fmt.bitwidth();

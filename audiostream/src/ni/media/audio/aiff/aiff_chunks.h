@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,6 @@ struct Tag
     boost::endian::big_uint32_t id      = 0;
     boost::endian::big_uint32_t length  = 0;
     boost::endian::big_uint32_t subType = 0;
-    std::streamoff              start   = 0;
 };
 
 

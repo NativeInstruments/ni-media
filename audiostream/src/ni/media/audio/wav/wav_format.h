@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,20 +29,15 @@
 namespace
 {
 
-const uint8_t wavFormatExtSubFormatPCM[] = {
+const uint16_t wavFormatTagPcm        = 0x0001;
+const uint16_t wavFormatTagIeeeFloat  = 0x0003;
+const uint16_t wavFormatTagALaw       = 0x0006;
+const uint16_t wavFormatTagMuLaw      = 0x0007;
+const uint16_t wavFormatTagExtensible = 0xfffe;
+
+const uint8_t wavFormatExtSubFormatPCM[16] = {
     0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
 
-const uint8_t wavFormatExtSubFormatPCM_2[] = {
+const uint8_t wavFormatExtSubFormatFloat[16] = {
     0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
-
-const uint8_t wavFormatExtSubFormatFloat[] = {
-    0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
-
-const uint8_t wavFormatExtSubFormatFloat_2[] = {
-    0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
-
-
-const uint16_t wavFormatTagPcm        = 1;
-const uint16_t wavFormatTagIeeeFloat  = 3;
-const uint16_t wavFormatTagExtensible = 0xfffe;
-}
+} // namespace

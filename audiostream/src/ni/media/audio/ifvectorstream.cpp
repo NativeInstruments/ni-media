@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +26,21 @@
 #include <ni/media/audio/source.h>
 #include <ni/media/iostreams/stream_buffer.h>
 
+
 namespace audio
 {
 
 //----------------------------------------------------------------------------------------------------------------------
 
 ifvectorstream::ifvectorstream()
-: ifstream( nullptr, std::make_unique<ifvectorstream::info_type>() )
+: istream( nullptr, std::make_unique<info_type>() )
 {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-ifvectorstream::ifvectorstream( std::unique_ptr<streambuf> sb, std::unique_ptr<ifvectorstream::info_type> info )
-: ifstream( std::move( sb ), std::move( info ) )
+ifvectorstream::ifvectorstream( std::unique_ptr<streambuf> sb, std::unique_ptr<info_type> info )
+: istream( std::move( sb ), std::move( info ) )
 {
 }
 
@@ -54,6 +55,7 @@ ifvectorstream::ifvectorstream( std::vector<char> vec, const info_type& info )
 //----------------------------------------------------------------------------------------------------------------------
 
 ifvectorstream::ifvectorstream( std::vector<char> vec, ifstream_info::container_type container )
+: ifvectorstream()
 {
     using container_type = ifstream_info::container_type;
 
@@ -70,9 +72,34 @@ ifvectorstream::ifvectorstream( std::vector<char> vec, ifstream_info::container_
             *this = make_ifvectorstream( aiff_vector_source( std::move( vec ) ) );
             break;
 #endif
+#if NIMEDIA_ENABLE_FLAC_DECODING
+        case container_type::flac:
+            *this = make_ifvectorstream( flac_vector_source( std::move( vec ) ) );
+            break;
+#endif
+#if NIMEDIA_ENABLE_MP3_DECODING
+        case container_type::mp3:
+            *this = make_ifvectorstream( mp3_vector_source( std::move( vec ) ) );
+            break;
+#endif
+#if NIMEDIA_ENABLE_MP4_DECODING
+        case container_type::mp4:
+            *this = make_ifvectorstream( mp4_vector_source( std::move( vec ) ) );
+            break;
+#endif
+#if NIMEDIA_ENABLE_OGG_DECODING
+        case container_type::ogg:
+            *this = make_ifvectorstream( ogg_vector_source( std::move( vec ) ) );
+            break;
+#endif
 #if NIMEDIA_ENABLE_WAV_DECODING
         case container_type::wav:
             *this = make_ifvectorstream( wav_vector_source( std::move( vec ) ) );
+            break;
+#endif
+#if NIMEDIA_ENABLE_WMA_DECODING
+        case container_type::wma:
+            *this = make_ifvectorstream( wma_vector_source( std::move( vec ) ) );
             break;
 #endif
         default:
@@ -83,6 +110,7 @@ ifvectorstream::ifvectorstream( std::vector<char> vec, ifstream_info::container_
 //----------------------------------------------------------------------------------------------------------------------
 
 ifvectorstream::ifvectorstream( ifstream&& other )
+: ifvectorstream()
 {
     if ( other.good() )
     {
@@ -99,7 +127,7 @@ ifvectorstream::ifvectorstream( ifstream&& other )
 //----------------------------------------------------------------------------------------------------------------------
 
 ifvectorstream::ifvectorstream( ifvectorstream&& other )
-: ifstream( std::move( other ) )
+: istream( std::move( other ) )
 {
 }
 
@@ -107,9 +135,16 @@ ifvectorstream::ifvectorstream( ifvectorstream&& other )
 
 ifvectorstream& ifvectorstream::operator=( ifvectorstream&& other )
 {
-    ifstream::operator=( std::move( other ) );
+    istream::operator=( std::move( other ) );
     return *this;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
 
-} // namespace pcm
+const ifvectorstream::info_type& ifvectorstream::info() const
+{
+    return static_cast<const info_type&>( istream::info() );
+}
+
+
+} // namespace audio

@@ -23,7 +23,7 @@
 #include <ni/media/audio/ifstream.h>
 
 #include <ni/media/audio/ofstream.h>
-#include <ni/media/audio/sink/flac_file_sink.h>
+#include <ni/media/audio/flac/flac_file_sink.h>
 #include <ni/media/reference_test.h>
 #include <ni/media/sink_test.h>
 

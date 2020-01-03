@@ -8,9 +8,9 @@ git:
 matrix:
   include:
     - os: osx
-      osx_image: xcode7.3
+      osx_image: xcode9.4
       compiler: clang
-      env: MATRIX_EVAL="CONFIG=Release" 
+      env: MATRIX_EVAL="CONFIG=Release && RUN_PCM_TESTS=ON"
       
     - os: linux
       compiler: gcc
@@ -25,22 +25,36 @@ matrix:
           - libvorbis-dev
           - libflac++-dev
 
-      env: MATRIX_EVAL="CONFIG=Release && CXX=g++-5"
-          
-      
-      
+      env: MATRIX_EVAL="CONFIG=Release && CXX=g++-5 && RUN_PCM_TESTS=ON"
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-5
+          - cmake
+          - libogg-dev
+          - libvorbis-dev
+          - libflac++-dev
+          - lcov
+
+      env: MATRIX_EVAL="CONFIG=Coverage && CXX=g++-5 && GCOV=gcov-5 && RUN_PCM_TESTS=OFF"
+
 before_install:
   - eval "${MATRIX_EVAL}"
   - mkdir deps && cd deps
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update && brew install git-lfs libogg libvorbis flac;
+      brew install git-lfs libogg libvorbis flac;
       git lfs install;
     else
-      wget http://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.bz2;
-      tar -xvjf boost_1_63_0.tar.bz2 | tail -n 50;
-      cd boost_1_63_0;
-      sudo ./bootstrap.sh --with-libraries="filesystem,system,iostreams";
+      wget http://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.bz2;
+      tar -xvjf boost_1_64_0.tar.bz2 | tail -n 50;
+      cd boost_1_64_0;
+      sudo ./bootstrap.sh --with-libraries="filesystem,system,iostreams,program_options,regex";
       sudo ./b2 install | tail -n 50;
       cd ..;
     fi
@@ -58,8 +72,14 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON
-    
+  - cmake .. -DCMAKE_BUILD_TYPE=$CONFIG -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON -DNIMEDIA_PCM_TESTS=$RUN_PCM_TESTS
+
 script:
   - export CTEST_OUTPUT_ON_FAILURE=TRUE
   - cmake --build . && git lfs pull -X "" && cmake --build . --target test
+
+after_success:
+  - if [ "$CONFIG" == "Coverage" ]; then
+      lcov --gcov-tool $(which ${GCOV}) -d . -c -o coverage.info;
+      bash <(curl -s https://codecov.io/bash) -X gcov || echo "Codecov did not collect coverage reports";
+    fi

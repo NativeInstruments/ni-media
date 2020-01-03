@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ TEST( ni_media_audio_ivectorstream, vector_constructor )
     is.read( out.data(), in.size() );
 
     EXPECT_TRUE( boost::equal( in, out ) );
-    EXPECT_EQ( in.size(), is.tellg() );
+    EXPECT_EQ( audio::ivectorstream::pos_type(in.size()), is.tellg() );
     EXPECT_FALSE( is.eof() );
 
     is.read( out.data(), 1 );
@@ -78,7 +78,7 @@ TEST( ni_media_audio_ivectorstream, move_constructor )
     is2.read( out.data(), in.size() );
 
     EXPECT_TRUE( boost::equal( in, out ) );
-    EXPECT_EQ( in.size(), is2.tellg() );
+    EXPECT_EQ( audio::ivectorstream::pos_type(in.size()), is2.tellg() );
     EXPECT_FALSE( is2.eof() );
 
     is2.read( out.data(), 1 );
@@ -105,7 +105,7 @@ TEST( ni_media_audio_ivectorstream, move_assignment )
     is2.read( out.data(), in.size() );
 
     EXPECT_TRUE( boost::equal( in, out ) );
-    EXPECT_EQ( in.size(), is2.tellg() );
+    EXPECT_EQ( audio::ivectorstream::pos_type(in.size()), is2.tellg() );
     EXPECT_FALSE( is2.eof() );
 
     is2.read( out.data(), 1 );

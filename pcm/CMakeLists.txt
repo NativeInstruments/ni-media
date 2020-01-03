@@ -1,13 +1,3 @@
-set(BOOST_MIN_VERSION "1.61.0")
-find_package(Boost ${BOOST_MIN_VERSION} REQUIRED)
- # Workaroud: older cmake versions do not create an imported target Boost::boost
-if(NOT TARGET Boost::boost)
-  add_library(Boost::boost INTERFACE IMPORTED)
-  if(Boost_INCLUDE_DIRS)
-    set_target_properties(Boost::boost PROPERTIES
-      INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIRS}")
-  endif()
-endif()
 
 #--------------------------------------------------------------------
 # sources

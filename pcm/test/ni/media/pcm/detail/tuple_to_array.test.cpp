@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Native Instruments GmbH, Berlin
+// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ TEST( tuple_to_array_test, empty )
     auto arr = tuple_to_array<int>( std::tuple<>{} );
 
     EXPECT_TRUE( ( std::is_same<std::array<int, 0>, decltype( arr )>::value ) );
-    EXPECT_EQ( 0, arr.size() );
+    EXPECT_EQ( 0u, arr.size() );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
