@@ -7,7 +7,9 @@ if( TARGET ni-media )
   return()
 endif()
 
-project( ni-media )
+project( ni-media
+  VERSION 0.1.0
+)
 
 option( NIMEDIA_OPEN_SOURCE                   "Build ni-media open source version"    ON )
 option( NIMEDIA_TREAT_WARNINGS_AS_ERRORS      "Treat compile warnings as errors"      OFF)
@@ -102,10 +104,39 @@ foreach( target audiostream audiostream_test pcm_test generator )
 endforeach()
 
 
-install(
-    EXPORT ni-mediaExport
-    FILE ni-mediaConfig.cmake
-    NAMESPACE ni::
-    DESTINATION lib/cmake/ni-media
-)
+if( NIMEDIA_OPEN_SOURCE )
+  
+  include(CMakePackageConfigHelpers)
 
+  set(CONFIG_DESTINATION lib/cmake/ni-media)
+
+  configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ni-mediaConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfig.cmake"
+    INSTALL_DESTINATION ${CONFIG_DESTINATION}
+  )
+
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+  )
+
+  install(
+    EXPORT ni-mediaExport
+    FILE ni-mediaTargets.cmake
+    NAMESPACE ni::
+    DESTINATION ${CONFIG_DESTINATION}
+  )
+
+  install(
+    FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfig.cmake
+      ${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfigVersion.cmake
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFLAC.cmake
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindOgg.cmake
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindVorbis.cmake             
+    DESTINATION
+      ${CONFIG_DESTINATION}
+  )
+endif()

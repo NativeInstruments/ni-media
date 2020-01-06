@@ -1,0 +1,22 @@
+@PACKAGE_INIT@
+
+find_package(Boost "1.61.0" REQUIRED COMPONENTS iostreams filesystem system program_options regex)
+
+# for flac and ogg we want to find our own findPackage.cmake modules
+# hence we temporarely set CMAKE_MODULE_PATH to this directory
+set(NIMEDIA_PREVIOUS_MODULE_PATH ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
+
+if(@NIMEDIA_ENABLE_FLAC_DECODING@)
+  find_package(FLAC REQUIRED)
+endif()
+
+if(@NIMEDIA_ENABLE_OGG_DECODING@)
+  find_package(Vorbis REQUIRED)
+endif()
+
+set(CMAKE_MODULE_PATH ${NIMEDIA_PREVIOUS_MODULE_PATH})
+
+include(${CMAKE_CURRENT_LIST_DIR}/ni-mediaTargets.cmake)
+
+
