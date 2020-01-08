@@ -54,7 +54,5 @@ public:
 private:
     class Impl;
     std::unique_ptr<Impl> m_impl;
-    info_type             m_info; // todo: remove :-)
-
-    std::FILE* m_file = nullptr;
+    info_type             m_info;
 };
