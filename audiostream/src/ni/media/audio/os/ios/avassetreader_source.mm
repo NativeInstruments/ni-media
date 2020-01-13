@@ -187,7 +187,7 @@ std::unique_ptr< avassetreader_source::Impl > avassetreader_source::create_impl(
     }
 
     return std::make_unique< avassetreader_source::Impl >(
-        avAssetUrl, streamIndex, startTimeFrames, m_trimOffsetFrames, m_trimOffsetFrames == 0 );
+        avAssetUrl, streamIndex, startTimeFrames, m_trimOffsetFrames, true );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
