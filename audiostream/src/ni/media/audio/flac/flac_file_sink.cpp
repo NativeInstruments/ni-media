@@ -12,31 +12,20 @@
 
 class flac_file_sink::Impl
 {
+    using EncoderPtr = std::unique_ptr<FLAC__StreamEncoder, std::function<void( FLAC__StreamEncoder* )>>;
+
 public:
     Impl( const std::string& path, const info_type& info );
 
     auto write( const char_type* s, std::streamsize n ) -> std::streamsize;
 
-    auto info() const -> audio::ofstream_info
-    {
-        return m_info;
-    }
+    auto info() const -> audio::ofstream_info;
 
 private:
-    void progress_callback_impl( uint32_t frames_written, FLAC__uint64, FLAC__uint64 );
-
-    static void progress_callback( const FLAC__StreamEncoder* encoder,
-                                   FLAC__uint64               bytes_written,
-                                   FLAC__uint64               samples_written,
-                                   uint32_t                   frames_written,
-                                   uint32_t                   total_frames_estimate,
-                                   void*                      client_data );
+    EncoderPtr m_encoder;
 
     audio::ofstream_info m_info;
     std::streamsize      m_pos;
-
-    using EncoderPtr = std::unique_ptr<FLAC__StreamEncoder, std::function<void( FLAC__StreamEncoder* )>>;
-    EncoderPtr m_encoder;
 };
 
 flac_file_sink::Impl::Impl( const std::string& path, const info_type& info )
@@ -58,11 +47,18 @@ flac_file_sink::Impl::Impl( const std::string& path, const info_type& info )
     FLAC__stream_encoder_set_bits_per_sample( m_encoder.get(), m_info.bits_per_sample() );
     FLAC__stream_encoder_set_sample_rate( m_encoder.get(), m_info.sample_rate() );
 
-    auto status = FLAC__stream_encoder_init_file( m_encoder.get(), path.c_str(), progress_callback, this );
+    auto status = FLAC__stream_encoder_init_file( m_encoder.get(), path.c_str(), nullptr, this );
 
     if ( status != 0 )
         throw std::runtime_error( "flac_file_sink: Could not initialize encoder. Error status: "
                                   + std::to_string( status ) );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+auto flac_file_sink::Impl::info() const -> audio::ofstream_info
+{
+    return m_info;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -80,26 +76,6 @@ auto flac_file_sink::Impl::write( const char_type* s, std::streamsize n ) -> std
     }
     m_pos += n;
     return n;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void flac_file_sink::Impl::progress_callback( const FLAC__StreamEncoder* encoder,
-                                              FLAC__uint64               bytes_written,
-                                              FLAC__uint64               samples_written,
-                                              uint32_t                   frames_written,
-                                              uint32_t                   total_frames_estimate,
-                                              void*                      client_data )
-{
-    static_cast<Impl*>( client_data )->progress_callback_impl( frames_written, bytes_written, samples_written );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void flac_file_sink::Impl::progress_callback_impl( uint32_t frames_written, FLAC__uint64 bytes, FLAC__uint64 samples )
-{
-    //    std::cout << "frames written: " << frames_written << ", bytes written: " << bytes
-    //              << ", samples written: " << samples << std::endl;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
