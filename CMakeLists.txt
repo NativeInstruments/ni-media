@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.2)
+cmake_minimum_required(VERSION 3.12.0)
 
 if( TARGET ni-media )
   return()
