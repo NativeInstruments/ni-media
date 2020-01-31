@@ -187,9 +187,12 @@ std::unique_ptr< avassetreader_source::Impl > avassetreader_source::create_impl(
         }
         m_trimOffsetDetermined = true;
     }
+    
+    // Seeking MP3s on iOS will be very inaccurate without precise timing, so it is always enabled for MP3s
+    bool enablePreciseTiming = m_trimOffsetFrames == 0 || mp3;
 
     return std::make_unique< avassetreader_source::Impl >(
-        avAssetUrl, streamIndex, startTimeFrames, m_trimOffsetFrames, m_trimOffsetFrames == 0 || mp3 );
+        avAssetUrl, streamIndex, startTimeFrames, m_trimOffsetFrames, enablePreciseTiming );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
