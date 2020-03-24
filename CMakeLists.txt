@@ -44,12 +44,14 @@ else()
 
   if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
     set( NILIBS_LIGHT ON CACHE BOOL "Build NILibs without GUI libraries" FORCE )
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/libs/ni-cmake-tools)
+    include(ni-macros)
+    ni_cmake_tools_register(libs/ni-cmake-tools)
     add_subdirectory(libs/nilibs nilibs-binary)
   else()
     add_subdirectory(../nilibs nilibs-binary)
+    include( ni-macros )
   endif()
-
-  include( ni-macros )
 
   option( NIMEDIA_UNITY_BUILDS "Build ni-media With Unity Builds" ON )
 
