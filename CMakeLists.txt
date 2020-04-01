@@ -89,6 +89,12 @@ add_subdirectory( audiostream )
 add_library( ni-media INTERFACE )
 target_link_libraries( ni-media INTERFACE audiostream pcm )
 
+if( NOT NIMEDIA_OPEN_SOURCE )
+  if( NI_CLANG_DEBUG )
+    ni_target_add_clang_debug( audiostream )
+    ni_target_add_clang_debug( pcm )
+  endif()
+endif()
 
 foreach( target audiostream audiostream_test pcm_test generator )
   if( TARGET ${target} )

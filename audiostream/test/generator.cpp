@@ -78,8 +78,8 @@ int main( int argc, const char* argv[] )
 
         using value_type = double;
 
-        auto generator = make_generator<double>( generator_name, num_channels, sample_rate );
-        auto samples   = std::vector<double>( num_channels * num_frames );
+        auto generator = make_generator<value_type>( generator_name, num_channels, sample_rate );
+        auto samples   = std::vector<value_type>( num_channels * num_frames );
         boost::generate( samples, *generator );
 
         std::cout << "writing file: " << output_name << std::endl;
