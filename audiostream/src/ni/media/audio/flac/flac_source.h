@@ -72,43 +72,6 @@ private:
     void                            metadataCallbackImpl( const FLAC__StreamMetadata* metadata );
     void                            errorCallbackImpl( FLAC__StreamDecoderErrorStatus status );
 
-    // FLAC decoder callbacks
-
-    static FLAC__StreamDecoderReadStatus read_callback( const FLAC__StreamDecoder* decoder,
-                                                        FLAC__byte                 buffer[],
-                                                        size_t*                    bytes,
-                                                        void*                      client_data );
-
-
-    static FLAC__StreamDecoderSeekStatus seek_callback( const FLAC__StreamDecoder* decoder,
-                                                        FLAC__uint64               absolute_byte_offset,
-                                                        void*                      client_data );
-
-
-    static FLAC__StreamDecoderTellStatus tell_callback( const FLAC__StreamDecoder* decoder,
-                                                        FLAC__uint64*              absolute_byte_offset,
-                                                        void*                      client_data );
-
-    static FLAC__StreamDecoderLengthStatus length_callback( const FLAC__StreamDecoder* decoder,
-                                                            FLAC__uint64*              stream_length,
-                                                            void*                      client_data );
-
-    static FLAC__bool eof_callback( const FLAC__StreamDecoder* decoder, void* client_data );
-
-
-    static FLAC__StreamDecoderWriteStatus write_callback( const FLAC__StreamDecoder* decoder,
-                                                          const FLAC__Frame*         frame,
-                                                          const FLAC__int32* const   buffer[],
-                                                          void*                      client_data );
-
-    static void metadata_callback( const FLAC__StreamDecoder*  decoder,
-                                   const FLAC__StreamMetadata* metadata,
-                                   void*                       client_data );
-
-    static void error_callback( const FLAC__StreamDecoder*     decoder,
-                                FLAC__StreamDecoderErrorStatus status,
-                                void*                          client_data );
-
     Source                 m_source;
     audio::ifstream_info   m_info;
     std::vector<char_type> m_buffer;                // buffer (in bytes) used by FLAC decoder
@@ -136,6 +99,48 @@ flac_source<Source>::flac_source( Source&& source )
 {
     if ( !m_decoder )
         throw std::runtime_error( "flac_file_source: Could not instantiate decoder." );
+
+
+    auto read_callback = []( const FLAC__StreamDecoder*, FLAC__byte buffer[], size_t* bytes, void* client_data ) {
+        return static_cast<flac_source*>( client_data )->readCallbackImpl( buffer, bytes );
+    };
+
+    auto seek_callback = []( const FLAC__StreamDecoder*, FLAC__uint64 absolute_byte_offset, void* client_data ) {
+        return static_cast<flac_source*>( client_data )->seekCallbackImpl( absolute_byte_offset );
+    };
+
+    auto tell_callback = []( const FLAC__StreamDecoder*, FLAC__uint64* absolute_byte_offset, void* client_data ) {
+        return static_cast<flac_source*>( client_data )->tellCallbackImpl( absolute_byte_offset );
+    };
+
+    auto length_callback = []( const FLAC__StreamDecoder*, FLAC__uint64* stream_length, void* client_data ) {
+        return static_cast<flac_source*>( client_data )->lengthCallbackImpl( stream_length );
+    };
+
+    auto eof_callback = []( const FLAC__StreamDecoder*, void* client_data ) {
+        return static_cast<flac_source*>( client_data )->eofCallbackImpl();
+    };
+
+    auto write_callback = []( const FLAC__StreamDecoder*,
+                              const FLAC__Frame*       frame,
+                              const FLAC__int32* const buffer[],
+                              void*                    client_data ) {
+        if ( !static_cast<flac_source*>( client_data )->writeCallbackImpl( frame, buffer ) )
+        {
+            return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+        }
+
+        return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+    };
+
+    auto metadata_callback = []( const FLAC__StreamDecoder*, const FLAC__StreamMetadata* metadata, void* client_data ) {
+        static_cast<flac_source*>( client_data )->metadataCallbackImpl( metadata );
+    };
+
+    auto error_callback = []( const FLAC__StreamDecoder*, FLAC__StreamDecoderErrorStatus status, void* client_data ) {
+        static_cast<flac_source*>( client_data )->errorCallbackImpl( status );
+    };
+
 
     auto status = FLAC__stream_decoder_init_stream( m_decoder.get(),
                                                     read_callback,
@@ -368,92 +373,8 @@ void flac_source<Source>::metadataCallbackImpl( const FLAC__StreamMetadata* meta
 //----------------------------------------------------------------------------------------------------------------------
 
 template <class Source>
-void flac_source<Source>::errorCallbackImpl( FLAC__StreamDecoderErrorStatus )
+void flac_source<Source>::errorCallbackImpl( FLAC__StreamDecoderErrorStatus /*status*/ )
 {
-    throw std::runtime_error( "flac_file_source: Error decoding FLAC file" );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <typename Source>
-::FLAC__StreamDecoderReadStatus flac_source<Source>::read_callback( const FLAC__StreamDecoder*,
-                                                                    FLAC__byte buffer[],
-                                                                    size_t*    bytes,
-                                                                    void*      client_data )
-{
-    return static_cast<flac_source*>( client_data )->readCallbackImpl( buffer, bytes );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <typename Source>
-::FLAC__StreamDecoderSeekStatus flac_source<Source>::seek_callback( const FLAC__StreamDecoder*,
-                                                                    FLAC__uint64 absolute_byte_offset,
-                                                                    void*        client_data )
-{
-    return static_cast<flac_source*>( client_data )->seekCallbackImpl( absolute_byte_offset );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <typename Source>
-::FLAC__StreamDecoderTellStatus flac_source<Source>::tell_callback( const FLAC__StreamDecoder*,
-                                                                    FLAC__uint64* absolute_byte_offset,
-                                                                    void*         client_data )
-{
-    return static_cast<flac_source*>( client_data )->tellCallbackImpl( absolute_byte_offset );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <typename Source>
-::FLAC__StreamDecoderLengthStatus flac_source<Source>::length_callback( const FLAC__StreamDecoder*,
-                                                                        FLAC__uint64* stream_length,
-                                                                        void*         client_data )
-{
-    return static_cast<flac_source*>( client_data )->lengthCallbackImpl( stream_length );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <typename Source>
-::FLAC__bool flac_source<Source>::eof_callback( const FLAC__StreamDecoder*, void* client_data )
-{
-    return static_cast<flac_source*>( client_data )->eofCallbackImpl();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <class Source>
-::FLAC__StreamDecoderWriteStatus flac_source<Source>::write_callback( const FLAC__StreamDecoder*,
-                                                                      const FLAC__Frame*       frame,
-                                                                      const FLAC__int32* const buffer[],
-                                                                      void*                    client_data )
-{
-    if ( !static_cast<flac_source*>( client_data )->writeCallbackImpl( frame, buffer ) )
-    {
-        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    }
-
-    return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <class Source>
-void flac_source<Source>::metadata_callback( const FLAC__StreamDecoder*,
-                                             const FLAC__StreamMetadata* metadata,
-                                             void*                       client_data )
-{
-    static_cast<flac_source*>( client_data )->metadataCallbackImpl( metadata );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <class Source>
-void flac_source<Source>::error_callback( const FLAC__StreamDecoder*,
-                                          FLAC__StreamDecoderErrorStatus status,
-                                          void*                          client_data )
-{
-    static_cast<flac_source*>( client_data )->errorCallbackImpl( status );
+    // TODO: pass error message to ifstream. Do not throw a runtime error as this callback gets called during decoding.
+    // auto message = std::string( "Error decoding FLAC file: " ) + FLAC__StreamDecoderErrorStatusString[status] );
 }

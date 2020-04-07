@@ -68,7 +68,7 @@ class SyncronousByteStream : public IMFByteStream
     auto tell() -> std::streamsize
     {
         auto pos = m_source.seek( boost::iostreams::stream_offset( 0 ), BOOST_IOS::cur );
-        return ( pos == std::streamsize{-1} ) ? m_size : pos;
+        return ( pos == std::streamsize{-1} ) ? m_size : std::streamsize{pos};
     }
 
 public:

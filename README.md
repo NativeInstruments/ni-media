@@ -57,7 +57,7 @@ ni-media requires a c++14 compliant compiler and is currently supported and test
 ## Building
 
 First, build and install boost `filesystem`, `iostream`, `system` and `program-option` to `path/to/dependencies`. Optionally install any codecs that you want to use, for example [flac](https://github.com/xiph/flac) and [ogg-vorbis](https://github.com/xiph/vorbis).
-Now configure ni-media with [CMake](https://cmake.org/) (version 3.5 or higher is required)
+Now configure ni-media with [CMake](https://cmake.org/) (version 3.12.4 or higher is required)
 
 ```
 cmake -G YOUR-PROJECT-GENERATOR -DCMAKE_PREFIX_PATH=path/to/dependencies/ path/to/ni-media
@@ -80,7 +80,7 @@ cmake -G YOUR-PROJECT-GENERATOR -DCMAKE_PREFIX_PATH=path/to/dependencies/ -DNIME
 
 Before running the tests some reference test files need to be downloaded using [git-lfs](https://github.com/git-lfs/git-lfs):
 ```
-git lfs pull -X
+git lfs pull -X ""
 ```
 
 To execute the tests run:

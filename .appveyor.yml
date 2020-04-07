@@ -12,9 +12,6 @@ environment:
   CTEST_OUTPUT_ON_FAILURE: 1
 
   matrix:
-    - GENERATOR: Visual Studio 15 2017
-      TARGET_ARCHITECTURE: x86
-      
     - GENERATOR: Visual Studio 15 2017 Win64
       TARGET_ARCHITECTURE: x64
 

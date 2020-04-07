@@ -1,17 +1,16 @@
-cmake_minimum_required(VERSION 3.5)
-if(POLICY CMP0063)
-  cmake_policy(SET CMP0063 NEW)
-endif()
+cmake_minimum_required(VERSION 3.12.0)
 
 if( TARGET ni-media )
   return()
 endif()
 
-project( ni-media )
+project( ni-media
+  VERSION 0.1.0
+)
 
 option( NIMEDIA_OPEN_SOURCE                   "Build ni-media open source version"    ON )
 option( NIMEDIA_TREAT_WARNINGS_AS_ERRORS      "Treat compile warnings as errors"      OFF)
-option( NIMEDIA_ENABLE_DEPRECATION_WARNINGS   "Enable ni-media deprecation warnings"  ON )
+
 if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
   option( NIMEDIA_TESTS "Build ni-media Tests" ON )
 else()
@@ -73,8 +72,7 @@ if( NIMEDIA_TESTS )
   enable_testing()
 
   if( NIMEDIA_OPEN_SOURCE )
-  	include(ni_find_gtest)
-  	ni_find_gtest()
+    find_package(GTest REQUIRED)
   else()
     find_package(NIGTest REQUIRED)
     add_library(GTest::GTest ALIAS gtest)
@@ -88,12 +86,9 @@ add_subdirectory( audiostream )
 # for backwards compatibility:
 add_library( ni-media INTERFACE )
 target_link_libraries( ni-media INTERFACE audiostream pcm )
-if( NOT NIMEDIA_ENABLE_DEPRECATION_WARNINGS )
-  target_compile_definitions( ni-media INTERFACE NI_MEDIA_NO_DEPRECATION_WARNINGS )
-endif()
 
 
-foreach( target audiostream audiostream_test pcm pcm_test generator )
+foreach( target audiostream audiostream_test pcm_test generator )
   if( TARGET ${target} )
     if( NIMEDIA_OPEN_SOURCE )
       set_property( TARGET ${target} PROPERTY CXX_STANDARD 14)
@@ -105,3 +100,40 @@ foreach( target audiostream audiostream_test pcm pcm_test generator )
   endif()
 endforeach()
 
+
+if( NIMEDIA_OPEN_SOURCE )
+  
+  include(CMakePackageConfigHelpers)
+
+  set(CONFIG_DESTINATION lib/cmake/ni-media)
+
+  configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ni-mediaConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfig.cmake"
+    INSTALL_DESTINATION ${CONFIG_DESTINATION}
+  )
+
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+  )
+
+  install(
+    EXPORT ni-mediaExport
+    FILE ni-mediaTargets.cmake
+    NAMESPACE ni::
+    DESTINATION ${CONFIG_DESTINATION}
+  )
+
+  install(
+    FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfig.cmake
+      ${CMAKE_CURRENT_BINARY_DIR}/ni-mediaConfigVersion.cmake
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFLAC.cmake
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindOgg.cmake
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindVorbis.cmake             
+    DESTINATION
+      ${CONFIG_DESTINATION}
+  )
+endif()
