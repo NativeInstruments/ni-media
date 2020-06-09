@@ -51,6 +51,9 @@ else()
   else()
     add_subdirectory(../nilibs nilibs-binary)
     include( ni-macros )
+
+    set(DISABLE_INSTALL_HEADERS ON)
+    set(DISABLE_INSTALL_LIBS ON)
   endif()
 
   option( NIMEDIA_UNITY_BUILDS "Build ni-media With Unity Builds" ON )
