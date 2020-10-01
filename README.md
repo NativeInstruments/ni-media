@@ -93,8 +93,8 @@ cmake --build . --target test
 We very much appreciate your contribution! If you want to contribute please get in touch with the maintainers:
 
 * [Marc Boucek](https://github.com/marcrambo) 
-* [Nathan Kozlowski](https://github.com/FalconPDX)
-* [Moritz Heppner](https://github.com/monsieurnoir)
+* [Nathan Kozlowski](https://github.com/ni-nkozlowski)
+* [Moritz Heppner](https://github.com/ni-mheppner)
 
 Please run [clang-format](https://clang.llvm.org/docs/ClangFormat.html) with the provided .clang-format file and if possible add some tests when opening a pull request.
 
