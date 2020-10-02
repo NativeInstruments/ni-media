@@ -70,7 +70,10 @@ auto readAiffHeader( Source& src )
     using namespace boost::endian;
     using MarkerMap = audio::aiff_specific_info::MarkerMap;
 
+    static const size_t padSize   = 2;
+
     audio::aiff_ifstream_info info;
+    bool commChunkFound = false;
 
     src.seek( 0, BOOST_IOS::beg );
 
@@ -79,6 +82,8 @@ auto readAiffHeader( Source& src )
 
     if ( !fetch( src, aiffTag.id, aiffTag.length, aiffTag.subType ) || aiffTag.id != aiff::tags::form )
         throw std::runtime_error( "Could not read \'FORM\' tag." );
+    
+    const auto formChunkOffset = src.tell();
 
     while ( fetch( src, aiffTag.id, aiffTag.length ) )
     {
@@ -156,6 +161,8 @@ auto readAiffHeader( Source& src )
             info.num_channels( commChunk.numChannels );
             info.num_frames( commChunk.numSampleFrames );
             info.sample_rate( size_t( sampleRate ) );
+
+            commChunkFound = true;
         }
 
         else if ( aiffTag.id == aiff::tags::mark )
@@ -205,8 +212,22 @@ auto readAiffHeader( Source& src )
             info.instrument_chunk( inst_chunk_native_endian );
         }
 
-        // The SSND chunk is the last in the header
-        else if ( aiffTag.id == aiff::tags::ssnd )
+        auto remainder = aiffTag.length % padSize;
+        auto target    = currentOffset + aiffTag.length + ( remainder != 0 ? padSize - remainder : 0 );
+        src.seek( target, BOOST_IOS::beg );
+    }
+
+    if (!commChunkFound)
+        throw std::runtime_error( "Could not find \'COMM\' chunk." );
+
+    // start again after the FORM chunk to look for SSND chunk
+    src.seek( formChunkOffset, BOOST_IOS::beg );
+
+    while ( fetch( src, aiffTag.id, aiffTag.length ) )
+    {
+        const auto currentOffset = static_cast<uint32_t>( src.seek( 0, BOOST_IOS::cur ) );
+
+        if ( aiffTag.id == aiff::tags::ssnd )
         {
             aiff::SoundDataChunk ssndChunck;
 
@@ -218,14 +239,12 @@ auto readAiffHeader( Source& src )
             return info;
         }
 
-        static const size_t padSize   = 2;
-        auto                remainder = aiffTag.length % padSize;
-        auto                target    = currentOffset + aiffTag.length
-                                        + ( remainder != 0 ? padSize - remainder : 0 );
+        auto remainder = aiffTag.length % padSize;
+        auto target    = currentOffset + aiffTag.length + ( remainder != 0 ? padSize - remainder : 0 );
         src.seek( target, BOOST_IOS::beg );
     }
 
-    throw std::runtime_error( "Could not read \'data\' tag." );
+    throw std::runtime_error( "Could not find \'SSND\' chunk." );
 }
 
 

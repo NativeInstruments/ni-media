@@ -149,10 +149,12 @@ std::unique_ptr< avassetreader_source::Impl > avassetreader_source::create_impl(
                                                                                  size_t             streamIndex,
                                                                                  size_t             startTimeFrames )
 {
+    bool mp3 = isMp3( avAssetUrl );
+    
     if ( !m_trimOffsetDetermined )
     {
         m_trimOffsetFrames = 0;
-        if ( isMp3( avAssetUrl ) )
+        if ( mp3 )
         {
             auto precise    = std::make_unique< avassetreader_source::Impl >( avAssetUrl, streamIndex, 0, 0, true );
             auto notPrecise = std::make_unique< avassetreader_source::Impl >( avAssetUrl, streamIndex, 0, 0, false );
@@ -185,9 +187,12 @@ std::unique_ptr< avassetreader_source::Impl > avassetreader_source::create_impl(
         }
         m_trimOffsetDetermined = true;
     }
+    
+    // Seeking MP3s on iOS will be very inaccurate without precise timing, so it is always enabled for MP3s
+    bool enablePreciseTiming = m_trimOffsetFrames == 0 || mp3;
 
     return std::make_unique< avassetreader_source::Impl >(
-        avAssetUrl, streamIndex, startTimeFrames, m_trimOffsetFrames, m_trimOffsetFrames == 0 );
+        avAssetUrl, streamIndex, startTimeFrames, m_trimOffsetFrames, enablePreciseTiming );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -304,10 +309,13 @@ avassetreader_source::Impl::Impl( const std::string& avAssetUrl,
             throw std::runtime_error( boost::str( boost::format( "Failure creating decoder for asset %s. %s" )
                                                   % avAssetUrl % [ex.reason UTF8String] ) );
         }
+        @finally
+        {
+            [pool drain];
+        }
     }
     catch ( const std::exception& )
     {
-        [pool drain];
         throw;
     }
 }
