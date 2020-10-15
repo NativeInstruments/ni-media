@@ -49,4 +49,4 @@ TEST_P( ifstream_robustness_test, stream_reaches_eof_on_first_read )
 }
 
 
-INSTANTIATE_TEST_CASE_P( fuzz_files, ifstream_robustness_test, fuzz_files() );
+INSTANTIATE_TEST_SUITE_P( fuzz_files, ifstream_robustness_test, fuzz_files() );

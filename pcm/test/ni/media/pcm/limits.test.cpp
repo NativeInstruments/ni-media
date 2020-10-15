@@ -100,7 +100,7 @@ protected:
 };
 
 
-TYPED_TEST_CASE_P( limits );
+TYPED_TEST_SUITE_P( limits );
 
 TYPED_TEST_P( limits, expect_equidistant )
 {
@@ -130,9 +130,9 @@ TYPED_TEST_P( limits, expect_zero )
 }
 
 
-REGISTER_TYPED_TEST_CASE_P( limits, expect_equidistant, expect_size, expect_min, expect_max, expect_zero );
+REGISTER_TYPED_TEST_SUITE_P( limits, expect_equidistant, expect_size, expect_min, expect_max, expect_zero );
 
 using limits_test_t =
     testing::Types<uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double>;
 
-INSTANTIATE_TYPED_TEST_CASE_P( all, limits, limits_test_t );
+INSTANTIATE_TYPED_TEST_SUITE_P( all, limits, limits_test_t );

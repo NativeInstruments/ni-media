@@ -22,5 +22,5 @@
 
 #include "iterator_copy.test.h"
 
-INSTANTIATE_TYPED_TEST_CASE_P( FloatToAll, PcmIteratorTest, make_iterator_test_t<float> );
-INSTANTIATE_TYPED_TEST_CASE_P( DoubleToAll, PcmIteratorTest, make_iterator_test_t<double> );
+INSTANTIATE_TYPED_TEST_SUITE_P( FloatToAll, PcmIteratorTest, make_iterator_test_t<float> );
+INSTANTIATE_TYPED_TEST_SUITE_P( DoubleToAll, PcmIteratorTest, make_iterator_test_t<double> );
