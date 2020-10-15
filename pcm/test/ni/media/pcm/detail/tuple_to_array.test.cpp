@@ -24,8 +24,6 @@
 
 #include <ni/media/pcm/detail/tuple_to_array.h>
 
-#include <boost/range/algorithm/equal.hpp>
-
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -50,38 +48,26 @@ TEST( tuple_to_array_test, empty )
 
 //----------------------------------------------------------------------------------------------------------------------
 
-TEST( tuple_to_array_test, trivial )
+TEST( tuple_to_array_test, no_conversions )
 {
     auto tup = std::make_tuple( 1, 2, 3 );
     auto arr = tuple_to_array<int>( tup );
     auto exp = std::array<int, 3>{{1, 2, 3}};
 
     EXPECT_TRUE( ( std::is_same<decltype( exp ), decltype( arr )>::value ) );
-    EXPECT_TRUE( boost::equal( exp, arr ) );
+    EXPECT_EQ( exp, arr );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-TEST( tuple_to_array_test, implicit_conversion )
+TEST( tuple_to_array_test, implicit_conversions )
 {
-    auto tup = std::make_tuple( "trick", "track", "truck" );
-    auto arr = tuple_to_array<std::string>( tup );
-    auto exp = std::array<std::string, 3>{{"trick", "track", "truck"}};
+    auto tup = std::make_tuple( 1u, 2, 3.f, 4.0 );
+    auto arr = tuple_to_array<double>( tup );
+    auto exp = std::array<double, 4>{{1.0, 2.0, 3.0, 4.0}};
 
     EXPECT_TRUE( ( std::is_same<decltype( exp ), decltype( arr )>::value ) );
-    EXPECT_TRUE( boost::equal( exp, arr ) );
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-TEST( tuple_to_array_test, implicit_conversion_different_types )
-{
-    auto tup = std::make_tuple( std::string( "trick" ), "track", std::initializer_list<char>{'t', 'r', 'u', 'c', 'k'} );
-    auto arr = tuple_to_array<std::string>( tup );
-    auto exp = std::array<std::string, 3>{{"trick", "track", "truck"}};
-
-    EXPECT_TRUE( ( std::is_same<decltype( exp ), decltype( arr )>::value ) );
-    EXPECT_TRUE( boost::equal( exp, arr ) );
+    EXPECT_EQ( exp, arr );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -93,19 +79,19 @@ TEST( tuple_to_array_test, narrowing_conversions )
     auto exp = std::array<int, 4>{{1, 2, 3, 4}};
 
     EXPECT_TRUE( ( std::is_same<decltype( exp ), decltype( arr )>::value ) );
-    EXPECT_TRUE( boost::equal( exp, arr ) );
+    EXPECT_EQ( exp, arr );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-TEST( tuple_to_array_test, hidden_feature_std_pair )
+TEST( tuple_to_array_test, std_pair )
 {
     auto tup = std::make_pair( 1, 2.f );
     auto arr = tuple_to_array<int>( tup );
     auto exp = std::array<int, 2>{{1, 2}};
 
     EXPECT_TRUE( ( std::is_same<decltype( exp ), decltype( arr )>::value ) );
-    EXPECT_TRUE( boost::equal( exp, arr ) );
+    EXPECT_EQ( exp, arr );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -166,7 +152,7 @@ TEST( tuple_to_array_test, types_match )
     auto exp = std::vector<std::string>{{"1i", "2f", "3d", "4c", "5l"}};
 
     EXPECT_TRUE( ( std::is_same<std::array<foo, 5>, decltype( arr )>::value ) );
-    EXPECT_TRUE( boost::equal( exp, vec ) );
+    EXPECT_EQ( exp, vec );
     EXPECT_EQ( std::string(), i_like_to_move_it );
 }
 
@@ -180,7 +166,7 @@ TEST( tuple_to_array_test, elements_are_moved_when_tuple_is_rvalue_ref )
     auto exp = std::vector<std::string>{{"1i", "2f", "3d", "4c", "5l"}};
 
     EXPECT_TRUE( ( std::is_same<std::array<foo, 5>, decltype( arr )>::value ) );
-    EXPECT_TRUE( boost::equal( exp, vec ) );
+    EXPECT_EQ( exp, vec );
     EXPECT_EQ( std::string( "1i2f4c" ), i_like_to_move_it );
 }
 
