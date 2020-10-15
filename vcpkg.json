@@ -1,0 +1,20 @@
+{
+  "name": "ni-media",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "libogg",
+    "libflac",
+    "libvorbis",
+    "boost-align",
+    "boost-algorithm",
+    "boost-endian",
+    "boost-filesystem",
+    "boost-format",
+    "boost-icl",
+    "boost-iostreams",
+    "boost-locale",
+    "boost-program-options",
+    "boost-system",
+    "gtest"
+  ]
+}
