@@ -57,4 +57,5 @@ TEST_P( wav_source_test, ifvectorstream )
 
 INSTANTIATE_TEST_SUITE_P( reference_test,
                           wav_source_test,
-                          reference_files( audio::ifstream_info::container_type::wav ) );
+                          reference_files( audio::ifstream_info::container_type::wav ),
+                          ParamToString{} );

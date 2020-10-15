@@ -56,4 +56,5 @@ TEST_P( ogg_source_test, ifvectorstream )
 
 INSTANTIATE_TEST_SUITE_P( reference_test,
                           ogg_source_test,
-                          reference_files( audio::ifstream_info::container_type::ogg ) );
+                          reference_files( audio::ifstream_info::container_type::ogg ),
+                          ParamToString{} );

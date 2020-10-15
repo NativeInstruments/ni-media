@@ -241,5 +241,5 @@ TEST_P( ifstream_test, read_begining_of_stream_interlaced_by_67_frames_backward 
 //----------------------------------------------------------------------------------------------------------------------
 
 
-INSTANTIATE_TEST_SUITE_P( reference_files, ifstream_test, reference_files() );
+INSTANTIATE_TEST_SUITE_P( reference_files, ifstream_test, reference_files(), ParamToString{} );
 INSTANTIATE_TEST_SUITE_P( user_files, ifstream_test, user_files() );

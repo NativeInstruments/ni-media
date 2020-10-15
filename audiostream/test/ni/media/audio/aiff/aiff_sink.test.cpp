@@ -55,6 +55,7 @@ TEST_P( aiff_sink_test, ofstream )
 
 INSTANTIATE_TEST_SUITE_P( reference_test,
                           aiff_sink_test,
-                          reference_files( audio::ifstream_info::container_type::aiff ) );
+                          reference_files( audio::ifstream_info::container_type::aiff ),
+                          ParamToString{} );
 
 //----------------------------------------------------------------------------------------------------------------------
