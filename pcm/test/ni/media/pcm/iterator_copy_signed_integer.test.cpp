@@ -22,7 +22,7 @@
 
 #include "iterator_copy.test.h"
 
-INSTANTIATE_TYPED_TEST_CASE_P( Int8ToAll, PcmIteratorTest, make_iterator_test_t<int8_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int16ToAll, PcmIteratorTest, make_iterator_test_t<int16_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int32ToAll, PcmIteratorTest, make_iterator_test_t<int32_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int64ToAll, PcmIteratorTest, make_iterator_test_t<int64_t> );
+INSTANTIATE_TYPED_TEST_SUITE_P( Int8ToAll, PcmIteratorTest, make_iterator_test_t<int8_t> );
+INSTANTIATE_TYPED_TEST_SUITE_P( Int16ToAll, PcmIteratorTest, make_iterator_test_t<int16_t> );
+INSTANTIATE_TYPED_TEST_SUITE_P( Int32ToAll, PcmIteratorTest, make_iterator_test_t<int32_t> );
+INSTANTIATE_TYPED_TEST_SUITE_P( Int64ToAll, PcmIteratorTest, make_iterator_test_t<int64_t> );

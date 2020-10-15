@@ -53,6 +53,6 @@ TEST_P( mp4_source_test, ifvectorstream )
 //----------------------------------------------------------------------------------------------------------------------
 
 
-INSTANTIATE_TEST_CASE_P( reference_test,
-                         mp4_source_test,
-                         reference_files( audio::ifstream_info::container_type::mp4 ) );
+INSTANTIATE_TEST_SUITE_P( reference_test,
+                          mp4_source_test,
+                          reference_files( audio::ifstream_info::container_type::mp4 ) );

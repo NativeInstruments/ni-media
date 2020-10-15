@@ -160,7 +160,7 @@ protected:
 private:
 };
 
-TYPED_TEST_CASE_P( istream_read_test );
+TYPED_TEST_SUITE_P( istream_read_test );
 
 
 TYPED_TEST_P( istream_read_test, value_read_test )
@@ -256,7 +256,7 @@ TYPED_TEST_P( istream_read_test, range_read_test )
 }
 
 
-REGISTER_TYPED_TEST_CASE_P( istream_read_test, value_read_test, unformatted_read_test, range_read_test );
+REGISTER_TYPED_TEST_SUITE_P( istream_read_test, value_read_test, unformatted_read_test, range_read_test );
 
 
 template <class Value, class Format>

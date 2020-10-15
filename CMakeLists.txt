@@ -77,7 +77,7 @@ if( NIMEDIA_TESTS )
   enable_testing()
 
   if( NIMEDIA_OPEN_SOURCE )
-    find_package(GTest REQUIRED)
+    find_package(GTest "1.10.0" REQUIRED)
   else()
     find_package(NIGTest REQUIRED)
     add_library(GTest::GTest ALIAS gtest)
