@@ -53,6 +53,7 @@ TEST_P( aiff_source_test, ifvectorstream )
 //----------------------------------------------------------------------------------------------------------------------
 
 
-INSTANTIATE_TEST_CASE_P( reference_test,
-                         aiff_source_test,
-                         reference_files( audio::ifstream_info::container_type::aiff ) );
+INSTANTIATE_TEST_SUITE_P( reference_test,
+                          aiff_source_test,
+                          reference_files( audio::ifstream_info::container_type::aiff ),
+                          ParamToString{} );

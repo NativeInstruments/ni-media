@@ -22,5 +22,5 @@
 
 #include "istream_read.test.h"
 
-INSTANTIATE_TYPED_TEST_CASE_P( FloatToAll, istream_read_test, make_istream_read_test_t<float> );
-INSTANTIATE_TYPED_TEST_CASE_P( DoubleToAll, istream_read_test, make_istream_read_test_t<double> );
+INSTANTIATE_TYPED_TEST_SUITE_P( FloatToAll, istream_read_test, make_istream_read_test_t<float> );
+INSTANTIATE_TYPED_TEST_SUITE_P( DoubleToAll, istream_read_test, make_istream_read_test_t<double> );

@@ -22,7 +22,7 @@
 
 #include "istream_read.test.h"
 
-INSTANTIATE_TYPED_TEST_CASE_P( Int8ToAll, istream_read_test, make_istream_read_test_t<int8_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int16ToAll, istream_read_test, make_istream_read_test_t<int16_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int32ToAll, istream_read_test, make_istream_read_test_t<int32_t> );
-INSTANTIATE_TYPED_TEST_CASE_P( Int64ToAll, istream_read_test, make_istream_read_test_t<int64_t> );
+INSTANTIATE_TYPED_TEST_SUITE_P( Int8ToAll, istream_read_test, make_istream_read_test_t<int8_t> );
+INSTANTIATE_TYPED_TEST_SUITE_P( Int16ToAll, istream_read_test, make_istream_read_test_t<int16_t> );
+INSTANTIATE_TYPED_TEST_SUITE_P( Int32ToAll, istream_read_test, make_istream_read_test_t<int32_t> );
+INSTANTIATE_TYPED_TEST_SUITE_P( Int64ToAll, istream_read_test, make_istream_read_test_t<int64_t> );

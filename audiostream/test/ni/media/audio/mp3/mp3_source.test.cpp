@@ -51,6 +51,7 @@ TEST_P( mp3_source_test, ifvectorstream )
 //----------------------------------------------------------------------------------------------------------------------
 
 
-INSTANTIATE_TEST_CASE_P( reference_test,
-                         mp3_source_test,
-                         reference_files( audio::ifstream_info::container_type::mp3 ) );
+INSTANTIATE_TEST_SUITE_P( reference_test,
+                          mp3_source_test,
+                          reference_files( audio::ifstream_info::container_type::mp3 ),
+                          ParamToString{} );

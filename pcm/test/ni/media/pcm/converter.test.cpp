@@ -74,7 +74,7 @@ public:
 };
 
 
-TYPED_TEST_CASE_P( pcm_convert_test );
+TYPED_TEST_SUITE_P( pcm_convert_test );
 
 TYPED_TEST_P( pcm_convert_test, convert_whole_range )
 {
@@ -92,18 +92,18 @@ TYPED_TEST_P( pcm_convert_test, convert_whole_range )
 }
 
 
-REGISTER_TYPED_TEST_CASE_P( pcm_convert_test, convert_whole_range );
+REGISTER_TYPED_TEST_SUITE_P( pcm_convert_test, convert_whole_range );
 
-INSTANTIATE_TYPED_TEST_CASE_P( uint8_to_all_pcm_types, pcm_convert_test, from<uint8_t>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( uint16_to_all_pcm_types, pcm_convert_test, from<uint16_t>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( uint32_to_all_pcm_types, pcm_convert_test, from<uint32_t>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( uint64_to_all_pcm_types, pcm_convert_test, from<uint64_t>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( int8_to_all_pcm_types, pcm_convert_test, from<int8_t>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( int16_to_all_pcm_types, pcm_convert_test, from<int16_t>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( int32_to_all_pcm_types, pcm_convert_test, from<int32_t>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( int64_to_all_pcm_types, pcm_convert_test, from<int64_t>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( float_to_all_pcm_types, pcm_convert_test, from<float>::to<all_pcm_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( double_to_all_pcm_types, pcm_convert_test, from<double>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( uint8_to_all_pcm_types, pcm_convert_test, from<uint8_t>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( uint16_to_all_pcm_types, pcm_convert_test, from<uint16_t>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( uint32_to_all_pcm_types, pcm_convert_test, from<uint32_t>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( uint64_to_all_pcm_types, pcm_convert_test, from<uint64_t>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( int8_to_all_pcm_types, pcm_convert_test, from<int8_t>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( int16_to_all_pcm_types, pcm_convert_test, from<int16_t>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( int32_to_all_pcm_types, pcm_convert_test, from<int32_t>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( int64_to_all_pcm_types, pcm_convert_test, from<int64_t>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( float_to_all_pcm_types, pcm_convert_test, from<float>::to<all_pcm_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( double_to_all_pcm_types, pcm_convert_test, from<double>::to<all_pcm_types> );
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ class pcm_clip_test : public pcm_convert_test<Traits>
 {
 };
 
-TYPED_TEST_CASE_P( pcm_clip_test );
+TYPED_TEST_SUITE_P( pcm_clip_test );
 
 TYPED_TEST_P( pcm_clip_test, clip_to_max )
 {
@@ -136,15 +136,15 @@ TYPED_TEST_P( pcm_clip_test, clip_to_min )
     EXPECT_EQ( actual_min, expected_min );
 }
 
-REGISTER_TYPED_TEST_CASE_P( pcm_clip_test, clip_to_max, clip_to_min );
+REGISTER_TYPED_TEST_SUITE_P( pcm_clip_test, clip_to_max, clip_to_min );
 
-INSTANTIATE_TYPED_TEST_CASE_P( uint8_to_all_integral_types, pcm_clip_test, from<uint8_t>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( uint16_to_all_integral_types, pcm_clip_test, from<uint16_t>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( uint32_to_all_integral_types, pcm_clip_test, from<uint32_t>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( uint64_to_all_integral_types, pcm_clip_test, from<uint64_t>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( int8_to_all_integral_types, pcm_clip_test, from<int8_t>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( int16_to_all_integral_types, pcm_clip_test, from<int16_t>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( int32_to_all_integral_types, pcm_clip_test, from<int32_t>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( int64_to_all_integral_types, pcm_clip_test, from<int64_t>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( float_to_all_integral_types, pcm_clip_test, from<float>::to<all_integral_types> );
-INSTANTIATE_TYPED_TEST_CASE_P( double_to_all_integral_types, pcm_clip_test, from<double>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( uint8_to_all_integral_types, pcm_clip_test, from<uint8_t>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( uint16_to_all_integral_types, pcm_clip_test, from<uint16_t>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( uint32_to_all_integral_types, pcm_clip_test, from<uint32_t>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( uint64_to_all_integral_types, pcm_clip_test, from<uint64_t>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( int8_to_all_integral_types, pcm_clip_test, from<int8_t>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( int16_to_all_integral_types, pcm_clip_test, from<int16_t>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( int32_to_all_integral_types, pcm_clip_test, from<int32_t>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( int64_to_all_integral_types, pcm_clip_test, from<int64_t>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( float_to_all_integral_types, pcm_clip_test, from<float>::to<all_integral_types> );
+INSTANTIATE_TYPED_TEST_SUITE_P( double_to_all_integral_types, pcm_clip_test, from<double>::to<all_integral_types> );
