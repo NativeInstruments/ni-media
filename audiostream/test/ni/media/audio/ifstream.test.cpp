@@ -55,7 +55,7 @@ TEST( ni_media_audio_ifstream, string_constructor )
 
 TEST( ni_media_audio_ifstream, string_container_constructor_correct_extension )
 {
-    EXPECT_THROW( audio::ifstream is( "/fake.aiff", audio::ifstream_info::container_type::aiff ), std::exception);
+    EXPECT_THROW( audio::ifstream is( "/fake.aiff", audio::ifstream_info::container_type::aiff ), std::exception );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -90,6 +90,20 @@ TEST( ni_media_audio_ifstream, move_assignment )
 
 //----------------------------------------------------------------------------------------------------------------------
 
+template <class Stream>
+bool isWindowsMediaFoundation( const Stream& stream )
+{
+#if BOOST_OS_WINDOWS
+    if ( stream.info().container() == audio::ifstream_info::container_type::mp3
+         || stream.info().container() == audio::ifstream_info::container_type::mp4 )
+        return true;
+#endif
+
+    return false;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 class ifstream_test : public source_test
 {
 protected:
@@ -103,11 +117,9 @@ TEST_P( ifstream_test, read_begining_of_stream_twice )
     auto stream    = open_file_as<audio::ifstream>();
     auto frame_pos = 0u;
 
-#if BOOST_OS_WINDOWS
-    // This test randomly fails for mp3s on windows so we disable it untill we have a fix.
-    if ( stream.info().container() == audio::ifstream_info::container_type::mp3 )
+    // This test randomly fails on wmf so we disable it until we have a fix.
+    if ( isWindowsMediaFoundation( stream ) )
         return;
-#endif
 
     read_interlaced_test( stream, num_frames, frame_pos );
 }
@@ -119,11 +131,9 @@ TEST_P( ifstream_test, read_from_frame_67_twice )
     auto stream    = open_file_as<audio::ifstream>();
     auto frame_pos = 67;
 
-#if BOOST_OS_WINDOWS
-    // This test randomly fails for mp3s on windows so we disable it untill we have a fix.
-    if ( stream.info().container() == audio::ifstream_info::container_type::mp3 )
+    // This test randomly fails on wmf so we disable it until we have a fix.
+    if ( isWindowsMediaFoundation( stream ) )
         return;
-#endif
 
     read_interlaced_test( stream, num_frames, frame_pos );
 }
@@ -135,11 +145,10 @@ TEST_P( ifstream_test, read_middle_of_stream_twice )
     auto stream    = open_file_as<audio::ifstream>();
     auto frame_pos = stream.info().num_frames() / 2;
 
-#if BOOST_OS_WINDOWS
-    // This test randomly fails for mp3s on windows so we disable it untill we have a fix.
-    if ( stream.info().container() == audio::ifstream_info::container_type::mp3 )
+    // This test randomly fails on wmf so we disable it until we have a fix.
+    if ( isWindowsMediaFoundation( stream ) )
         return;
-#endif
+
     read_interlaced_test( stream, num_frames, frame_pos );
 }
 
@@ -149,11 +158,9 @@ TEST_P( ifstream_test, read_past_eof_twice )
 {
     auto stream = open_file_as<audio::ifstream>();
 
-#if BOOST_OS_WINDOWS
-    // This test randomly fails for mp3s on windows so we disable it untill we have a fix.
-    if ( stream.info().container() == audio::ifstream_info::container_type::mp3 )
+    // This test randomly fails on wmf so we disable it until we have a fix.
+    if ( isWindowsMediaFoundation( stream ) )
         return;
-#endif
 
     // 5 seconds before end of stream or shorter if stream is shorter
     auto num_frames_from_end = std::min( stream.info().num_frames(), size_t( 5 * stream.info().sample_rate() ) );
@@ -192,11 +199,9 @@ TEST_P( ifstream_test, read_begining_of_stream_interlaced_by_67_frames_forward )
     auto frame_offset = 67;
     auto num_blocks   = 16;
 
-#if BOOST_OS_WINDOWS
-    // This test randomly fails for mp3s on windows so we disable it untill we have a fix.
-    if ( stream.info().container() == audio::ifstream_info::container_type::mp3 )
+    // This test randomly fails on wmf so we disable it until we have a fix.
+    if ( isWindowsMediaFoundation( stream ) )
         return;
-#endif
 
 // TODO: fix AUDIOCHAP-73
 #if BOOST_OS_MACOS || BOOST_OS_IOS
@@ -219,11 +224,9 @@ TEST_P( ifstream_test, read_begining_of_stream_interlaced_by_67_frames_backward 
     auto frame_offset = -frame_pos;
     auto num_blocks   = 16;
 
-#if BOOST_OS_WINDOWS
-    // This test randomly fails for mp3s on windows so we disable it untill we have a fix.
-    if ( stream.info().container() == audio::ifstream_info::container_type::mp3 )
+    // This test randomly fails on wmf so we disable it until we have a fix.
+    if ( isWindowsMediaFoundation( stream ) )
         return;
-#endif
 
 // TODO: fix AUDIOCHAP-73
 #if BOOST_OS_MACOS || BOOST_OS_IOS
@@ -241,5 +244,5 @@ TEST_P( ifstream_test, read_begining_of_stream_interlaced_by_67_frames_backward 
 //----------------------------------------------------------------------------------------------------------------------
 
 
-INSTANTIATE_TEST_CASE_P( reference_files, ifstream_test, reference_files() );
-INSTANTIATE_TEST_CASE_P( user_files, ifstream_test, user_files() );
+INSTANTIATE_TEST_SUITE_P( reference_files, ifstream_test, reference_files(), ParamToString{} );
+INSTANTIATE_TEST_SUITE_P( user_files, ifstream_test, user_files() );

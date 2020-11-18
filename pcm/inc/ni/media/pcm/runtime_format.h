@@ -167,7 +167,7 @@ inline bool operator!=( const runtime_format& lhs, const runtime_format& rhs )
 inline std::ostream& operator<<( std::ostream& stream, const runtime_format& fmt )
 {
     const auto number   = fmt.number() == floating_point ? "f" : fmt.number() == signed_integer ? "s" : "u";
-    const auto bitwidth = fmt.bitwidth();
+    const auto bitwidth = static_cast<uint32_t>( fmt.bitwidth() );
     const auto endian   = fmt.endian() == big_endian ? "be" : "le";
 
     return stream << number << bitwidth << endian;

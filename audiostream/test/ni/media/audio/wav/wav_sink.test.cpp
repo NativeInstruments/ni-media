@@ -53,6 +53,9 @@ TEST_P( wav_sink_test, ofstream )
     reference_test( audio::ifstream( output_name() ), output_name() );
 }
 
-INSTANTIATE_TEST_CASE_P( reference_test, wav_sink_test, reference_files( audio::ifstream_info::container_type::wav ) );
+INSTANTIATE_TEST_SUITE_P( reference_test,
+                          wav_sink_test,
+                          reference_files( audio::ifstream_info::container_type::wav ),
+                          ParamToString{} );
 
 //----------------------------------------------------------------------------------------------------------------------

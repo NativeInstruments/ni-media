@@ -199,7 +199,7 @@ typename media_foundation_source<Source>::offset_type time100nsToFrames( LONGLON
     // We need to be accurate to a single frame when doing this conversion, and the timestamp provided by WMF can be
     // off by a few nanoseconds, so we round it off.
 
-    using return_type = media_foundation_source<Source>::template offset_type;
+    using return_type = typename media_foundation_source<Source>::offset_type;
     return return_type( std::round( double( time100ns ) * sampleRate / secTo100ns ) );
 }
 

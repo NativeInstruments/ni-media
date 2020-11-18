@@ -342,13 +342,15 @@ if(NOT DISABLE_INSTALL_HEADERS)
   )
 endif()
 
-install(
-  TARGETS audiostream
-  EXPORT ni-mediaExport
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-)
+if(NOT DISABLE_INSTALL_LIBS)
+  install(
+    TARGETS audiostream
+    EXPORT ni-mediaExport
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+  )
+endif()
 
 #-----------------------------------------------------------------------------------------------------------------------
 # testing

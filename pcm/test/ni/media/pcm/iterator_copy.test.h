@@ -278,7 +278,7 @@ private:
     }
 };
 
-TYPED_TEST_CASE_P( PcmIteratorTest );
+TYPED_TEST_SUITE_P( PcmIteratorTest );
 
 TYPED_TEST_P( PcmIteratorTest, iterator_based_copy_test )
 {
@@ -318,7 +318,7 @@ TYPED_TEST_P( PcmIteratorTest, range_based_copy_test )
     EXPECT_TRUE( this->equal() );
 }
 
-REGISTER_TYPED_TEST_CASE_P( PcmIteratorTest, iterator_based_copy_test, range_based_copy_test );
+REGISTER_TYPED_TEST_SUITE_P( PcmIteratorTest, iterator_based_copy_test, range_based_copy_test );
 
 
 template <class Value,

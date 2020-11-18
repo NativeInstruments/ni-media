@@ -29,6 +29,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
+#include <cctype>
 #include <string>
 #include <vector>
 
@@ -40,3 +41,16 @@ boost::filesystem::path test_files_output_path();
 TestFiles user_files( boost::optional<audio::ifstream_info::container_type> container = boost::none );
 TestFiles reference_files( boost::optional<audio::ifstream_info::container_type> container = boost::none );
 TestFiles fuzz_files( boost::optional<audio::ifstream_info::container_type> container = boost::none );
+
+
+struct ParamToString
+{
+    template <class T>
+    std::string operator()( const T& info )
+    {
+        auto filename = boost::filesystem::path( info.param ).filename().string();
+        std::replace_if(
+            filename.begin(), filename.end(), []( unsigned char c ) { return !std::isalnum( c ); }, '_' );
+        return std::to_string( info.index ) + "_" + filename;
+    }
+};
