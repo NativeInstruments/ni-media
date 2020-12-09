@@ -22,45 +22,21 @@
 
 #pragma once
 
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/istream.h>
-#include <ni/media/audio/istream_source.h>
-
-#include <string>
-
 namespace audio
 {
 
-class ifstream;
-
-using ifstream_source = istream_source<ifstream>;
-
-class ifstream : public istream
+template<typename source>
+class istream_source
 {
 public:
-    using info_type = ifstream_info;
+    using info_type = typename source::info_type;
+    using char_type = typename source::char_type;
 
-    ifstream();
+    virtual ~istream_source() = default;
 
-    ifstream( const std::string& file );
-    ifstream( const std::string& file, info_type::container_type container, size_t stream_index = 0 );
-    ifstream( std::unique_ptr<ifstream_source> source );
-
-    ifstream( ifstream&& );
-    ifstream& operator=( ifstream&& );
-
-    const info_type& info() const override;
-
-protected:
-    ifstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
+    virtual std::streampos seek( std::streamoff off, std::ios_base::seekdir dir ) = 0;
+    virtual std::streamsize read( char_type* dst, std::streamsize size ) = 0;
+    virtual const info_type& info() const = 0;
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <class Source, class... Args>
-ifstream make_ifstream( Args&&... args )
-{
-    return ifstream( std::make_unique<Source>( std::forward<Args>( args )... ) );
-}
 
 } // namespace audio

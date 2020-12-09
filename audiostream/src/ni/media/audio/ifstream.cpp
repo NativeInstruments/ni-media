@@ -24,6 +24,7 @@
 #include <ni/media/audio/iotools.h>
 
 #include <ni/media/audio/source.h>
+#include <ni/media/audio/source_impl.h>
 #include <ni/media/iostreams/stream_buffer.h>
 
 #include <boost/predef.h>
@@ -132,6 +133,17 @@ ifstream::ifstream( const std::string& file, ifstream_info::container_type conta
         default:
             throw std::runtime_error( "Unsupported container_type" );
     }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ifstream::ifstream( std::unique_ptr<ifstream_source> source )
+: ifstream()
+{
+    auto impl = source_impl<ifstream_source>( std::move( source ) );
+    auto info = impl.info();
+    *this = ifstream( make_stream_buffer( std::move( impl ) ),
+                      std::make_unique<decltype( info )>( std::move( info ) ) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------

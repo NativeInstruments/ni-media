@@ -87,3 +87,26 @@ void analyze_stem_stream( const std::string& filename, size_t stream_index )
 ⚠️ `num_frames` may differ from the actual number of frames in the stream as this information relies on the codec. 
 The only way to obtain the **exact** number of frames is by seeking to the end of stream and retrieving the frame position. 
 In general the `num_frames` info provided by the codec is correct for **wav**, **aiff**, **flac**, **ogg**, **mp4** containers ( assuming no errors occured during encoding ). For **mp3** `num_frames` might be off by up to a few thousand frames. 
+
+
+## Writing your own decoder stream
+
+It is possible to extend `ni-media` from the outside by implementing the [`audio::istream_source`](../inc/ni/media/audio/istream_source.h) interface. For convenience a specialized `audio::ifstream_source` for `audio::ifstream` is already defined in [`ifstream.h`](../inc/ni/media/audio/ifstream.h) which your decoder stream can implement like this:
+
+```cpp
+#include <ni/media/audio/ifstream.h>
+
+class my_ifstream_source : public audio::ifstream_source
+{
+    std::streampos seek( std::streamoff off, std::ios_base::seekdir dir ) override;
+    std::streamsize read( char_type* dst, std::streamsize size ) override;
+    const info_type& info() const override;
+}
+```
+
+In this case the `char_type` will refer to `std::istream::char_type` and the `info_type` to `audio::ifstream_info`.
+Best practice to instantiate an `audio::ifstream` based on an `audio::ifstream_source` implementation is to use the following factory function which will forward your constructor arguments and use the appropriate constructor of `ni-media`:
+
+```cpp
+audio::ifstream my_ifstream = audio::make_ifstream<my_ifstream_source>( ... );
+```

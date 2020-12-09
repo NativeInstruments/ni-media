@@ -192,7 +192,7 @@ endif()
 # sources
 #-----------------------------------------------------------------------------------------------------------------------
 
-add_src_file  (FILES_media_iostreams "src/ni/media/iostreams/positioning.h"     )
+add_src_file  (FILES_media_iostreams "inc/ni/media/iostreams/positioning.h"     )
 add_src_file  (FILES_media_iostreams "src/ni/media/iostreams/stream_buffer.h"   )
 add_src_file  (FILES_media_iostreams "src/ni/media/iostreams/fetch.h"           )
 add_src_file  (FILES_media_iostreams "src/ni/media/iostreams/write_obj.h"       )
@@ -211,6 +211,7 @@ add_src_file  (FILES_media_audio "src/ni/media/audio/stream_info.cpp"      WITH_
 add_src_file  (FILES_media_audio "src/ni/media/audio/istream.cpp"          WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ostream.cpp"          WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "inc/ni/media/audio/istream_info.h"                          )
+add_src_file  (FILES_media_audio "inc/ni/media/audio/istream_source.h"                        )
 add_src_file  (FILES_media_audio "inc/ni/media/audio/ostream_info.h"                          )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ivectorstream.cpp"    WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio "src/ni/media/audio/ifstream.cpp"         WITH_PUBLIC_HEADER )

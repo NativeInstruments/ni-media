@@ -44,6 +44,11 @@ public:
 
     source_impl( source_impl&& ) = default;
 
+    source_impl( std::unique_ptr<Impl> impl )
+    : m_impl( std::move(impl) )
+    {
+    }
+
     template <class... Args>
     source_impl( Args&&... args )
     : m_impl( std::make_unique<Impl>( std::forward<Args>( args )... ) )
