@@ -18,14 +18,13 @@ public:
     Impl( const std::string& path, const info_type& info );
 
     auto write( const char_type* s, std::streamsize n ) -> std::streamsize;
-
     auto info() const -> audio::ofstream_info;
 
 private:
-    EncoderPtr m_encoder;
-
-    audio::ofstream_info m_info;
-    std::streamsize      m_pos;
+    EncoderPtr               m_encoder;
+    audio::ofstream_info     m_info;
+    std::streamsize          m_pos;
+    std::vector<FLAC__int32> m_buffer;
 };
 
 flac_file_sink::Impl::Impl( const std::string& path, const info_type& info )
@@ -65,15 +64,31 @@ auto flac_file_sink::Impl::info() const -> audio::ofstream_info
 
 auto flac_file_sink::Impl::write( const char_type* s, std::streamsize n ) -> std::streamsize
 {
-    size_t      frames = static_cast<size_t>( n );
-    FLAC__int32 buffer[frames];
+    FLAC__uint32 samples = ( static_cast<FLAC__uint32>( n ) / info().num_channels() ) / ( info().bytes_per_sample() );
 
-    std::copy( s, s + frames, buffer );
+    size_t frames = samples * info().num_channels();
 
-    if ( !FLAC__stream_encoder_process_interleaved( m_encoder.get(), buffer, frames / info().num_channels() ) )
+    if ( m_buffer.size() < frames )
+        m_buffer.resize( frames );
+
+    // Convert our interleaved PCM stream for the FLAC__int32 buffer, respecting the bitwidth of the stream.
+    // This was adapted from the encoding example in the FLAC library. It's innefficient but works on both
+    //  little and big endian machines.
+    for ( int i = 0; i < frames; ++i )
+    {
+        m_buffer[i] = FLAC__int32( 0 );
+        for ( size_t byte_index = static_cast<size_t>( info().bytes_per_sample() ); byte_index > 0; --byte_index )
+        {
+            m_buffer[i] |= static_cast<FLAC__int32>( s[info().bytes_per_sample() * i + ( byte_index - 1 )]
+                                                     << ( ( byte_index - 1 ) * 8 ) );
+        }
+    }
+
+    if ( !FLAC__stream_encoder_process_interleaved( m_encoder.get(), m_buffer.data(), samples ) )
     {
         throw std::runtime_error( "flac_file_sink: Error writing data to file." );
     }
+
     m_pos += n;
     return n;
 }
@@ -102,6 +117,8 @@ void flac_file_sink::open( const std::string& path )
 flac_file_sink::flac_file_sink( const info_type& info, const std::string& path )
 : m_info( info )
 {
+    m_info.container( audio::ofstream_info::container_type::flac );
+    m_info.codec( audio::ofstream_info::codec_type::flac );
     open( path );
 }
 
@@ -116,7 +133,7 @@ auto flac_file_sink::write( const char_type* s, std::streamsize n ) -> std::stre
 
 void flac_file_sink::close()
 {
-    m_impl.release();
+    m_impl.reset();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -125,6 +142,5 @@ auto flac_file_sink::info() const -> info_type
 {
     return m_info;
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------

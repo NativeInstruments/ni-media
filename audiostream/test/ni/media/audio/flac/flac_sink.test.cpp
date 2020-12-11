@@ -50,7 +50,7 @@ TEST_P( flac_sink_test, ofstream )
         os << buffer;
     }
 
-    // reference_test( audio::ifstream( output_name() ), output_name() );
+    reference_test( audio::ifstream( output_name() ), output_name() );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
