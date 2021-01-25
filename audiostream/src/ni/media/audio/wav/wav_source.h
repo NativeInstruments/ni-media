@@ -151,6 +151,9 @@ auto readWavHeader( Source& src )
                 throw std::runtime_error( "Empty File" );
 
             info.num_frames( num_frames );
+
+            info.bit_rate( info.sample_rate() * info.num_channels() * info.bits_per_sample() );
+
             return info;
         }
         else if ( riffTag.id == little_endian_fourcc( "smpl" ) )

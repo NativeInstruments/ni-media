@@ -367,6 +367,14 @@ void flac_source<Source>::metadataCallbackImpl( const FLAC__StreamMetadata* meta
     info.num_frames( static_cast<size_t>( meta_info.total_samples ) );
     info.sample_rate( meta_info.sample_rate );
     info.format( pcm::format( pcm::signed_integer, meta_info.bits_per_sample, pcm::little_endian ) );
+    {
+        // 'pos' holds the position after reading the meta info (position before the audio data). 
+        const auto pos = m_source.seek( 0, BOOST_IOS::cur );
+        // Since we are interested in the audio bytes we subtract 'pos' from the file size.
+        const auto audio_bytes = static_cast<size_t>( m_source.seek( 0, BOOST_IOS::end ) - pos );
+        m_source.seek( pos, BOOST_IOS::beg );
+        info.bit_rate( audio_bytes * 8 * info.sample_rate() / info.num_frames() );
+    }
     m_info = std::move( info );
 }
 
