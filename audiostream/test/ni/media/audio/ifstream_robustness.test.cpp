@@ -24,6 +24,7 @@
 
 #include <ni/media/audio/ifstream.h>
 #include <ni/media/source_test.h>
+#include <ni/media/test_helper.h>
 
 #include <vector>
 
@@ -52,4 +53,4 @@ TEST_P( ifstream_robustness_test, stream_reaches_eof_on_first_read )
 }
 
 
-INSTANTIATE_TEST_SUITE_P( fuzz_files, ifstream_robustness_test, fuzz_files() );
+INSTANTIATE_TEST_SUITE_P( fuzz_files, ifstream_robustness_test, fuzz_files(), ParamToString{} );
