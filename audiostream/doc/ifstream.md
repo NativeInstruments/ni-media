@@ -110,3 +110,23 @@ Best practice to instantiate an `audio::ifstream` based on an `audio::ifstream_s
 ```cpp
 audio::ifstream my_ifstream = audio::make_ifstream<my_ifstream_source>( ... );
 ```
+
+## Provideing a custom byte-stream backend
+
+By implementing the [`audio::custom_backend_source`](../inc/ni/media/audio/custom_backend_source.h) interface, it is possible to provide a custom byte-stream backend to the existing decoders of `ni-media`:
+
+```cpp
+#include <ni/media/audio/custom_backend_source.h>
+
+class my_custom_byte_stream : public audio::custom_backend_source
+{
+    std::streampos seek( std::streamoff off, std::ios_base::seekdir dir ) override;
+    std::streamsize read( char_type* dst, std::streamsize size ) override;
+}
+```
+
+An `audio::ifstream` based on a `audio::custom_backend_source` can be instantiated with the following constructor:
+
+```cpp
+ifstream( std::unique_ptr<audio::custom_backend_source> source, info_type::container_type container, size_t stream_index = 0 );
+```

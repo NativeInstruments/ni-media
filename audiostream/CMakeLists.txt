@@ -199,6 +199,7 @@ add_src_file  (FILES_media_iostreams "src/ni/media/iostreams/write_obj.h"       
 add_src_group (FILES_All media_iostreams FILES_media_iostreams)
 
 
+add_src_file  (FILES_media_iostreams_device "src/ni/media/iostreams/device/custom.h"      )
 add_src_file  (FILES_media_iostreams_device "src/ni/media/iostreams/device/subview.h"     )
 add_src_file  (FILES_media_iostreams_device "src/ni/media/iostreams/device/container.h"   )
 add_src_group (FILES_All media_iostreams_device FILES_media_iostreams_device)
@@ -225,6 +226,7 @@ add_src_file  (FILES_media_audio "src/ni/media/audio/source.h"                  
 add_src_file  (FILES_media_audio "src/ni/media/audio/source_impl.h"                           )
 add_src_file  (FILES_media_audio "src/ni/media/audio/sink.h"                                  )
 add_src_file  (FILES_media_audio "inc/ni/media/audio/streambuf.h"                             )
+add_src_file  (FILES_media_audio "inc/ni/media/audio/custom_backend_source.h"                     )
 add_src_group (FILES_All media_audio FILES_media_audio)
 
 
@@ -234,6 +236,7 @@ add_src_file  (FILES_media_audio_aiff "inc/ni/media/audio/aiff/aiff_specific_inf
 add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_source.h"         ${COMPILE_WITH_AIFF_DECODING} )
 add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_file_source.h"    ${COMPILE_WITH_AIFF_DECODING} )
 add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_vector_source.h"  ${COMPILE_WITH_AIFF_DECODING} )
+add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_custom_source.h"  ${COMPILE_WITH_AIFF_DECODING} )
 add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_chunks.h"         ${COMPILE_WITH_AIFF}          )
 add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_ofstream.cpp"     ${COMPILE_WITH_AIFF_ENCODING} WITH_PUBLIC_HEADER )
 add_src_file  (FILES_media_audio_aiff "src/ni/media/audio/aiff/aiff_file_sink.h"      ${COMPILE_WITH_AIFF_ENCODING} )
@@ -244,6 +247,7 @@ add_src_group (FILES_All media_audio_aiff FILES_media_audio_aiff)
 add_src_file  (FILES_media_audio_flac "src/ni/media/audio/flac/flac_source.h"            ${COMPILE_WITH_FLAC_DECODING} )
 add_src_file  (FILES_media_audio_flac "src/ni/media/audio/flac/flac_file_source.h"       ${COMPILE_WITH_FLAC_DECODING} )
 add_src_file  (FILES_media_audio_flac "src/ni/media/audio/flac/flac_vector_source.h"     ${COMPILE_WITH_FLAC_DECODING} )
+add_src_file  (FILES_media_audio_flac "src/ni/media/audio/flac/flac_custom_source.h"     ${COMPILE_WITH_FLAC_DECODING} )
 add_src_group (FILES_All media_audio_flac FILES_media_audio_flac)
 
 
@@ -254,11 +258,13 @@ add_src_group (FILES_All media_audio_iostreams FILES_media_audio_iostreams)
 
 add_src_file  (FILES_media_audio_mp3 "src/ni/media/audio/mp3/mp3_file_source.h"       ${COMPILE_WITH_MP3_DECODING} )
 add_src_file  (FILES_media_audio_mp3 "src/ni/media/audio/mp3/mp3_vector_source.h"     ${COMPILE_WITH_MP3_DECODING} )
+add_src_file  (FILES_media_audio_mp3 "src/ni/media/audio/mp3/mp3_custom_source.h"     ${COMPILE_WITH_MP3_DECODING} )
 add_src_group (FILES_All media_audio_mp3 FILES_media_audio_mp3)
 
 
 add_src_file  (FILES_media_audio_mp4 "src/ni/media/audio/mp4/mp4_file_source.h"       ${COMPILE_WITH_MP4_DECODING} )
 add_src_file  (FILES_media_audio_mp4 "src/ni/media/audio/mp4/mp4_vector_source.h"     ${COMPILE_WITH_MP4_DECODING} )
+add_src_file  (FILES_media_audio_mp4 "src/ni/media/audio/mp4/mp4_custom_source.h"     ${COMPILE_WITH_MP4_DECODING} )
 add_src_group (FILES_All media_audio_mp4 FILES_media_audio_mp4)
 
 
@@ -280,6 +286,7 @@ add_src_group (FILES_All media_audio_os_ios FILES_media_audio_os_ios)
 add_src_file  (FILES_media_audio_ogg "src/ni/media/audio/ogg/ogg_source.h"            ${COMPILE_WITH_OGG_DECODING} )
 add_src_file  (FILES_media_audio_ogg "src/ni/media/audio/ogg/ogg_file_source.h"       ${COMPILE_WITH_OGG_DECODING} )
 add_src_file  (FILES_media_audio_ogg "src/ni/media/audio/ogg/ogg_vector_source.h"     ${COMPILE_WITH_OGG_DECODING} )
+add_src_file  (FILES_media_audio_ogg "src/ni/media/audio/ogg/ogg_custom_source.h"     ${COMPILE_WITH_OGG_DECODING} )
 add_src_group (FILES_All media_audio_ogg FILES_media_audio_ogg)
 
 
@@ -289,6 +296,7 @@ add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_format.h"      
 add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_source.h"            ${COMPILE_WITH_WAV_DECODING} )
 add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_file_source.h"       ${COMPILE_WITH_WAV_DECODING} )
 add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_vector_source.h"     ${COMPILE_WITH_WAV_DECODING} )
+add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_custom_source.h"     ${COMPILE_WITH_WAV_DECODING} )
 add_src_file  (FILES_media_audio_wav "inc/ni/media/audio/wav/wav_ifstream_info.h"     ${COMPILE_WITH_WAV_DECODING} )
 add_src_file  (FILES_media_audio_wav "src/ni/media/audio/wav/wav_file_sink.h"         ${COMPILE_WITH_WAV_ENCODING} )
 add_src_file  (FILES_media_audio_wav "inc/ni/media/audio/wav/wav_ofstream_info.h"     ${COMPILE_WITH_WAV_ENCODING} )
@@ -298,6 +306,7 @@ add_src_group (FILES_All media_audio_wav FILES_media_audio_wav)
 
 add_src_file  (FILES_media_audio_wma "src/ni/media/audio/wma/wma_file_source.h"       ${COMPILE_WITH_WMA_DECODING} )
 add_src_file  (FILES_media_audio_wma "src/ni/media/audio/wma/wma_vector_source.h"     ${COMPILE_WITH_WMA_DECODING} )
+add_src_file  (FILES_media_audio_wma "src/ni/media/audio/wma/wma_custom_source.h"     ${COMPILE_WITH_WMA_DECODING} )
 add_src_group (FILES_All media_audio_wma FILES_media_audio_wma)
 
 

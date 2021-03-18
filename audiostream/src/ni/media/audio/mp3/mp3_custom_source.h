@@ -22,47 +22,9 @@
 
 #pragma once
 
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/istream.h>
-#include <ni/media/audio/istream_source.h>
+#include <ni/media/audio/os/os_source.h>
 #include <ni/media/audio/custom_backend_source.h>
 
-#include <string>
+#include <ni/media/iostreams/device/custom.h>
 
-namespace audio
-{
-
-class ifstream;
-
-using ifstream_source = istream_source<ifstream>;
-
-class ifstream : public istream
-{
-public:
-    using info_type = ifstream_info;
-
-    ifstream();
-
-    ifstream( const std::string& file );
-    ifstream( const std::string& file, info_type::container_type container, size_t stream_index = 0 );
-    ifstream( std::unique_ptr<ifstream_source> source );
-    ifstream( std::unique_ptr<custom_backend_source> source, info_type::container_type container, size_t stream_index = 0 );
-
-    ifstream( ifstream&& );
-    ifstream& operator=( ifstream&& );
-
-    const info_type& info() const override;
-
-protected:
-    ifstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <class Source, class... Args>
-ifstream make_ifstream( Args&&... args )
-{
-    return ifstream( std::make_unique<Source>( std::forward<Args>( args )... ) );
-}
-
-} // namespace audio
+using mp3_custom_source = os_source<boostext::iostreams::custom_source<audio::custom_backend_source>>;

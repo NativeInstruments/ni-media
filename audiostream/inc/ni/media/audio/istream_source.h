@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <ios>
+
 namespace audio
 {
 
