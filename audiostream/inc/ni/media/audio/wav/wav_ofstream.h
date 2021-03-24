@@ -25,6 +25,8 @@
 #include <ni/media/audio/ofstream.h>
 #include <ni/media/audio/wav/wav_ofstream_info.h>
 
+#include <filesystem>
+
 namespace audio
 {
 
@@ -39,7 +41,7 @@ public:
     wav_ofstream( wav_ofstream&& );
     wav_ofstream& operator=( wav_ofstream&& );
 
-    wav_ofstream( const std::string& file, const info_type& info );
+    wav_ofstream( const std::filesystem::path& file, const info_type& info );
 
     const info_type& info() const override;
 };

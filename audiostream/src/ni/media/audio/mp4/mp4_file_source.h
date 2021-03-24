@@ -26,18 +26,17 @@
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 class mp4_file_source : public os_source<boost::iostreams::file_descriptor_source>
 {
     using base_type = os_source<boost::iostreams::file_descriptor_source>;
 
 public:
-    explicit mp4_file_source( const std::string& path, size_t stream = 0 )
-    : base_type(
-        boost::iostreams::file_descriptor_source( boost::filesystem::path( path ), BOOST_IOS::binary | BOOST_IOS::in ),
-        audio::ifstream_info::container_type::mp4,
-        stream )
+    explicit mp4_file_source( const std::filesystem::path& path, size_t stream = 0 )
+    : base_type( boost::iostreams::file_descriptor_source( path, BOOST_IOS::binary | BOOST_IOS::in ),
+                 audio::ifstream_info::container_type::mp4,
+                 stream )
     {
     }
 };

@@ -25,6 +25,7 @@
 #include <ni/media/audio/ifstream_info.h>
 #include <ni/media/audio/istream.h>
 
+#include <filesystem>
 #include <string>
 
 namespace audio
@@ -37,8 +38,8 @@ public:
 
     ifstream();
 
-    ifstream( const std::string& file );
-    ifstream( const std::string& file, info_type::container_type container, size_t stream_index = 0 );
+    ifstream( const std::filesystem::path& file );
+    ifstream( const std::filesystem::path& file, info_type::container_type container, size_t stream_index = 0 );
 
     ifstream( ifstream&& );
     ifstream& operator=( ifstream&& );

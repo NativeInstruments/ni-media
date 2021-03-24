@@ -47,13 +47,13 @@ ifstream::ifstream( std::unique_ptr<streambuf> sb, std::unique_ptr<info_type> in
 
 //----------------------------------------------------------------------------------------------------------------------
 
-ifstream::ifstream( const std::string& file )
+ifstream::ifstream( const std::filesystem::path& file )
 : ifstream()
 {
 #if NIMEDIA_ENABLE_ITUNES_DECODING
     if ( is_itunes_url( file ) )
     {
-        auto source = avassetreader_source( file, 0 );
+        auto source = avassetreader_source( file.string(), 0 );
         auto info   = source.info();
         *this = ifstream( make_stream_buffer( std::move( source ) ), std::make_unique<info_type>( std::move( info ) ) );
         return;
@@ -69,7 +69,7 @@ ifstream::ifstream( const std::string& file )
 
 //----------------------------------------------------------------------------------------------------------------------
 
-ifstream::ifstream( const std::string& file, ifstream_info::container_type container, size_t stream_index )
+ifstream::ifstream( const std::filesystem::path& file, ifstream_info::container_type container, size_t stream_index )
 : ifstream()
 {
     using container_type = ifstream_info::container_type;

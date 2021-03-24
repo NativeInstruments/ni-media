@@ -30,13 +30,13 @@
 #include <ni/media/statistics.h>
 #include <ni/media/test_helper.h>
 
-#include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 #include <boost/range/algorithm/generate.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/tokenizer.hpp>
 
 #include <algorithm>
+#include <filesystem>
 #include <functional>
 #include <map>
 #include <sstream>
@@ -84,7 +84,7 @@ inline constexpr auto epsilon( const pcm::format& fmt )
 //----------------------------------------------------------------------------------------------------------------------
 
 template <typename Stream>
-void reference_test( Stream&& stream, const boost::filesystem::path& file )
+void reference_test( Stream&& stream, const std::filesystem::path& file )
 {
     using value_type = double;
 

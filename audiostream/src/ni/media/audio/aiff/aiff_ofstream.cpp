@@ -51,7 +51,7 @@ aiff_ofstream& aiff_ofstream::operator=( aiff_ofstream&& other )
 
 //----------------------------------------------------------------------------------------------------------------------
 
-aiff_ofstream::aiff_ofstream( const std::string& file, const info_type& info )
+aiff_ofstream::aiff_ofstream( const std::filesystem::path& file, const info_type& info )
 : ofstream( make_stream_buffer( aiff_file_sink( info, file ) ), make_info( info ) )
 {
 }

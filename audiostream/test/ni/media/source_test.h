@@ -31,13 +31,14 @@
 #include <gtest/gtest.h>
 
 #include <exception>
+#include <filesystem>
 #include <functional>
 #include <string>
 #include <tuple>
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class source_test : public ::testing::TestWithParam<std::string>
+class source_test : public ::testing::TestWithParam<std::filesystem::path>
 {
 public:
     auto file_name() const

@@ -52,7 +52,7 @@ wav_ofstream& wav_ofstream::operator=( wav_ofstream&& other )
 
 //----------------------------------------------------------------------------------------------------------------------
 
-wav_ofstream::wav_ofstream( const std::string& file, const info_type& info )
+wav_ofstream::wav_ofstream( const std::filesystem::path& file, const info_type& info )
 : ofstream( make_stream_buffer( wav_file_sink( info, file ) ), make_info( info ) )
 {
 }

@@ -27,21 +27,22 @@
 
 #include <boost/optional.hpp>
 
+#include <filesystem>
 #include <set>
 #include <string>
 
 namespace audio
 {
 
-auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_info::container_type>;
-auto ofstream_container( const std::string& url ) -> boost::optional<ofstream_info::container_type>;
+auto ifstream_container( const std::filesystem::path& url ) -> boost::optional<ifstream_info::container_type>;
+auto ofstream_container( const std::filesystem::path& url ) -> boost::optional<ofstream_info::container_type>;
 
-auto is_itunes_url( const std::string& url ) -> bool;
-auto extension_from_url( const std::string& url ) -> std::string;
+auto is_itunes_url( const std::filesystem::path& url ) -> bool;
+auto extension_from_url( const std::filesystem::path& url ) -> std::filesystem::path;
 
-bool can_read_file( const std::string& url );
-bool can_read_file( const std::string& url, std::set<ifstream_info::container_type> supported_containers );
+bool can_read_file( const std::filesystem::path& url );
+bool can_read_file( const std::filesystem::path& url, std::set<ifstream_info::container_type> supported_containers );
 
-bool can_write_file( const std::string& url );
-bool can_write_file( const std::string& url, std::set<ofstream_info::container_type> supported_containers );
+bool can_write_file( const std::filesystem::path& url );
+bool can_write_file( const std::filesystem::path& url, std::set<ofstream_info::container_type> supported_containers );
 }

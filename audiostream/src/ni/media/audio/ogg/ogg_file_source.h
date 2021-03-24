@@ -27,16 +27,15 @@
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 class ogg_file_source : public source_impl<ogg_source<boost::iostreams::file_descriptor_source>>
 {
     using base_type = source_impl<ogg_source<boost::iostreams::file_descriptor_source>>;
 
 public:
-    explicit ogg_file_source( const std::string& path )
-    : base_type(
-        boost::iostreams::file_descriptor_source( boost::filesystem::path( path ), BOOST_IOS::binary | BOOST_IOS::in ) )
+    explicit ogg_file_source( const std::filesystem::path& path )
+    : base_type( boost::iostreams::file_descriptor_source( path, BOOST_IOS::binary | BOOST_IOS::in ) )
     {
     }
 };

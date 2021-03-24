@@ -26,15 +26,15 @@
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 class aiff_file_sink : public aiff_sink<boost::iostreams::file_descriptor_sink>
 {
     using base_type = aiff_sink<boost::iostreams::file_descriptor_sink>;
 
 public:
-    explicit aiff_file_sink( const info_type& info, const std::string& path )
-    : base_type( info, boost::filesystem::path( path ), BOOST_IOS::binary | BOOST_IOS::out )
+    explicit aiff_file_sink( const info_type& info, const std::filesystem::path& path )
+    : base_type( info, path, BOOST_IOS::binary | BOOST_IOS::out )
     {
     }
 };

@@ -314,7 +314,7 @@ target_include_directories  ( audiostream
                             )
 
 target_link_libraries       ( audiostream PUBLIC pcm
-                                          PRIVATE Boost::iostreams Boost::filesystem Boost::system ${codec_libraries})
+                                          PRIVATE Boost::iostreams Boost::system ${codec_libraries})
 
 if(MSVC)
   target_compile_options( audiostream PRIVATE /wd4351 )  # MSVC new behaviour warning

@@ -65,7 +65,6 @@ else()
   find_package(NIBoost REQUIRED)
   add_library(Boost::boost              ALIAS boost_header_only_interface)
   add_library(Boost::iostreams          ALIAS boost_iostreams)
-  add_library(Boost::filesystem         ALIAS boost_filesystem)
   add_library(Boost::system             ALIAS boost_system)
   add_library(Boost::program_options    ALIAS boost_program_options)
 
