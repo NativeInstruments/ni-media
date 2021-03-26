@@ -26,10 +26,11 @@
 
 #include <gtest/gtest.h>
 
+#include <filesystem>
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class sink_test : public ::testing::TestWithParam<std::string>
+class sink_test : public ::testing::TestWithParam<std::filesystem::path>
 {
 
 public:
@@ -40,17 +41,16 @@ public:
 
     auto output_name() const
     {
-        auto output_path = test_files_output_path() / boost::filesystem::path( input_name() ).filename();
-        return output_path.string();
+        return test_files_output_path() / (input_name().filename());
     }
 
 protected:
     void SetUp() override
     {
-        if ( boost::filesystem::exists( output_name() ) )
-            boost::filesystem::remove( output_name() );
+        if ( std::filesystem::exists( output_name() ) )
+            std::filesystem::remove( output_name() );
 
-        ASSERT_FALSE( boost::filesystem::exists( output_name() ) ) << "Could not delete output file";
+        ASSERT_FALSE( std::filesystem::exists( output_name() ) ) << "Could not delete output file";
     }
 
     void TearDown() override

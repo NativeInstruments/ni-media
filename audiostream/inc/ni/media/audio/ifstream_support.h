@@ -24,16 +24,16 @@
 
 #include <ni/media/audio/ifstream_info.h>
 
+#include <filesystem>
 #include <map>
-#include <string>
 
 namespace audio
 {
 
 // a map of extension => container type
-using ifstream_container_map = std::map<std::string, ifstream_info::container_type>;
+using ifstream_container_map = std::map<std::filesystem::path, ifstream_info::container_type>;
 auto ifstream_supported_formats() -> const ifstream_container_map&;
-    
+
 } // namespace audio
 
 

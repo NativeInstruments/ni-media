@@ -15,7 +15,7 @@ The constructor will throw a runtime error if the file format is not supported o
 Example code:
 
 ```cpp
-void analyze_file( const std::string& filename )
+void analyze_file( const std::filesystem::path& filename )
 {
     audio::ifstream stream;
     try
@@ -36,7 +36,7 @@ void analyze_file( const std::string& filename )
 You can also allow only a specific container:
 
 ```cpp
-void analyze_wav_file( const std::string& filename )
+void analyze_wav_file( const std::filesystem::path& filename )
 {
     audio::ifstream stream;
     try
@@ -58,7 +58,7 @@ An `audio::ifstream` also supports multi stream containers, which allows us to s
 By default, an `audio::ifstream` will open the Stems Master Stream, but is also capable of opening any of the other streams by simply passing the desired stream index as argument to the constructor:
 
 ```cpp
-void analyze_stem_stream( const std::string& filename, size_t stream_index )
+void analyze_stem_stream( const std::filesystem::path& filename, size_t stream_index )
 {
     audio::ifstream stream;
     try

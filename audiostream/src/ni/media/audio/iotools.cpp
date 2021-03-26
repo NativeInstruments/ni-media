@@ -27,7 +27,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/predef.h>
 
-#include <boost/filesystem.hpp>
 #include <map>
 
 namespace audio
@@ -97,13 +96,13 @@ auto ofstream_map() -> const std::map<std::string, ofstream_info::container_type
 //----------------------------------------------------------------------------------------------------------------------
 
 template <class Map>
-auto container_of( const std::string& url, const Map& map ) -> boost::optional<typename Map::mapped_type>
+auto container_of( const std::filesystem::path& url, const Map& map ) -> boost::optional<typename Map::mapped_type>
 {
-    auto extension = extension_from_url( url );
+    const auto extension = extension_from_url( url );
     if ( extension.empty() )
         return {};
 
-    auto it = map.find( boost::to_lower_copy( extension ) );
+    const auto it = map.find( boost::to_lower_copy( extension.string() ) );
     if ( it == map.end() )
         return {};
 
@@ -114,15 +113,15 @@ auto container_of( const std::string& url, const Map& map ) -> boost::optional<t
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool is_itunes_url( const std::string& url )
+bool is_itunes_url( const std::filesystem::path& url )
 {
-    return boost::starts_with( url, "ipod-library://" );
+    return boost::starts_with( url.string(), "ipod-library://" );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 
-std::string extension_from_url( const std::string& url )
+std::filesystem::path extension_from_url( const std::filesystem::path& url )
 {
 #if NIMEDIA_ENABLE_ITUNES_DECODING
     if ( is_itunes_url( url ) )
@@ -132,16 +131,15 @@ std::string extension_from_url( const std::string& url )
     else
 #endif
     {
-        auto path = boost::filesystem::path( url );
-        if ( is_regular_file( path ) && path.has_extension() )
-            return path.extension().string();
+        if ( std::filesystem::is_regular_file( url ) && url.has_extension() )
+            return url.extension();
     }
     return {};
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_info::container_type>
+auto ifstream_container( const std::filesystem::path& url ) -> boost::optional<ifstream_info::container_type>
 {
     return container_of( url, ifstream_supported_formats() );
 }
@@ -149,21 +147,21 @@ auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_in
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto ofstream_container( const std::string& url ) -> boost::optional<ofstream_info::container_type>
+auto ofstream_container( const std::filesystem::path& url ) -> boost::optional<ofstream_info::container_type>
 {
     return container_of( url, ofstream_map() );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool can_read_file( const std::string& url )
+bool can_read_file( const std::filesystem::path& url )
 {
     return ifstream_container( url ) != boost::none;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool can_read_file( const std::string& url, std::set<ifstream_info::container_type> supported_containers )
+bool can_read_file( const std::filesystem::path& url, std::set<ifstream_info::container_type> supported_containers )
 {
     if ( auto container = ifstream_container( url ) )
         return supported_containers.find( *container ) != supported_containers.end();

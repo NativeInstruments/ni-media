@@ -25,17 +25,16 @@
 
 #include <boost/iostreams/device/file_descriptor.hpp> // basic_file
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 class wma_file_source : public os_source<boost::iostreams::file_descriptor_source>
 {
     using base_type = os_source<boost::iostreams::file_descriptor_source>;
 
 public:
-    explicit wma_file_source( const std::string& path )
-    : base_type(
-        boost::iostreams::file_descriptor_source( boost::filesystem::path( path ), BOOST_IOS::binary | BOOST_IOS::in ),
-        audio::ifstream_info::container_type::wma )
+    explicit wma_file_source( const std::filesystem::path& path )
+    : base_type( boost::iostreams::file_descriptor_source( path, BOOST_IOS::binary | BOOST_IOS::in ),
+                 audio::ifstream_info::container_type::wma )
     {
     }
 };

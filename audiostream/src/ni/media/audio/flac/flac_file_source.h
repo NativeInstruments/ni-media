@@ -27,16 +27,15 @@
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 class flac_file_source : public source_impl<flac_source<boost::iostreams::file_descriptor_source>>
 {
     using base_type = source_impl<flac_source<boost::iostreams::file_descriptor_source>>;
 
 public:
-    explicit flac_file_source( const std::string& path )
-    : base_type(
-        boost::iostreams::file_descriptor_source( boost::filesystem::path( path ), BOOST_IOS::binary | BOOST_IOS::in ) )
+    explicit flac_file_source( const std::filesystem::path& path )
+    : base_type( boost::iostreams::file_descriptor_source( path, BOOST_IOS::binary | BOOST_IOS::in ) )
     {
     }
 };

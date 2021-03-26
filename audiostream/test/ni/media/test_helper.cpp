@@ -43,34 +43,33 @@ namespace
 bool init()
 {
 #if BOOST_OS_WINDOWS
-    boost::filesystem::path::imbue( std::locale( std::locale(), new std::codecvt_utf8_utf16<wchar_t>() ) );
+    std::filesystem::path::imbue( std::locale( std::locale(), new std::codecvt_utf8_utf16<wchar_t>() ) );
 #endif
     return true;
 }
 
 const bool initialized = init();
 
-auto supported_files( const boost::filesystem::path&                        root_path,
+auto supported_files( const std::filesystem::path&                          root_path,
                       boost::optional<audio::ifstream_info::container_type> container )
 {
     using namespace boost::adaptors;
-    using namespace boost::filesystem;
+    using namespace std::filesystem;
 
     auto can_read_file = [container]( const auto& p ) {
         return container ? audio::can_read_file( p, {*container} ) : audio::can_read_file( p );
     };
 
     recursive_directory_iterator beg( root_path ), end;
-    return boost::make_iterator_range( beg, end ) | transformed( []( const path& p ) { return p.string(); } )
-           | filtered( can_read_file );
+    return boost::make_iterator_range( beg, end ) | filtered( can_read_file );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::vector<std::string> collect_supported_files( const boost::filesystem::path&                        root_path,
+std::vector<std::filesystem::path> collect_supported_files( const std::filesystem::path&                          root_path,
                                                   boost::optional<audio::ifstream_info::container_type> container )
 {
-    using Files = std::vector<std::string>;
+    using Files = std::vector<std::filesystem::path>;
     return boost::copy_range<Files>( supported_files( root_path, container ) );
 }
 
@@ -79,14 +78,14 @@ std::vector<std::string> collect_supported_files( const boost::filesystem::path&
 
 //----------------------------------------------------------------------------------------------------------------------
 
-boost::filesystem::path test_files_input_path()
+std::filesystem::path test_files_input_path()
 {
     return {BOOST_PP_STRINGIZE( NI_MEDIA_TEST_FILES_PATH )};
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-boost::filesystem::path test_files_output_path()
+std::filesystem::path test_files_output_path()
 {
     return {BOOST_PP_STRINGIZE( NI_MEDIA_OUTPUT_FILES_PATH )};
 }

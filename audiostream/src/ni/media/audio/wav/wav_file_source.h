@@ -26,15 +26,15 @@
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 class wav_file_source : public wav_source<boost::iostreams::file_descriptor_source>
 {
     using base_type = wav_source<boost::iostreams::file_descriptor_source>;
 
 public:
-    explicit wav_file_source( const std::string& path )
-    : base_type( boost::filesystem::path( path ), BOOST_IOS::binary | BOOST_IOS::in )
+    explicit wav_file_source( const std::filesystem::path& path )
+    : base_type( path, BOOST_IOS::binary | BOOST_IOS::in )
     {
     }
 };

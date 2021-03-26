@@ -25,6 +25,8 @@
 #include <ni/media/audio/aiff/aiff_ofstream_info.h>
 #include <ni/media/audio/ofstream.h>
 
+#include <filesystem>
+
 namespace audio
 {
 
@@ -38,7 +40,7 @@ public:
     aiff_ofstream( aiff_ofstream&& );
     aiff_ofstream& operator=( aiff_ofstream&& );
 
-    aiff_ofstream( const std::string& file, const info_type& info );
+    aiff_ofstream( const std::filesystem::path& file, const info_type& info );
 
     const info_type& info() const override;
 };

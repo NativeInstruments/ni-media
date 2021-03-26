@@ -30,7 +30,8 @@ namespace detail
 {
 
 template <class Container>
-Container read_file_to( std::string file_name, std::ios::openmode mode = std::ios::in | std::ios::binary )
+Container read_file_to( const std::filesystem::path& file_name,
+                        std::ios::openmode           mode = std::ios::in | std::ios::binary )
 {
     std::filebuf fb;
     fb.open( file_name, mode );
@@ -53,7 +54,7 @@ struct stream_opener;
 template <>
 struct stream_opener<audio::ifstream>
 {
-    static auto open( const std::string& file_name ) -> audio::ifstream
+    static auto open( const std::filesystem::path& file_name ) -> audio::ifstream
     {
         return {file_name};
     }
@@ -65,7 +66,7 @@ struct stream_opener<audio::ifstream>
 template <>
 struct stream_opener<audio::ivectorstream>
 {
-    static auto open( const std::string& file_name ) -> audio::ivectorstream
+    static auto open( const std::filesystem::path& file_name ) -> audio::ivectorstream
     {
         return {stream_opener<audio::ifstream>::open( file_name )};
     }
@@ -76,7 +77,7 @@ struct stream_opener<audio::ivectorstream>
 template <>
 struct stream_opener<audio::ifvectorstream>
 {
-    static auto open( const std::string& file_name ) -> audio::ifvectorstream
+    static auto open( const std::filesystem::path& file_name ) -> audio::ifvectorstream
     {
         auto vec       = read_file_to<std::vector<char>>( file_name );
         auto container = audio::ifstream_container( file_name );
@@ -90,7 +91,7 @@ struct stream_opener<audio::ifvectorstream>
 //----------------------------------------------------------------------------------------------------------------------
 
 template <class Stream>
-void open_file_impl( Stream& stream, const std::string& filename )
+void open_file_impl( Stream& stream, const std::filesystem::path& filename )
 {
 
     std::string error;
