@@ -48,6 +48,8 @@ TEST( pcm_iterator_test, const_mutable_assignable )
     EXPECT_FALSE( ( std::is_assignable<Iter&, ConstIter>::value ) );
 }
 
+#ifndef _GLIBCXX_DEBUG
+// note: comparing singular iterators is undefined behaviour, so the tests will fail when stl debugging is enabled
 TEST( pcm_iterator_test, const_mutable_comparable )
 {
     using Vec       = std::vector<char>;
@@ -79,6 +81,7 @@ TEST( pcm_iterator_test, const_mutable_comparable )
         EXPECT_TRUE( eqr );
     }
 }
+#endif
 
 TEST( pcm_iterator_test, compiletime_to_runtime_convertible )
 {
