@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.0)
+cmake_minimum_required(VERSION 3.16.0)
 
 if( TARGET ni-media )
   return()
@@ -25,7 +25,7 @@ if( NIMEDIA_OPEN_SOURCE )
   include(ni_add_src_group)
   include(ni_add_test)
   include(ni_treat_warnings_as_errors)
-  
+
   if(WIN32 AND CMAKE_CL_64)
     set(WIN64 1)
   elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -83,6 +83,10 @@ if( NIMEDIA_TESTS )
     add_library(GTest::GTest ALIAS gtest)
   endif()
 
+endif()
+
+if (APPLE)
+  enable_language(OBJCXX)
 endif()
 
 add_subdirectory( pcm )
