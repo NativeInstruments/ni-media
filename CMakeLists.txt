@@ -85,10 +85,6 @@ if( NIMEDIA_TESTS )
 
 endif()
 
-if (APPLE)
-  enable_language(OBJCXX)
-endif()
-
 add_subdirectory( pcm )
 add_subdirectory( audiostream )
 
@@ -119,7 +115,7 @@ endforeach()
 
 
 if( NIMEDIA_OPEN_SOURCE )
-  
+
   include(CMakePackageConfigHelpers)
 
   set(CONFIG_DESTINATION lib/cmake/ni-media)
