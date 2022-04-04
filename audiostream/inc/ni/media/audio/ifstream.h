@@ -24,11 +24,17 @@
 
 #include <ni/media/audio/ifstream_info.h>
 #include <ni/media/audio/istream.h>
+#include <ni/media/audio/istream_source.h>
+#include <ni/media/audio/custom_backend_source.h>
 
 #include <string>
 
 namespace audio
 {
+
+class ifstream;
+
+using ifstream_source = istream_source<ifstream>;
 
 class ifstream : public istream
 {
@@ -39,6 +45,8 @@ public:
 
     ifstream( const std::string& file );
     ifstream( const std::string& file, info_type::container_type container, size_t stream_index = 0 );
+    ifstream( std::unique_ptr<ifstream_source> source );
+    ifstream( std::unique_ptr<custom_backend_source> source, info_type::container_type container, size_t stream_index = 0 );
 
     ifstream( ifstream&& );
     ifstream& operator=( ifstream&& );
@@ -48,4 +56,13 @@ public:
 protected:
     ifstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
 };
+
+//----------------------------------------------------------------------------------------------------------------------
+
+template <class Source, class... Args>
+ifstream make_ifstream( Args&&... args )
+{
+    return ifstream( std::make_unique<Source>( std::forward<Args>( args )... ) );
+}
+
 } // namespace audio

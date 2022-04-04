@@ -52,13 +52,20 @@ public:
     size_t bytes_per_sample() const;
     size_t bytes_per_frame() const;
 
+    // Bitrate of how the underlying data is encoded/decoded.
+    void bit_rate( size_t bit_rate );
+    size_t bit_rate() const;
+
     friend bool operator==( const stream_info& lhs, const stream_info& rhs );
     friend bool operator!=( const stream_info& lhs, const stream_info& rhs );
 
 private:
+    size_t compute_bit_rate() const;
+
     // Members
     size_t      m_sample_rate  = 44100;
     size_t      m_num_channels = 1;
+    size_t      m_bit_rate = 0;
     format_type m_format;
 };
 

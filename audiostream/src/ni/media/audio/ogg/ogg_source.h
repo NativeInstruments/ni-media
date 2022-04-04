@@ -248,6 +248,7 @@ void ogg_source<Source>::readInfo()
     info.num_frames( size_t( num_frames ) );
     info.num_channels( size_t( vinfo->channels ) );
     info.format( pcm::make_format<pcm::signed_integer, pcm::_16bit, pcm::little_endian>() );
+    info.bit_rate( vinfo->bitrate_nominal );
 
     m_info = std::move( info );
 }

@@ -20,37 +20,11 @@
 // SOFTWARE.
 //
 
-#include <gtest/gtest.h>
+#pragma once
 
-#include <ni/media/audio/ifstream.h>
-#include <ni/media/source_test.h>
-#include <ni/media/test_helper.h>
+#include <ni/media/audio/flac/flac_source.h>
+#include <ni/media/audio/custom_backend_source.h>
 
-#include <vector>
+#include <ni/media/iostreams/device/custom.h>
 
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST( ifstream_robustness_test );
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class ifstream_robustness_test : public source_test
-{
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-TEST_P( ifstream_robustness_test, stream_reaches_eof_on_first_read )
-{
-    auto stream = open_file_as<audio::ifstream>();
-
-    if ( !stream )
-        return;
-
-    auto buffer = std::vector<float>( 256 );
-    stream >> buffer;
-
-    EXPECT_TRUE( stream.eof() );
-}
-
-
-INSTANTIATE_TEST_SUITE_P( fuzz_files, ifstream_robustness_test, fuzz_files(), ParamToString{} );
+using flac_custom_source = flac_source<boostext::iostreams::custom_source<audio::custom_backend_source>>;

@@ -23,6 +23,7 @@
 #include <ni/media/audio/aiff/aiff_ofstream.h>
 #include <ni/media/audio/ifstream.h>
 #include <ni/media/reference_test.h>
+#include <ni/media/test_helper.h>
 
 #include <ni/media/sink_test.h>
 

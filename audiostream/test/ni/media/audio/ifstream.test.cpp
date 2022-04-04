@@ -93,6 +93,8 @@ TEST( ni_media_audio_ifstream, move_assignment )
 template <class Stream>
 bool isWindowsMediaFoundation( const Stream& stream )
 {
+    boost::ignore_unused( stream );
+
 #if BOOST_OS_WINDOWS
     if ( stream.info().container() == audio::ifstream_info::container_type::mp3
          || stream.info().container() == audio::ifstream_info::container_type::mp4 )
@@ -245,4 +247,4 @@ TEST_P( ifstream_test, read_begining_of_stream_interlaced_by_67_frames_backward 
 
 
 INSTANTIATE_TEST_SUITE_P( reference_files, ifstream_test, reference_files(), ParamToString{} );
-INSTANTIATE_TEST_SUITE_P( user_files, ifstream_test, user_files() );
+INSTANTIATE_TEST_SUITE_P( user_files, ifstream_test, user_files(), ParamToString{} );

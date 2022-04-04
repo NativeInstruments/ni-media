@@ -459,6 +459,14 @@ media_foundation_source<Source>::media_foundation_source( Source&&              
         m_info.format( {pcm::signed_integer, bitDepth, pcm::little_endian} );
     }
 
+    {
+        UINT32 byteRate = 0;
+        if ( FAILED( nativeType->GetUINT32( MF_MT_AUDIO_AVG_BYTES_PER_SECOND, &byteRate ) ) )
+            throw std::runtime_error( "Could not read the bit rate." );
+
+        m_info.bit_rate( byteRate * 8 );
+    }
+
     // Create a media type specifying uncompressed PCM audio and load it into the source reader. The reader will load
     // in turn the correct decoder.
 

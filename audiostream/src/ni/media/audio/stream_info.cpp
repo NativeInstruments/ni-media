@@ -92,6 +92,27 @@ size_t stream_info::bytes_per_frame() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
+void stream_info::bit_rate( size_t bit_rate )
+{
+    m_bit_rate = bit_rate;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+size_t stream_info::bit_rate() const
+{
+    return m_bit_rate == 0 ? compute_bit_rate() : m_bit_rate;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+size_t stream_info::compute_bit_rate() const
+{
+    return sample_rate() * num_channels() * bits_per_sample();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 bool operator==( const stream_info& lhs, const stream_info& rhs )
 {
     return std::tie( lhs.m_sample_rate, lhs.m_num_channels, lhs.m_format )

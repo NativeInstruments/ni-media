@@ -24,6 +24,7 @@
 #include <ni/media/audio/iotools.h>
 
 #include <ni/media/audio/source.h>
+#include <ni/media/audio/source_impl.h>
 #include <ni/media/iostreams/stream_buffer.h>
 
 #include <boost/predef.h>
@@ -132,6 +133,95 @@ ifstream::ifstream( const std::string& file, ifstream_info::container_type conta
         default:
             throw std::runtime_error( "Unsupported container_type" );
     }
+
+    boost::ignore_unused( file );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ifstream::ifstream( std::unique_ptr<ifstream_source> source )
+: ifstream()
+{
+    auto impl = source_impl<ifstream_source>( std::move( source ) );
+    auto info = impl.info();
+    *this = ifstream( make_stream_buffer( std::move( impl ) ),
+                      std::make_unique<decltype( info )>( std::move( info ) ) );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ifstream::ifstream( std::unique_ptr<custom_backend_source> source, info_type::container_type container, size_t stream_index )
+: ifstream()
+{
+    using container_type = ifstream_info::container_type;
+
+    if ( container != container_type::mp4 && stream_index != 0 )
+    {
+        throw std::runtime_error( "Unsupported stream index" );
+    }
+
+    auto make_ifstream = []( auto&& source ) {
+        auto info = source.info();
+        return ifstream( make_stream_buffer( std::move( source ) ),
+                         std::make_unique<decltype( info )>( std::move( info ) ) );
+    };
+
+    switch ( container )
+    {
+
+#if NIMEDIA_ENABLE_AIFF_DECODING
+        case container_type::aiff:
+            *this = make_ifstream( aiff_custom_source( std::move(source) ) );
+            break;
+#endif
+
+#if NIMEDIA_ENABLE_FLAC_DECODING
+        case container_type::flac:
+            *this = make_ifstream( flac_custom_source( std::move(source) ) );
+            break;
+#endif
+
+#if NIMEDIA_ENABLE_MP3_DECODING
+        case container_type::mp3:
+        {
+            *this = make_ifstream( mp3_custom_source( std::move(source), container, stream_index ) );
+            break;
+        }
+#endif
+
+#if NIMEDIA_ENABLE_MP4_DECODING
+        case container_type::mp4:
+        {
+            *this = make_ifstream( mp4_custom_source( std::move(source), container, stream_index ) );
+            break;
+        }
+#endif
+
+#if NIMEDIA_ENABLE_OGG_DECODING
+        case container_type::ogg:
+            *this = make_ifstream( ogg_custom_source( std::move(source) ) );
+            break;
+#endif
+
+#if NIMEDIA_ENABLE_WAV_DECODING
+        case container_type::wav:
+            *this = make_ifstream( wav_custom_source( std::move(source) ) );
+            break;
+#endif
+
+#if NIMEDIA_ENABLE_WMA_DECODING
+        case container_type::wma:
+        {
+            *this = make_ifstream( wma_custom_source( std::move(source), container, stream_index ) );
+            break;
+        }
+#endif
+
+        default:
+            throw std::runtime_error( "Unsupported container_type" );
+    }
+
+    boost::ignore_unused( source );
 }
 
 //----------------------------------------------------------------------------------------------------------------------

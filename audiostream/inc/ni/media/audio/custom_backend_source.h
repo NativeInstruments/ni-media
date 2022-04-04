@@ -20,37 +20,22 @@
 // SOFTWARE.
 //
 
-#include <gtest/gtest.h>
+#pragma once
 
-#include <ni/media/audio/ifstream.h>
-#include <ni/media/source_test.h>
-#include <ni/media/test_helper.h>
+#include <ios>
 
-#include <vector>
-
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST( ifstream_robustness_test );
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class ifstream_robustness_test : public source_test
+namespace audio
 {
+
+class custom_backend_source
+{
+public:
+    using char_type = char;
+
+    virtual ~custom_backend_source() = default;
+
+    virtual std::streampos seek( std::streamoff off, std::ios_base::seekdir dir ) = 0;
+    virtual std::streamsize read( char_type* dst, std::streamsize size ) = 0;
 };
 
-//----------------------------------------------------------------------------------------------------------------------
-
-TEST_P( ifstream_robustness_test, stream_reaches_eof_on_first_read )
-{
-    auto stream = open_file_as<audio::ifstream>();
-
-    if ( !stream )
-        return;
-
-    auto buffer = std::vector<float>( 256 );
-    stream >> buffer;
-
-    EXPECT_TRUE( stream.eof() );
-}
-
-
-INSTANTIATE_TEST_SUITE_P( fuzz_files, ifstream_robustness_test, fuzz_files(), ParamToString{} );
+} // namespace audio

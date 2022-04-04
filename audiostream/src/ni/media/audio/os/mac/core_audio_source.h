@@ -111,7 +111,7 @@ size_t calcStreamIndex( AudioFileID fileId, size_t stream )
     // Get the number of available streams within the container file.
     UInt32 numStreams = 0;
     UInt32 size       = sizeof( fileId );
-    if ( AudioFileGetProperty( fileId, 'atct', &size, &numStreams ) != noErr )
+    if ( AudioFileGetProperty( fileId, kAudioFilePropertyAudioTrackCount, &size, &numStreams ) != noErr )
         throw std::runtime_error( "Failed to retrieve stream count." );
 
     // The audio streams are indexed as follows:
@@ -243,6 +243,14 @@ audio::ifstream_info buildOutStreamInfo( ExtAudioFileRef&                     me
         info.container( container );
     }
 
+    {
+        UInt32 bitRate = 0;
+        UInt32 size    = sizeof( bitRate );
+        if ( AudioFileGetProperty( fileId, kAudioFilePropertyBitRate, &size, &bitRate ) != noErr )
+            throw std::runtime_error( "Could not read bit rate" );
+        info.bit_rate( bitRate );
+    }
+
     return info;
 }
 
@@ -319,7 +327,7 @@ void core_audio_source<Source>::setupInfo( audio::ifstream_info::container_type 
     if ( container == audio::ifstream_info::container_type::mp4 )
     {
         auto index = calcStreamIndex( fileId, stream );
-        if ( AudioFileSetProperty( fileId, 'uatk', sizeof( index ), &index ) != noErr )
+        if ( AudioFileSetProperty( fileId, kAudioFilePropertyUseAudioTrack, sizeof( index ), &index ) != noErr )
             throw std::runtime_error( "Could not select the audio stream." );
     }
     else if ( stream != 0 )
