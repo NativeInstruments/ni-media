@@ -6,62 +6,32 @@ on:
   pull_request:
     branches: [ master ]
 
-env:
-  BUILD_TYPE: Release
-
 jobs:
-
-  linux-build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout source
-      uses: actions/checkout@v2
-
-    - name: Install vcpkg
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        ./vcpkg/bootstrap-vcpkg.sh
-
-    - name: Configure CMake + Install Dependencies
-      run: cmake -B ${{github.workspace}}/build . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
-
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run:  |
-        git lfs pull -X \"\"
-        ctest --verbose -C ${{env.BUILD_TYPE}} --timeout 900
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: "Windows"
+            os: windows-latest
+            build_type: Release
+            pcm_tests: ON
+          - name: "MacOS"
+            os: macos-latest
+            build_type: Release
+            pcm_tests: ON
+          - name: "Ubuntu"
+            os: ubuntu-latest
+            build_type: Release
+            pcm_tests: ON
+          - name: "Code-Coverage (Ubuntu)"
+            os: ubuntu-latest
+            build_type: Coverage
+            pcm_tests: OFF
+            code_coverage: true
   
-  windows-build:
-    runs-on: windows-latest
-
-    steps:
-    - name: Checkout source
-      uses: actions/checkout@v2
-
-    - name: Install vcpkg
-      run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        ./vcpkg/bootstrap-vcpkg.bat
-
-    - name: Configure CMake + Install Dependencies
-      run: cmake -B ${{github.workspace}}/build . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
-
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run:  |
-        git lfs pull -X \"\"
-        ctest --verbose -C ${{env.BUILD_TYPE}} --timeout 900
-      
-  macos-build:
-    runs-on: macos-latest
-
     steps:
     - name: Checkout source
       uses: actions/checkout@v2
@@ -72,13 +42,33 @@ jobs:
         ./vcpkg/bootstrap-vcpkg.sh
 
     - name: Configure CMake + Install Dependencies
-      run: cmake -B ${{github.workspace}}/build . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
-
+      run: |
+        cmake -B ${{ github.workspace }}/build . -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DNIMEDIA_PCM_TESTS=${{ matrix.config.pcm_tests }}
+    
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.config.build_type }}   
 
     - name: Test
-      working-directory: ${{github.workspace}}/build
-      run:  |
+      working-directory: ${{ github.workspace }}/build
+      run: |
         git lfs pull -X \"\"
-        ctest --verbose -C ${{env.BUILD_TYPE}} --timeout 900
+        ctest --verbose -C ${{ matrix.config.build_type }} --timeout 900
+
+    - name: Generate Code-Coverage results
+      if: matrix.config.code_coverage == true
+      working-directory: ${{ github.workspace }}/build
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lcov
+        lcov --version
+        echo $(which gcov)
+        lcov --gcov-tool $(which gcov) -d . -c -o coverage.info
+
+    - name: Upload code coverage results
+      if: matrix.config.code_coverage == true
+      uses: codecov/codecov-action@v3.1.0
+      with:
+        files: ${{ github.workspace }}/build/coverage.info
+        fail_ci_if_error: true
+        verbose: true
+        dry_run: true
