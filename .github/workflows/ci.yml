@@ -122,6 +122,4 @@ jobs:
       uses: codecov/codecov-action@v3.1.0
       with:
         files: ${{ github.workspace }}/build/coverage.info
-        fail_ci_if_error: true
         verbose: true
-        dry_run: true
