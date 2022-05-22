@@ -72,6 +72,8 @@ jobs:
             code_coverage: true
             cc: "gcc-9"
             cxx: "g++-9"
+            gcov: "gcov-9"
+
   
     steps:
     - name: Set xcode version
@@ -85,6 +87,11 @@ jobs:
         sudo apt install ${{ matrix.config.cc }} ${{ matrix.config.cxx }}
         echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
         echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
+
+    - name: Set GCOV version
+      if: matrix.config.gcov != null
+      run: |
+        echo "GCOV=${{ matrix.config.gcov }}" >> $GITHUB_ENV
 
     - name: Checkout source
       uses: actions/checkout@v2
@@ -114,8 +121,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y lcov
         lcov --version
-        echo $(which gcov)
-        lcov --gcov-tool $(which gcov) -d . -c -o coverage.info
+        echo $(which ${GCOV})
+        lcov --gcov-tool $(which ${GCOV}) -d . -c -o coverage.info
 
     - name: Upload code coverage results
       if: matrix.config.code_coverage == true
@@ -123,3 +130,5 @@ jobs:
       with:
         files: ${{ github.workspace }}/build/coverage.info
         verbose: true
+        gcov: true
+        gcov_ignore: test
