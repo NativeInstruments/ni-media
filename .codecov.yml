@@ -1,6 +1,0 @@
-codecov:
-  branch: master
-
-ignore:
-  - "/usr/.*"
-  - "test/.*"

@@ -1,4 +1,4 @@
-# NI MEDIA [![Build Status](https://dev.azure.com/mohinda/ni-media/_apis/build/status/marcrambo.ni-media?branchName=master)](https://dev.azure.com/mohinda/ni-media/_build/latest?definitionId=1&branchName=master) [![codecov](https://codecov.io/gh/NativeInstruments/ni-media/branch/master/graph/badge.svg)](https://codecov.io/gh/NativeInstruments/ni-media)
+# NI MEDIA [![ni-media CI](https://github.com/NativeInstruments/ni-media/actions/workflows/ci.yml/badge.svg)](https://github.com/NativeInstruments/ni-media/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/NativeInstruments/ni-media/branch/master/graph/badge.svg)](https://codecov.io/gh/NativeInstruments/ni-media)
 
 NI Media is a library for reading from / writing to audio streams developed at [Native Instruments](https://www.native-instruments.com).
 
