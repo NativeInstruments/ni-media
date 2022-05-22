@@ -1,4 +1,4 @@
-name: CI-Verification
+name: ni-media CI
 
 on:
   push:
