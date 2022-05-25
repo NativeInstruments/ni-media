@@ -94,7 +94,9 @@ jobs:
         echo "GCOV=${{ matrix.config.gcov }}" >> $GITHUB_ENV
 
     - name: Checkout source
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+      with:
+        lfs: true
 
     - name: Install vcpkg
       run: |
@@ -106,12 +108,12 @@ jobs:
         cmake -B ${{ github.workspace }}/build . -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} -DNIMEDIA_TREAT_WARNINGS_AS_ERRORS=ON -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DNIMEDIA_PCM_TESTS=${{ matrix.config.pcm_tests }}
     
     - name: Build
-      run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.config.build_type }}   
+      run: |
+        cmake --build ${{ github.workspace }}/build --config ${{ matrix.config.build_type }}   
 
     - name: Test
       working-directory: ${{ github.workspace }}/build
       run: |
-        git lfs pull -X \"\"
         ctest --verbose -C ${{ matrix.config.build_type }} --timeout 900
 
     - name: Generate Code-Coverage results
