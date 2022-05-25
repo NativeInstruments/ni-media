@@ -13,6 +13,7 @@
     "boost-icl",
     "boost-iostreams",
     "boost-locale",
+    "boost-math",
     "boost-program-options",
     "boost-system",
     "gtest"

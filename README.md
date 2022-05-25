@@ -1,4 +1,4 @@
-# NI MEDIA [![Build Status](https://dev.azure.com/mohinda/ni-media/_apis/build/status/marcrambo.ni-media?branchName=master)](https://dev.azure.com/mohinda/ni-media/_build/latest?definitionId=1&branchName=master) [![codecov](https://codecov.io/gh/NativeInstruments/ni-media/branch/master/graph/badge.svg)](https://codecov.io/gh/NativeInstruments/ni-media)
+# NI MEDIA [![ni-media CI](https://github.com/NativeInstruments/ni-media/actions/workflows/ci.yml/badge.svg)](https://github.com/NativeInstruments/ni-media/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/NativeInstruments/ni-media/branch/master/graph/badge.svg)](https://codecov.io/gh/NativeInstruments/ni-media)
 
 NI Media is a library for reading from / writing to audio streams developed at [Native Instruments](https://www.native-instruments.com).
 
@@ -95,6 +95,7 @@ We very much appreciate your contribution! If you want to contribute please get 
 * [Marc Boucek](https://github.com/marcrambo) 
 * [Nathan Kozlowski](https://github.com/ni-nkozlowski)
 * [Moritz Heppner](https://github.com/ni-mheppner)
+* [Anyere Bendrien](https://github.com/ni-abendrien)
 
 Please run [clang-format](https://clang.llvm.org/docs/ClangFormat.html) with the provided .clang-format file and if possible add some tests when opening a pull request.
 

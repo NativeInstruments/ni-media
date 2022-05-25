@@ -122,6 +122,7 @@ TYPED_TEST_P( pcm_clip_test, clip_to_max )
     auto expected_max = *--boost::end( pcm::numspace<target_t>( this->bits() ) );
     auto actual_max   = pcm::detail::convert_to<target_t>( std::numeric_limits<source_t>::max() );
 
+    EXPECT_TRUE( ( std::is_same<decltype( actual_max ), decltype( expected_max )>::value ) );
     EXPECT_GE( actual_max, expected_max );
 }
 
@@ -133,6 +134,7 @@ TYPED_TEST_P( pcm_clip_test, clip_to_min )
     auto expected_min = *boost::begin( pcm::numspace<target_t>( this->bits() ) );
     auto actual_min   = pcm::detail::convert_to<target_t>( std::numeric_limits<source_t>::lowest() );
 
+    EXPECT_TRUE( ( std::is_same<decltype( actual_min ), decltype( expected_min )>::value ) );
     EXPECT_EQ( actual_min, expected_min );
 }
 

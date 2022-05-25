@@ -28,9 +28,6 @@
 
 #include <vector>
 
-
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST( ifstream_robustness_test );
-
 //----------------------------------------------------------------------------------------------------------------------
 
 class ifstream_robustness_test : public source_test
