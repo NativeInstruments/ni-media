@@ -39,7 +39,7 @@ int main()
 
 ## Dependencies
 
-* [boost](https://github.com/boostorg/boost) ( algorithm, endian, filesystem, format, icl, iostream, local, program-option, regex, system)
+* [boost](https://github.com/boostorg/boost) ( algorithm, endian, filesystem, format, icl, iostream, local, math, program-option, regex, system)
 * [flac](https://github.com/xiph/flac) & [ogg](https://github.com/xiph/ogg), for  flac support (CMake option `NIMEDIA_ENABLE_FLAC_DECODING`)
 * [vorbis](https://github.com/xiph/vorbis) & [ogg](https://github.com/xiph/ogg), for ogg vorbis support (CMake option  `NIMEDIA_ENABLE_OGG_DECODING`)
 * [googletest](https://github.com/google/googletest) for building the tests (CMake option `NIMEDIA_TESTS`)
@@ -93,7 +93,7 @@ cmake --build . --target test
 We very much appreciate your contribution! If you want to contribute please get in touch with the maintainers:
 
 * [Marc Boucek](https://github.com/marcrambo) 
-* [Nathan Kozlowski](https://github.com/ni-nkozlowski)
+* [Nathan Kozlowski](https://github.com/FalconPDX)
 * [Moritz Heppner](https://github.com/ni-mheppner)
 * [Anyere Bendrien](https://github.com/ni-abendrien)
 
