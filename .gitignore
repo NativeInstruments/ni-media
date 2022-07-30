@@ -38,3 +38,4 @@ project.xcworkspace/
 # temporary files -------------------------------
 
 *~
+.idea
