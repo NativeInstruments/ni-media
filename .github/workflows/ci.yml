@@ -23,7 +23,7 @@ jobs:
             os: macos-12 
             build_type: Release
             pcm_tests: ON
-            set_xcode_version_cmd: xcversion select 13.4
+            set_xcode_version_cmd: xcversion select 13.4.1
 
           - name: "MacOS 11 (xc12)"
             os: macos-11
