@@ -128,7 +128,7 @@ if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE
         endif()
         list(APPEND codec_libraries ${${lib}_FRAMEWORK})
       endforeach()
-      
+
     endif()
 
   elseif( WIN32 )
@@ -283,10 +283,12 @@ target_include_directories  ( audiostream
                                   src
                             )
 
-set_target_properties( audiostream PROPERTIES
-  UNITY_BUILD ON
-  UNITY_BUILD_BATCH_SIZE 16
-)
+if (NIMEDIA_UNITY_BUILDS)
+  set_target_properties( audiostream PROPERTIES
+    UNITY_BUILD ON
+    UNITY_BUILD_BATCH_SIZE 16
+  )
+endif()
 
 target_link_libraries       ( audiostream PUBLIC pcm
                                           PRIVATE Boost::iostreams Boost::filesystem Boost::system ${codec_libraries})
