@@ -203,7 +203,7 @@ auto readWavHeader( Source& src )
             }
         }
 
-        src.seek( ( currentOffset + riffTag.length + 1 ) & 0xfffffe, std::ios_base::beg );
+        src.seek( ( currentOffset + riffTag.length + 1 ) & 0xfffffffe, std::ios_base::beg );
     }
 
     throw std::runtime_error( "Could not read \'data\' tag." );
