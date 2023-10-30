@@ -22,47 +22,20 @@
 
 #pragma once
 
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/istream.h>
-#include <ni/media/audio/istream_source.h>
-#include <ni/media/audio/custom_backend_source.h>
-
-#include <string>
+#include <ios>
 
 namespace audio
 {
 
-class ifstream;
-
-using ifstream_source = istream_source<ifstream>;
-
-class ifstream : public istream
+class custom_backend_source
 {
 public:
-    using info_type = ifstream_info;
+    using char_type = char;
 
-    ifstream();
+    virtual ~custom_backend_source() = default;
 
-    ifstream( const std::string& file );
-    ifstream( const std::string& file, info_type::container_type container, size_t stream_index = 0 );
-    ifstream( std::unique_ptr<ifstream_source> source );
-    ifstream( std::unique_ptr<custom_backend_source> source, info_type::container_type container, size_t stream_index = 0 );
-
-    ifstream( ifstream&& );
-    ifstream& operator=( ifstream&& );
-
-    const info_type& info() const override;
-
-protected:
-    ifstream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
+    virtual std::streampos seek( std::streamoff off, std::ios_base::seekdir dir ) = 0;
+    virtual std::streamsize read( char_type* dst, std::streamsize size ) = 0;
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-template <class Source, class... Args>
-ifstream make_ifstream( Args&&... args )
-{
-    return ifstream( std::make_unique<Source>( std::forward<Args>( args )... ) );
-}
 
 } // namespace audio

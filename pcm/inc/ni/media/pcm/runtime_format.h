@@ -102,7 +102,7 @@ struct runtime_format
     // TODO c++17: replace with std::string_view
     runtime_format( const std::string& str )
     {
-        std::regex  regex( "([fsu])([0-9]{1,2})(le|be|ne)" );
+        static const std::regex  regex( "([fsu])([0-9]{1,2})(le|be|ne)" );
         std::smatch match;
 
         if ( std::regex_match( str, match, regex ) && ( match.size() == 4 ) )

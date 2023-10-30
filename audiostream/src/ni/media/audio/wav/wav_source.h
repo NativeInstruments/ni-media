@@ -151,6 +151,9 @@ auto readWavHeader( Source& src )
                 throw std::runtime_error( "Empty File" );
 
             info.num_frames( num_frames );
+
+            info.bit_rate( info.sample_rate() * info.num_channels() * info.bits_per_sample() );
+
             return info;
         }
         else if ( riffTag.id == little_endian_fourcc( "smpl" ) )
@@ -200,7 +203,7 @@ auto readWavHeader( Source& src )
             }
         }
 
-        src.seek( ( currentOffset + riffTag.length + 1 ) & 0xfffffe, std::ios_base::beg );
+        src.seek( ( currentOffset + riffTag.length + 1 ) & 0xfffffffe, std::ios_base::beg );
     }
 
     throw std::runtime_error( "Could not read \'data\' tag." );

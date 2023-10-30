@@ -54,7 +54,7 @@ if( NIMEDIA_ENABLE_AIFF_DECODING )
 endif()
 
 if( NIMEDIA_ENABLE_AIFF_ENCODING )
-  add_src_file  (FILES_test_audio_wav "ni/media/audio/aiff/aiff_sink.test.cpp")
+  add_src_file  (FILES_test_audio_aiff "ni/media/audio/aiff/aiff_sink.test.cpp")
 endif()
 
 if( FILES_test_audio_aiff )

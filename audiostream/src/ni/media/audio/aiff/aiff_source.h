@@ -236,6 +236,8 @@ auto readAiffHeader( Source& src )
 
             src.seek( ssndChunck.offset, BOOST_IOS::cur );
 
+            info.bit_rate( info.sample_rate() * info.num_channels() * info.bits_per_sample() );
+
             return info;
         }
 

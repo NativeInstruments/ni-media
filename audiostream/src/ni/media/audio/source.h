@@ -25,36 +25,43 @@
 #if NIMEDIA_ENABLE_AIFF_DECODING
 #include <ni/media/audio/aiff/aiff_file_source.h>
 #include <ni/media/audio/aiff/aiff_vector_source.h>
+#include <ni/media/audio/aiff/aiff_custom_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_FLAC_DECODING
 #include <ni/media/audio/flac/flac_file_source.h>
 #include <ni/media/audio/flac/flac_vector_source.h>
+#include <ni/media/audio/flac/flac_custom_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_MP3_DECODING
 #include <ni/media/audio/mp3/mp3_file_source.h>
 #include <ni/media/audio/mp3/mp3_vector_source.h>
+#include <ni/media/audio/mp3/mp3_custom_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_MP4_DECODING
 #include <ni/media/audio/mp4/mp4_file_source.h>
 #include <ni/media/audio/mp4/mp4_vector_source.h>
+#include <ni/media/audio/mp4/mp4_custom_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_OGG_DECODING
 #include <ni/media/audio/ogg/ogg_file_source.h>
 #include <ni/media/audio/ogg/ogg_vector_source.h>
+#include <ni/media/audio/ogg/ogg_custom_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_WAV_DECODING
 #include <ni/media/audio/wav/wav_file_source.h>
 #include <ni/media/audio/wav/wav_vector_source.h>
+#include <ni/media/audio/wav/wav_custom_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_WMA_DECODING
 #include <ni/media/audio/wma/wma_file_source.h>
 #include <ni/media/audio/wma/wma_vector_source.h>
+#include <ni/media/audio/wma/wma_custom_source.h>
 #endif
 
 #if NIMEDIA_ENABLE_ITUNES_DECODING

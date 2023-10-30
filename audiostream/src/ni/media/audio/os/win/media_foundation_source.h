@@ -90,7 +90,7 @@ private:
     offset_type m_nominalPos  = 0;
     offset_type m_adjustedPos = 0;
 
-    bool m_fadein = false;
+    offset_type m_fadeInBlocks = 0;
 
     bool seekInternal( offset_type );
 
@@ -459,6 +459,14 @@ media_foundation_source<Source>::media_foundation_source( Source&&              
         m_info.format( {pcm::signed_integer, bitDepth, pcm::little_endian} );
     }
 
+    {
+        UINT32 byteRate = 0;
+        if ( FAILED( nativeType->GetUINT32( MF_MT_AUDIO_AVG_BYTES_PER_SECOND, &byteRate ) ) )
+            throw std::runtime_error( "Could not read the bit rate." );
+
+        m_info.bit_rate( byteRate * 8 );
+    }
+
     // Create a media type specifying uncompressed PCM audio and load it into the source reader. The reader will load
     // in turn the correct decoder.
 
@@ -557,16 +565,18 @@ bool media_foundation_source<Source>::seekInternal( offset_type adjustedPos )
 {
     // WMF applies a fade-in to the audio data fetched after a seek, which produces crackling. To avoid this, when
     // doing a seek we jump one block back of the target, then discard it in the following fetch.
+    constexpr offset_type fadeInBlocks = 2;
+    constexpr offset_type fadeInFrames = fadeInBlocks * s_defaultBlockSize;
 
-    static const auto minValue     = s_defaultBlockSize + m_readOffset;
+    static const auto minValue     = fadeInFrames + m_readOffset;
     bool              removeFadein = adjustedPos >= minValue;
 
-    adjustedPos = removeFadein ? adjustedPos - s_defaultBlockSize : m_readOffset;
+    adjustedPos = removeFadein ? adjustedPos - fadeInFrames : m_readOffset;
     if ( !setPosition( *m_reader, framesTo100ns<Source>( adjustedPos, m_info.sample_rate() ) ) )
         return false;
 
     m_buffer.reset();
-    m_fadein = removeFadein;
+    m_fadeInBlocks = removeFadein ? fadeInBlocks : 0;
     return true;
 }
 
@@ -770,12 +780,12 @@ bool media_foundation_source<Source>::discardFadeinBlock()
     // If this is the first fetch after a seek we need to discard the first frame, as WMF applies a fade-in
     // effect to the first few samples that produces crackling when played back by Traktor.
 
-    if ( m_fadein )
+    while ( m_fadeInBlocks > 0 )
     {
         auto frame = consumeBlock();
         if ( !frame )
             return false;
-        m_fadein = false;
+        --m_fadeInBlocks;
     }
 
     return true;

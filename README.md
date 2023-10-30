@@ -1,4 +1,4 @@
-# NI MEDIA [![Build Status](https://dev.azure.com/mohinda/ni-media/_apis/build/status/marcrambo.ni-media?branchName=master)](https://dev.azure.com/mohinda/ni-media/_build/latest?definitionId=1&branchName=master) [![codecov](https://codecov.io/gh/NativeInstruments/ni-media/branch/master/graph/badge.svg)](https://codecov.io/gh/NativeInstruments/ni-media)
+# NI MEDIA [![ni-media CI](https://github.com/NativeInstruments/ni-media/actions/workflows/ci.yml/badge.svg)](https://github.com/NativeInstruments/ni-media/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/NativeInstruments/ni-media/branch/master/graph/badge.svg)](https://codecov.io/gh/NativeInstruments/ni-media)
 
 NI Media is a library for reading from / writing to audio streams developed at [Native Instruments](https://www.native-instruments.com).
 
@@ -39,7 +39,7 @@ int main()
 
 ## Dependencies
 
-* [boost](https://github.com/boostorg/boost) ( algorithm, endian, filesystem, format, icl, iostream, local, program-option, regex, system)
+* [boost](https://github.com/boostorg/boost) ( algorithm, endian, filesystem, format, icl, iostream, local, math, program-option, regex, system)
 * [flac](https://github.com/xiph/flac) & [ogg](https://github.com/xiph/ogg), for  flac support (CMake option `NIMEDIA_ENABLE_FLAC_DECODING`)
 * [vorbis](https://github.com/xiph/vorbis) & [ogg](https://github.com/xiph/ogg), for ogg vorbis support (CMake option  `NIMEDIA_ENABLE_OGG_DECODING`)
 * [googletest](https://github.com/google/googletest) for building the tests (CMake option `NIMEDIA_TESTS`)
@@ -57,7 +57,7 @@ ni-media requires a c++14 compliant compiler and is currently supported and test
 ## Building
 
 First, build and install boost `filesystem`, `iostream`, `system` and `program-option` to `path/to/dependencies`. Optionally install any codecs that you want to use, for example [flac](https://github.com/xiph/flac) and [ogg-vorbis](https://github.com/xiph/vorbis).
-Now configure ni-media with [CMake](https://cmake.org/) (version 3.12.4 or higher is required)
+Now configure ni-media with [CMake](https://cmake.org/) (version 3.16.0 or higher is required)
 
 ```
 cmake -G YOUR-PROJECT-GENERATOR -DCMAKE_PREFIX_PATH=path/to/dependencies/ path/to/ni-media
@@ -93,8 +93,9 @@ cmake --build . --target test
 We very much appreciate your contribution! If you want to contribute please get in touch with the maintainers:
 
 * [Marc Boucek](https://github.com/marcrambo) 
-* [Nathan Kozlowski](https://github.com/ni-nkozlowski)
+* [Nathan Kozlowski](https://github.com/FalconPDX)
 * [Moritz Heppner](https://github.com/ni-mheppner)
+* [Anyere Bendrien](https://github.com/ni-abendrien)
 
 Please run [clang-format](https://clang.llvm.org/docs/ClangFormat.html) with the provided .clang-format file and if possible add some tests when opening a pull request.
 
