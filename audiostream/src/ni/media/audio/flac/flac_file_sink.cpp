@@ -7,6 +7,7 @@
 #include <FLAC++/encoder.h>
 
 #include <iostream>
+#include <memory>
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -48,7 +49,7 @@ flac_file_sink::Impl::Impl( const std::string& path, const info_type& info )
 
     auto status = FLAC__stream_encoder_init_file( m_encoder.get(), path.c_str(), nullptr, this );
 
-    if ( status != 0 )
+    if ( status != FLAC__STREAM_ENCODER_INIT_STATUS_OK )
         throw std::runtime_error( "flac_file_sink: Could not initialize encoder. Error status: "
                                   + std::to_string( status ) );
 }
@@ -64,7 +65,7 @@ auto flac_file_sink::Impl::info() const -> audio::ofstream_info
 
 auto flac_file_sink::Impl::write( const char_type* s, std::streamsize n ) -> std::streamsize
 {
-    FLAC__uint32 samples = ( static_cast<FLAC__uint32>( n ) / info().num_channels() ) / ( info().bytes_per_sample() );
+    FLAC__uint32 samples = ( static_cast<FLAC__uint32>( n ) / info().num_channels() ) / info().bytes_per_sample();
 
     size_t frames = samples * info().num_channels();
 
@@ -79,15 +80,14 @@ auto flac_file_sink::Impl::write( const char_type* s, std::streamsize n ) -> std
         m_buffer[i] = FLAC__int32( 0 );
         for ( size_t byte_index = static_cast<size_t>( info().bytes_per_sample() ); byte_index > 0; --byte_index )
         {
-            m_buffer[i] |= static_cast<FLAC__int32>( s[info().bytes_per_sample() * i + ( byte_index - 1 )]
-                                                     << ( ( byte_index - 1 ) * 8 ) );
+            const auto index = info().bytes_per_sample() * i + ( byte_index - 1 );
+            m_buffer[i] |=
+                static_cast<FLAC__int32>( static_cast<unsigned char>( s[index] ) << ( ( byte_index - 1 ) * 8 ) );
         }
     }
 
     if ( !FLAC__stream_encoder_process_interleaved( m_encoder.get(), m_buffer.data(), samples ) )
-    {
         throw std::runtime_error( "flac_file_sink: Error writing data to file." );
-    }
 
     m_pos += n;
     return n;
@@ -109,13 +109,13 @@ flac_file_sink::flac_file_sink( flac_file_sink&& ) = default;
 
 void flac_file_sink::open( const std::string& path )
 {
-    m_impl.reset( new Impl( path, m_info ) );
+    m_impl = std::make_unique<Impl>( path, m_info );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-flac_file_sink::flac_file_sink( const info_type& info, const std::string& path )
-: m_info( info )
+flac_file_sink::flac_file_sink( info_type info, const std::string& path )
+: m_info( std::move( info ) )
 {
     m_info.container( audio::ofstream_info::container_type::flac );
     m_info.codec( audio::ofstream_info::codec_type::flac );

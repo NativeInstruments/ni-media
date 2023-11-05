@@ -86,7 +86,7 @@ public:
 protected:
     ostream( std::unique_ptr<streambuf>, std::unique_ptr<info_type> );
 
-    ostream( const ostream& ) = delete;
+    ostream( const ostream& )            = delete;
     ostream& operator=( const ostream& ) = delete;
 
     ostream( ostream&& );
@@ -102,9 +102,9 @@ private:
 template <class Value>
 auto ostream::operator<<( Value val ) -> std::enable_if_t<std::is_arithmetic<Value>::value, ostream&>
 {
-    std::array<char, 8> temp;
+    std::array<char, 8> temp = { 0 };
     pcm::write( temp.data(), val, m_info->format() );
-    std::ostream::write( temp.data(), m_info->bytes_per_sample() );
+    write( temp.data(), m_info->bytes_per_sample() );
     return *this;
 }
 

@@ -137,7 +137,7 @@ if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE
         endif()
         list(APPEND codec_libraries ${${lib}_FRAMEWORK})
       endforeach()
-      
+
     endif()
 
   elseif( WIN32 )
@@ -219,11 +219,12 @@ add_src_file( Sources "inc/ni/media/audio/istream_source.h"                     
 add_src_file( Sources "inc/ni/media/audio/ostream_info.h"                          )
 add_src_file( Sources "src/ni/media/audio/ivectorstream.cpp"    WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/ifstream.cpp"         WITH_PUBLIC_HEADER )
-add_src_file( Sources "src/ni/media/audio/ofstream.cpp"         WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/ifvectorstream.cpp"   WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/fstream_info.cpp"     WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/ifstream_info.cpp"    WITH_PUBLIC_HEADER )
 add_src_file( Sources "inc/ni/media/audio/ifstream_support.h"                      )
+add_src_file( Sources "src/ni/media/audio/ofstream.cpp"         WITH_PUBLIC_HEADER )
+add_src_file( Sources "inc/ni/media/audio/ofstream_support.h"                      )
 add_src_file( Sources "src/ni/media/audio/ofstream_info.cpp"    WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/source.h"                                )
 add_src_file( Sources "src/ni/media/audio/source_impl.h"                           )

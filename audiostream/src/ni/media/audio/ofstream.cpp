@@ -68,6 +68,9 @@ ofstream::ofstream( const std::string&            file,
 {
     using container_type = ofstream_info::container_type;
 
+    if ( stream_index != 0 )
+        throw std::runtime_error( "Unsupported stream index" );
+
     auto make_ofstream = []( auto&& sink ) {
         auto info = sink.info();
         return ofstream( make_stream_buffer( std::move( sink ) ),

@@ -55,7 +55,7 @@ struct stream_opener<audio::ifstream>
 {
     static auto open( const std::string& file_name ) -> audio::ifstream
     {
-        return {file_name};
+        return { file_name };
     }
 };
 
@@ -67,7 +67,7 @@ struct stream_opener<audio::ivectorstream>
 {
     static auto open( const std::string& file_name ) -> audio::ivectorstream
     {
-        return {stream_opener<audio::ifstream>::open( file_name )};
+        return { stream_opener<audio::ifstream>::open( file_name ) };
     }
 };
 
@@ -83,7 +83,7 @@ struct stream_opener<audio::ifvectorstream>
         if ( !container )
             throw std::runtime_error( "Unsupported container_type" );
 
-        return {vec, *container};
+        return { vec, *container };
     }
 };
 

@@ -22,7 +22,6 @@
 
 #include <ni/media/audio/ifstream.h>
 
-#include <ni/media/audio/flac/flac_file_sink.h>
 #include <ni/media/audio/ofstream.h>
 #include <ni/media/reference_test.h>
 #include <ni/media/sink_test.h>
@@ -36,18 +35,18 @@ class flac_sink_test : public sink_test
 
 TEST_P( flac_sink_test, ofstream )
 {
-    auto instream = audio::ifstream( input_name() );
+    auto ifs = audio::ifstream( input_name() );
 
     audio::ofstream_info info;
-    info.format( instream.info().format() );
-    info.num_channels( instream.info().num_channels() );
-    info.sample_rate( instream.info().sample_rate() );
+    info.format( ifs.info().format() );
+    info.num_channels( ifs.info().num_channels() );
+    info.sample_rate( ifs.info().sample_rate() );
 
     {
-        audio::ofstream os( output_name(), info );
-        auto            buffer = std::vector<double>( instream.info().num_samples() );
-        instream >> buffer;
-        os << buffer;
+        audio::ofstream ofs( output_name(), info );
+        auto            buffer = std::vector<double>( ifs.info().num_samples() );
+        ifs >> buffer;
+        ofs << buffer;
     }
 
     reference_test( audio::ifstream( output_name() ), output_name() );

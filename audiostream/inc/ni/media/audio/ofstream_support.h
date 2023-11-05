@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Native Instruments GmbH, Berlin
+// Copyright (c) 2023 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,35 +24,17 @@
 
 #include <ni/media/audio/ofstream_info.h>
 
-#include <boost/iostreams/device/null.hpp>
+#include <map>
+#include <string>
 
-#include <memory>
-
-class flac_file_sink
+namespace audio
 {
-public:
-    using char_type = char;
-    struct category : boost::iostreams::output, boost::iostreams::device_tag, boost::iostreams::closable_tag
-    {
-    };
 
-    using info_type = audio::ofstream_info;
+// a map of extension => container type
+using ofstream_container_map = std::map<std::string, ofstream_info::container_type>;
+auto ofstream_supported_formats() -> const ofstream_container_map&;
 
-    flac_file_sink();
-    ~flac_file_sink();
+} // namespace audio
 
-    flac_file_sink( flac_file_sink&& );
-    explicit flac_file_sink( info_type info, const std::string& path );
 
-    void open( const std::string& path );
-    void close();
-
-    auto write( const char_type* s, std::streamsize n ) -> std::streamsize;
-
-    auto info() const -> info_type;
-
-private:
-    class Impl;
-    std::unique_ptr<Impl> m_impl;
-    info_type             m_info;
-};
+//----------------------------------------------------------------------------------------------------------------------
