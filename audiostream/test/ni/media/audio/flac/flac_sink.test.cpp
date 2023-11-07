@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
+// Copyright (c) 2017 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,43 +20,41 @@
 // SOFTWARE.
 //
 
-#pragma once
+#include <ni/media/audio/ifstream.h>
 
-#include <ni/media/audio/fstream_info.h>
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/ostream_info.h>
+#include <ni/media/audio/ofstream.h>
+#include <ni/media/reference_test.h>
+#include <ni/media/sink_test.h>
 
-namespace audio
+
+class flac_sink_test : public sink_test
 {
-
-class ofstream_info : public fstream_info, public ostream_info
-{
-public:
-    enum class container_type
-    {
-        aiff,
-        flac,
-        wav
-    };
-
-    enum class codec_type
-    {
-        aiff,
-        flac,
-        wav
-    };
-
-    void codec( codec_type value );
-    auto codec() const -> codec_type;
-
-    void container( container_type value );
-    auto container() const -> container_type;
-
-private:
-    container_type m_container;
-    codec_type     m_codec;
 };
 
-} // namespace audio
+//----------------------------------------------------------------------------------------------------------------------
+
+TEST_P( flac_sink_test, ofstream )
+{
+    auto ifs = audio::ifstream( input_name() );
+
+    audio::ofstream_info info;
+    info.format( ifs.info().format() );
+    info.num_channels( ifs.info().num_channels() );
+    info.sample_rate( ifs.info().sample_rate() );
+
+    {
+        audio::ofstream ofs( output_name(), info );
+        auto            buffer = std::vector<double>( ifs.info().num_samples() );
+        ifs >> buffer;
+        ofs << buffer;
+    }
+
+    reference_test( audio::ifstream( output_name() ), output_name() );
+}
 
 //----------------------------------------------------------------------------------------------------------------------
+
+
+INSTANTIATE_TEST_SUITE_P( reference_test,
+                          flac_sink_test,
+                          reference_files( audio::ifstream_info::container_type::flac ) );

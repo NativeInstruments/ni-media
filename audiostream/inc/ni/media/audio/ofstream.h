@@ -37,6 +37,12 @@ public:
 
     ofstream();
 
+    ofstream( const std::string& file, const ofstream::info_type& info );
+    ofstream( const std::string&         file,
+              const ofstream::info_type& info,
+              info_type::container_type  container,
+              size_t                     stream_index = 0 );
+
     ofstream( ofstream&& );
     ofstream& operator=( ofstream&& );
 

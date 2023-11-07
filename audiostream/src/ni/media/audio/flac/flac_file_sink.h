@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017-2019 Native Instruments GmbH, Berlin
+// Copyright (c) 2020 Native Instruments GmbH, Berlin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,37 @@
 
 #pragma once
 
-#include <ni/media/audio/fstream_info.h>
-#include <ni/media/audio/ifstream_info.h>
-#include <ni/media/audio/ostream_info.h>
+#include <ni/media/audio/ofstream_info.h>
 
-namespace audio
-{
+#include <boost/iostreams/device/null.hpp>
 
-class ofstream_info : public fstream_info, public ostream_info
+#include <memory>
+
+class flac_file_sink
 {
 public:
-    enum class container_type
+    using char_type = char;
+    struct category : boost::iostreams::output, boost::iostreams::device_tag, boost::iostreams::closable_tag
     {
-        aiff,
-        flac,
-        wav
     };
 
-    enum class codec_type
-    {
-        aiff,
-        flac,
-        wav
-    };
+    using info_type = audio::ofstream_info;
 
-    void codec( codec_type value );
-    auto codec() const -> codec_type;
+    flac_file_sink();
+    ~flac_file_sink();
 
-    void container( container_type value );
-    auto container() const -> container_type;
+    flac_file_sink( flac_file_sink&& );
+    explicit flac_file_sink( info_type info, const std::string& path );
+
+    void open( const std::string& path );
+    void close();
+
+    auto write( const char_type* s, std::streamsize n ) -> std::streamsize;
+
+    auto info() const -> info_type;
 
 private:
-    container_type m_container;
-    codec_type     m_codec;
+    class Impl;
+    std::unique_ptr<Impl> m_impl;
+    info_type             m_info;
 };
-
-} // namespace audio
-
-//----------------------------------------------------------------------------------------------------------------------

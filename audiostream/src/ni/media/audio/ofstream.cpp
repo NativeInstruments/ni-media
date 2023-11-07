@@ -24,6 +24,7 @@
 #include <ni/media/audio/ofstream.h>
 
 #include <ni/media/audio/sink.h>
+#include <ni/media/iostreams/stream_buffer.h>
 
 #include <boost/predef.h>
 
@@ -39,10 +40,61 @@ ofstream::ofstream()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-
 ofstream::ofstream( ofstream&& other )
 : ostream( std::move( other ) )
 {
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ofstream::ofstream( const std::string& file, const ofstream::info_type& info )
+: ofstream()
+{
+    // the container doesn't work because the file doesn't exist yet.
+    auto container = ofstream_container( file );
+    if ( !container )
+        throw std::runtime_error( "Unsupported file extension" );
+
+    *this = ofstream( file, info, *container );
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+ofstream::ofstream( const std::string&            file,
+                    const ofstream::info_type&    info,
+                    ofstream_info::container_type container,
+                    size_t                        stream_index )
+: ofstream()
+{
+    using container_type = ofstream_info::container_type;
+
+    if ( stream_index != 0 )
+        throw std::runtime_error( "Unsupported stream index" );
+
+    auto make_ofstream = []( auto&& sink ) {
+        auto info = sink.info();
+        return ofstream( make_stream_buffer( std::move( sink ) ),
+                         std::make_unique<decltype( info )>( std::move( info ) ) );
+    };
+
+    switch ( container )
+    {
+#if NIMEDIA_ENABLE_AIFF_ENCODING
+        case container_type::aiff:
+            *this = make_ofstream( aiff_file_sink( info, file ) );
+            break;
+#endif
+#if NIMEDIA_ENABLE_FLAC_ENCODING
+        case container_type::flac:
+            *this = make_ofstream( flac_file_sink( info, file ) );
+            break;
+#endif
+#if NIMEDIA_ENABLE_WAV_ENCODING
+        case container_type::wav:
+            *this = make_ofstream( wav_file_sink( info, file ) );
+            break;
+#endif
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -62,9 +114,9 @@ ofstream::ofstream( std::unique_ptr<streambuf> sb, std::unique_ptr<ofstream::inf
 
 //----------------------------------------------------------------------------------------------------------------------
 
-const ofstream::info_type& ofstream::info() const
+auto ofstream::info() const -> const info_type&
 {
     return static_cast<const info_type&>( ostream::info() );
 }
 
-} // namespace pcm
+} // namespace audio

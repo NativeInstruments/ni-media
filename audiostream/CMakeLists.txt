@@ -5,6 +5,7 @@
 option( NIMEDIA_ENABLE_AIFF_DECODING "Enable ni-media aiff decoding" ON )
 option( NIMEDIA_ENABLE_AIFF_ENCODING "Enable ni-media aiff encoding" ON )
 option( NIMEDIA_ENABLE_FLAC_DECODING "Enable ni-media flac decoding" ON )
+option( NIMEDIA_ENABLE_FLAC_ENCODING "Enable ni-media flac encoding" ON )
 option( NIMEDIA_ENABLE_OGG_DECODING  "Enable ni-media ogg decoding" ON )
 
 if ( APPLE OR WIN32 )
@@ -41,6 +42,14 @@ endif()
 
 if( NOT NIMEDIA_ENABLE_FLAC_DECODING )
   set( COMPILE_WITH_FLAC_DECODING     DONT_COMPILE)
+endif()
+
+if( NOT NIMEDIA_ENABLE_FLAC_ENCODING )
+  set( COMPILE_WITH_FLAC_ENCODING    DONT_COMPILE)
+endif()
+
+if( NOT NIMEDIA_ENABLE_FLAC_DECODING AND NOT NIMEDIA_ENABLE_FLAC_ENCODING )
+  set( COMPILE_WITH_FLAC              DONT_COMPILE)
 endif()
 
 if( NOT NIMEDIA_ENABLE_OGG_DECODING )
@@ -128,7 +137,7 @@ if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE
         endif()
         list(APPEND codec_libraries ${${lib}_FRAMEWORK})
       endforeach()
-      
+
     endif()
 
   elseif( WIN32 )
@@ -210,11 +219,12 @@ add_src_file( Sources "inc/ni/media/audio/istream_source.h"                     
 add_src_file( Sources "inc/ni/media/audio/ostream_info.h"                          )
 add_src_file( Sources "src/ni/media/audio/ivectorstream.cpp"    WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/ifstream.cpp"         WITH_PUBLIC_HEADER )
-add_src_file( Sources "src/ni/media/audio/ofstream.cpp"         WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/ifvectorstream.cpp"   WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/fstream_info.cpp"     WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/ifstream_info.cpp"    WITH_PUBLIC_HEADER )
 add_src_file( Sources "inc/ni/media/audio/ifstream_support.h"                      )
+add_src_file( Sources "src/ni/media/audio/ofstream.cpp"         WITH_PUBLIC_HEADER )
+add_src_file( Sources "inc/ni/media/audio/ofstream_support.h"                      )
 add_src_file( Sources "src/ni/media/audio/ofstream_info.cpp"    WITH_PUBLIC_HEADER )
 add_src_file( Sources "src/ni/media/audio/source.h"                                )
 add_src_file( Sources "src/ni/media/audio/source_impl.h"                           )
@@ -236,6 +246,7 @@ add_src_file( Sources "src/ni/media/audio/flac/flac_source.h"            ${COMPI
 add_src_file( Sources "src/ni/media/audio/flac/flac_file_source.h"       ${COMPILE_WITH_FLAC_DECODING} )
 add_src_file( Sources "src/ni/media/audio/flac/flac_vector_source.h"     ${COMPILE_WITH_FLAC_DECODING} )
 add_src_file( Sources "src/ni/media/audio/flac/flac_custom_source.h"     ${COMPILE_WITH_FLAC_DECODING} )
+add_src_file( Sources "src/ni/media/audio/flac/flac_file_sink.cpp"       ${COMPILE_WITH_FLAC_ENCODING} WITH_HEADER )
 add_src_file( Sources "src/ni/media/audio/iostreams/container_source.h" )
 add_src_file( Sources "src/ni/media/audio/iostreams/container_sink.h"   )
 add_src_file( Sources "src/ni/media/audio/mp3/mp3_file_source.h"       ${COMPILE_WITH_MP3_DECODING} )
@@ -303,6 +314,8 @@ target_compile_definitions( audiostream PRIVATE
   NIMEDIA_ENABLE_OGG_DECODING=$<BOOL:${NIMEDIA_ENABLE_OGG_DECODING}>
   NIMEDIA_ENABLE_WAV_DECODING=$<BOOL:${NIMEDIA_ENABLE_WAV_DECODING}>
   NIMEDIA_ENABLE_WMA_DECODING=$<BOOL:${NIMEDIA_ENABLE_WMA_DECODING}>
+  NIMEDIA_ENABLE_AIFF_ENCODING=$<BOOL:${NIMEDIA_ENABLE_AIFF_ENCODING}>
+  NIMEDIA_ENABLE_FLAC_ENCODING=$<BOOL:${NIMEDIA_ENABLE_FLAC_ENCODING}>
   NIMEDIA_ENABLE_WAV_ENCODING=$<BOOL:${NIMEDIA_ENABLE_WAV_ENCODING}>
   NIMEDIA_ENABLE_ITUNES_DECODING=$<BOOL:${NIMEDIA_ENABLE_ITUNES_DECODING}>
   )

@@ -20,12 +20,12 @@
 // SOFTWARE.
 //
 
-#include <ni/media/audio/iotools.h>
 #include <ni/media/audio/ifstream_support.h>
+#include <ni/media/audio/iotools.h>
+#include <ni/media/audio/ofstream_support.h>
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/predef.h>
 
 #include <boost/filesystem.hpp>
 #include <map>
@@ -71,28 +71,34 @@ auto ifstream_supported_formats() -> const ifstream_container_map&
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-    
-namespace
-{
 
-//----------------------------------------------------------------------------------------------------------------------
-
-auto ofstream_map() -> const std::map<std::string, ofstream_info::container_type>&
+auto ofstream_supported_formats() -> const ofstream_container_map&
 {
-    using container_type = ofstream_info::container_type;
+    using container_type = ofstream_container_map::mapped_type;
 
     // clang-format off
-    static const std::map<std::string, container_type> map
+    static const ofstream_container_map map
     {
 #if NIMEDIA_ENABLE_WAV_ENCODING
         {".wav", container_type::wav},
         {".wave", container_type::wav},
 #endif
+#if NIMEDIA_ENABLE_AIFF_ENCODING
+        {".aif", container_type::aiff},
+        {".aiff", container_type::aiff},
+#endif
+#if NIMEDIA_ENABLE_FLAC_ENCODING
+        {".flac", container_type::flac},
+#endif
     };
     // clang-format on
-
     return map;
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+namespace
+{
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -133,7 +139,9 @@ std::string extension_from_url( const std::string& url )
 #endif
     {
         auto path = boost::filesystem::path( url );
-        if ( is_regular_file( path ) && path.has_extension() )
+        //  ofstreams are not open at this point, meaning the file may not exist yet when doing the "is_regular_file"
+        // check
+        if ( path.has_extension() )
             return path.extension().string();
     }
     return {};
@@ -146,12 +154,11 @@ auto ifstream_container( const std::string& url ) -> boost::optional<ifstream_in
     return container_of( url, ifstream_supported_formats() );
 }
 
-
 //----------------------------------------------------------------------------------------------------------------------
 
 auto ofstream_container( const std::string& url ) -> boost::optional<ofstream_info::container_type>
 {
-    return container_of( url, ofstream_map() );
+    return container_of( url, ofstream_supported_formats() );
 }
 
 //----------------------------------------------------------------------------------------------------------------------

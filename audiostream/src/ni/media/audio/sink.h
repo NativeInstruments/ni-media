@@ -23,4 +23,5 @@
 #pragma once
 
 #include <ni/media/audio/aiff/aiff_file_sink.h>
+#include <ni/media/audio/flac/flac_file_sink.h>
 #include <ni/media/audio/wav/wav_file_sink.h>

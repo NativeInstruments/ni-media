@@ -66,6 +66,13 @@ endif()
 
 if( NIMEDIA_ENABLE_FLAC_DECODING )
   add_src_file  (FILES_test_audio_flac "ni/media/audio/flac/flac_source.test.cpp")
+endif()
+
+if( NIMEDIA_ENABLE_FLAC_ENCODING )
+  add_src_file  (FILES_test_audio_flac "ni/media/audio/flac/flac_sink.test.cpp")
+endif()
+
+if( FILES_test_audio_flac )
   add_src_group (FILES_test_all test_audio_flac FILES_test_audio_flac)
 endif()
 
