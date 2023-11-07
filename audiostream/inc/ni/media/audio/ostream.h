@@ -66,21 +66,14 @@ public:
     auto operator<<( const Range& rng ) -> std::enable_if_t<boost::has_range_iterator<Range>::value, ostream&>;
 
     using std::ostream::bad;
-    using std::ostream::clear;
-    using std::ostream::eof;
     using std::ostream::fail;
-    using std::ostream::good;
-    using std::ostream::rdbuf;
-    using std::ostream::rdstate;
     using std::ostream::setstate;
-
 
     using std::ostream::tellp;
     auto frame_tellp() -> pos_type;
     auto sample_tellp() -> pos_type;
 
     // - stream_info
-
     virtual auto info() const -> const info_type&;
 
 protected:
@@ -102,7 +95,7 @@ private:
 template <class Value>
 auto ostream::operator<<( Value val ) -> std::enable_if_t<std::is_arithmetic<Value>::value, ostream&>
 {
-    std::array<char, 8> temp = { 0 };
+    std::array<char, 8> temp;
     pcm::write( temp.data(), val, m_info->format() );
     write( temp.data(), m_info->bytes_per_sample() );
     return *this;
@@ -113,9 +106,35 @@ auto ostream::operator<<( Value val ) -> std::enable_if_t<std::is_arithmetic<Val
 template <class Range>
 auto ostream::operator<<( const Range& rng ) -> std::enable_if_t<boost::has_range_iterator<Range>::value, ostream&>
 {
-    // TODO fast pcm conversion
-    for ( auto val : rng )
-        *this << val;
+    using Value = typename boost::range_value<Range>::type;
+
+    if ( fail() )
+        return *this;
+
+    if ( m_streambuf->overflow() == streambuf::traits_type::eof() )
+    {
+        setstate( rdstate() | failbit );
+        return *this;
+    }
+
+    auto in_beg = std::begin( rng );
+    auto in_end = std::end( rng );
+
+    auto in_iter = in_beg;
+    do
+    {
+        m_streambuf->sync();
+        assert( std::distance( m_streambuf->pptr(), m_streambuf->epptr() ) % m_info->bytes_per_sample() == 0 );
+
+        const auto out_beg = pcm::make_iterator<Value>( m_streambuf->pptr(), m_info->format() );
+        const auto out_end = pcm::make_iterator<Value>( m_streambuf->epptr(), m_info->format() );
+
+        auto result = pcm::copy( in_iter, in_end, out_beg, out_end );
+
+        auto count = static_cast<int>( std::distance( in_iter, result.first ) * m_info->bytes_per_sample() );
+        in_iter    = result.first;
+        m_streambuf->pbump( count );
+    } while ( in_iter < in_end && m_streambuf->overflow() != streambuf::traits_type::eof() );
 
     return *this;
 }
