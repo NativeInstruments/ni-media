@@ -8,7 +8,8 @@ project( ni-media
   VERSION 0.1.0
 )
 
-option( NIMEDIA_TREAT_WARNINGS_AS_ERRORS      "Treat compile warnings as errors"      OFF)
+option( NIMEDIA_TREAT_WARNINGS_AS_ERRORS "Treat compile warnings as errors" OFF )
+option( NIMEDIA_UNITY_BUILDS             "Build ni-media With Unity Builds" ON  )
 
 if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
   option( NIMEDIA_TESTS "Build ni-media Tests" ON )
