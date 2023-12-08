@@ -3,7 +3,6 @@
 build/
 deps/
 libs/
-nib/
 **/test-reports/*.xml
 
 # cmake convention ------------------------------

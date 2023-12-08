@@ -128,7 +128,7 @@ if( NIMEDIA_ENABLE_MP3_DECODING OR NIMEDIA_ENABLE_MP4_DECODING OR NIMEDIA_ENABLE
         endif()
         list(APPEND codec_libraries ${${lib}_FRAMEWORK})
       endforeach()
-      
+
     endif()
 
   elseif( WIN32 )
@@ -152,12 +152,7 @@ endif()
 
 if( NIMEDIA_ENABLE_FLAC_DECODING )
 
-  if( NIMEDIA_OPEN_SOURCE )
-    find_package(FLAC REQUIRED)
-  else()
-    find_package(NIFLAC REQUIRED)
-    add_library(FLAC::flacpp ALIAS flacpp)
-  endif()
+  find_package(FLAC REQUIRED)
 
   if ( NOT TARGET FLAC::flacpp )
     message(FATAL_ERROR
@@ -166,17 +161,13 @@ if( NIMEDIA_ENABLE_FLAC_DECODING )
       " * NIMEDIA_ENABLE_FLAC_DECODING = OFF\n")
   endif()
   list(APPEND codec_libraries FLAC::flacpp)
+
 endif()
 
 
 if ( NIMEDIA_ENABLE_OGG_DECODING )
 
-  if( NIMEDIA_OPEN_SOURCE )
-    find_package(Vorbis REQUIRED)
-  else()
-    find_package(NILibVorbis REQUIRED)
-    add_library(Vorbis::vorbisfile ALIAS libvorbis)
-  endif()
+  find_package(Vorbis REQUIRED)
 
   if ( NOT TARGET Vorbis::vorbisfile)
     message(FATAL_ERROR
@@ -185,6 +176,7 @@ if ( NIMEDIA_ENABLE_OGG_DECODING )
       " * NIMEDIA_ENABLE_OGG_DECODING = OFF\n")
   endif()
   list(APPEND codec_libraries Vorbis::vorbisfile)
+
 endif()
 
 
@@ -283,10 +275,12 @@ target_include_directories  ( audiostream
                                   src
                             )
 
-set_target_properties( audiostream PROPERTIES
-  UNITY_BUILD ON
-  UNITY_BUILD_BATCH_SIZE 16
-)
+if (NIMEDIA_UNITY_BUILDS)
+  set_target_properties( audiostream PROPERTIES
+    UNITY_BUILD ON
+    UNITY_BUILD_BATCH_SIZE 16
+  )
+endif()
 
 target_link_libraries       ( audiostream PUBLIC pcm
                                           PRIVATE Boost::iostreams Boost::filesystem Boost::system ${codec_libraries})
