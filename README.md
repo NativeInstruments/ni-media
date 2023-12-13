@@ -95,7 +95,7 @@ We very much appreciate your contribution! If you want to contribute please get 
 * [Marc Boucek](https://github.com/marcrambo) 
 * [Nathan Kozlowski](https://github.com/FalconPDX)
 * [Moritz Heppner](https://github.com/ni-mheppner)
-* [Anyere Bendrien](https://github.com/ni-abendrien)
+* [Tim Smit](https://github.com/ni-tsmit)
 
 Please run [clang-format](https://clang.llvm.org/docs/ClangFormat.html) with the provided .clang-format file and if possible add some tests when opening a pull request.
 
