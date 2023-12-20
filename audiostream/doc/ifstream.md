@@ -111,7 +111,7 @@ Best practice to instantiate an `audio::ifstream` based on an `audio::ifstream_s
 audio::ifstream my_ifstream = audio::make_ifstream<my_ifstream_source>( ... );
 ```
 
-## Provideing a custom byte-stream backend
+## Providing a custom byte-stream backend
 
 By implementing the [`audio::custom_backend_source`](../inc/ni/media/audio/custom_backend_source.h) interface, it is possible to provide a custom byte-stream backend to the existing decoders of `ni-media`:
 
