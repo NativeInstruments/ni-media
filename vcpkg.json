@@ -1,6 +1,6 @@
 {
   "name": "ni-media",
-  "version-string": "1.0.0",
+  "version-string": "1.1.0",
   "builtin-baseline": "0526b9cb221ebdc18a8e3de2a25c307a6971bc99",
   "dependencies": [
     "libogg",
