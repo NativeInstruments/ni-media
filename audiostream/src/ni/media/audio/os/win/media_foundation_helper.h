@@ -65,6 +65,8 @@ template <class Source>
 class SyncronousByteStream : public IMFByteStream
 {
 
+    static constexpr auto endOfSequence = -1;
+
     auto tell() -> std::streamsize
     {
         auto pos = m_source.seek( boost::iostreams::stream_offset( 0 ), BOOST_IOS::cur );
@@ -86,7 +88,8 @@ public:
 
         try
         {
-            *read = static_cast<ULONG>( m_source.read( reinterpret_cast<char*>( buffer ), toRead ) );
+            const auto result =  m_source.read( reinterpret_cast<char*>( buffer ), toRead );
+            *read = static_cast<ULONG>( result == endOfSequence ? 0 : result );
             return S_OK;
         }
         catch ( const std::system_error& )
