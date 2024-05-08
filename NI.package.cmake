@@ -16,6 +16,10 @@ function( pr_init_ni_nimedia_package_path )
 endfunction()
 pr_init_ni_nimedia_package_path()
 
+if( APPLE OR WIN32 )
+  set( APPLE_OR_WINDOWS TRUE )
+endif()
+
 set( NIMEDIA_PCM_INCLUDE_DIRS "${NI_NIMEDIA_PACKAGE_PATH}/pcm/inc" )
 
 if ( NOT (EXISTS ${NIMEDIA_PCM_INCLUDE_DIRS}) )
@@ -120,7 +124,7 @@ set( audiostream_sources
   "${NI_NIMEDIA_PACKAGE_PATH}/audiostream/src/ni/media/iostreams/stream_buffer.h"
   "${NI_NIMEDIA_PACKAGE_PATH}/audiostream/src/ni/media/iostreams/write_obj.h"
 )
-if ( APPLE OR WIN32 )
+if ( APPLE_OR_WINDOWS )
   list( APPEND audiostream_sources
     "${NI_NIMEDIA_PACKAGE_PATH}/audiostream/src/ni/media/audio/mp3/mp3_file_source.h"
     "${NI_NIMEDIA_PACKAGE_PATH}/audiostream/src/ni/media/audio/mp3/mp3_vector_source.h"
@@ -162,6 +166,8 @@ list( APPEND codec_libraries flacpp )
 find_package( NILibVorbis REQUIRED )
 list( APPEND codec_libraries libvorbis )
 if ( APPLE )
+  find_library( COREAUDIOTOOLBOX_FRAMEWORK AudioToolbox )
+  list( APPEND codec_libraries ${COREAUDIOTOOLBOX_FRAMEWORK})
   if ( NOT IOS )
     find_library( CORESERVICES_FRAMEWORK CoreServices )
     list( APPEND codec_libraries ${CORESERVICES_FRAMEWORK} )
@@ -186,13 +192,13 @@ target_link_libraries( audiostream PUBLIC pcm
 target_compile_definitions( audiostream PRIVATE
   NIMEDIA_ENABLE_AIFF_DECODING=1
   NIMEDIA_ENABLE_FLAC_DECODING=1
-  NIMEDIA_ENABLE_MP3_DECODING=1
-  NIMEDIA_ENABLE_MP4_DECODING=1
+  NIMEDIA_ENABLE_MP3_DECODING=$<BOOL:${APPLE_OR_WINDOWS}>
+  NIMEDIA_ENABLE_MP4_DECODING=$<BOOL:${APPLE_OR_WINDOWS}>
   NIMEDIA_ENABLE_OGG_DECODING=1
   NIMEDIA_ENABLE_WAV_DECODING=1
   NIMEDIA_ENABLE_WMA_DECODING=$<BOOL:${NIMEDIA_ENABLE_WMA_DECODING}> #wma support is off by default, clients need to turn it on
   NIMEDIA_ENABLE_WAV_ENCODING=1
-  NIMEDIA_ENABLE_ITUNES_DECODING=1
+  NIMEDIA_ENABLE_ITUNES_DECODING=$<BOOL:${IOS}>
 )
 
 add_library( ni-media INTERFACE )

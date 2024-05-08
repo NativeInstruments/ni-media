@@ -1,3 +1,12 @@
+# 2024-05-08 version v1.1.2:
+
+  * FIXED: Issues in cmake integration for NI's internal build system
+
+# 2024-04-30 version v1.1.1:
+
+  * ADDED: Cmake integration for NI's internal build system
+  * FIXED: An issue where `media_foundation_helper` could produce an integer overflow resulting in a freeze while reading a file
+
 # 2023-12-20 version v1.1.0:
 
   * ADDED: Possibility of creating a custom decoder via `istream_source`
