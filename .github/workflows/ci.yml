@@ -108,7 +108,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4
       with:
-        lfs: true
+        lfs: false
 
     - name: Install vcpkg
       run: |
@@ -126,7 +126,6 @@ jobs:
     - name: Test
       working-directory: ${{ github.workspace }}/build
       run: |
-        git lfs pull -X \"\"
         ctest --verbose -C ${{ matrix.config.build_type }} --timeout 900
 
     - name: Generate Code-Coverage results
