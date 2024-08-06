@@ -78,11 +78,6 @@ cmake --build .
 cmake -G YOUR-PROJECT-GENERATOR -DCMAKE_PREFIX_PATH=path/to/dependencies/ -DNIMEDIA_TESTS=ON path/to/ni-media
 ```
 
-Before running the tests some reference test files need to be downloaded using [git-lfs](https://github.com/git-lfs/git-lfs):
-```
-git lfs pull -X ""
-```
-
 To execute the tests run:
 ```
 cmake --build . --target test

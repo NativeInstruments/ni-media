@@ -1,7 +1,7 @@
 {
   "name": "ni-media",
-  "version-string": "1.1.0",
-  "builtin-baseline": "0526b9cb221ebdc18a8e3de2a25c307a6971bc99",
+  "version-string": "1.1.2",
+  "builtin-baseline": "b8ac6696e3af59f4f0666ab81a48ae589cde00a8",
   "dependencies": [
     "libogg",
     "libflac",
