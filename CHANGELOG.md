@@ -1,3 +1,8 @@
+# 2024-08-08 version v1.1.3:
+
+  * UPDATED: Systems specification for GitHub CI
+  * REMOVED: Dependency to git-lfs
+
 # 2024-05-08 version v1.1.2:
 
   * FIXED: Issues in cmake integration for NI's internal build system
