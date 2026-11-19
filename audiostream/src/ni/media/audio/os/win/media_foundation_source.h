@@ -484,9 +484,6 @@ media_foundation_source<Source>::media_foundation_source( Source&&              
     {
         throw std::runtime_error( "Could not load uncompressed pcm decoder." );
     }
-
-    if ( m_readOffset != 0 && !setPosition( *m_reader, framesTo100ns<Source>( m_readOffset, m_info.sample_rate() ) ) )
-        throw std::runtime_error( "Could not reposition in media buffer." );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -510,7 +507,7 @@ std::streampos media_foundation_source<Source>::seek( offset_type off, BOOST_IOS
     const auto nominalPos = absolute_position( m_nominalPos, begPos, endPos, off / frameSize, way );
 
     // The allowed range for the nominal offset  is [0, lengthInFrames[
-    // The allowed range for the adjusted offset is [aacReadOffset, lengthInFrames + aacReadOffset[
+    // The allowed range for the adjusted offset is [m_readOffset, lengthInFrames + m_readOffset[
 
     auto adjustedPos = nominalPos + m_readOffset;
 
@@ -564,14 +561,14 @@ template <class Source>
 bool media_foundation_source<Source>::seekInternal( offset_type adjustedPos )
 {
     // WMF applies a fade-in to the audio data fetched after a seek, which produces crackling. To avoid this, when
-    // doing a seek we jump one block back of the target, then discard it in the following fetch.
+    // doing a seek we jump one block back of the target, then discard it in the following fetch. Targets too close to
+    // the start are reached by decoding from the beginning of the stream, which includes any encoder priming.
     constexpr offset_type fadeInBlocks = 2;
     constexpr offset_type fadeInFrames = fadeInBlocks * s_defaultBlockSize;
 
-    static const auto minValue     = fadeInFrames + m_readOffset;
-    bool              removeFadein = adjustedPos >= minValue;
+    const bool removeFadein = adjustedPos >= fadeInFrames;
 
-    adjustedPos = removeFadein ? adjustedPos - fadeInFrames : m_readOffset;
+    adjustedPos = removeFadein ? adjustedPos - fadeInFrames : 0;
     if ( !setPosition( *m_reader, framesTo100ns<Source>( adjustedPos, m_info.sample_rate() ) ) )
         return false;
 
@@ -695,7 +692,7 @@ auto media_foundation_source<Source>::searchBackwardAndRetrieveBlock( offset_typ
     // If the target frame is behind the current position in the audio stream, we seek backwards recursively with an
     // increasing step until we reach it. If we overshoot, we simply move forward by consuming the excess blocks.
 
-    auto correctedTarget = target >= m_readOffset + backstep ? target - backstep : m_readOffset;
+    auto correctedTarget = target >= backstep ? target - backstep : 0;
     if ( seekInternal( correctedTarget ) )
     {
         if ( !discardFadeinBlock() )
@@ -715,7 +712,7 @@ auto media_foundation_source<Source>::searchBackwardAndRetrieveBlock( offset_typ
             return searchForwardAndRetrieveBlock( target );
         else
         {
-            return correctedTarget > m_readOffset
+            return correctedTarget > 0
                        ? searchBackwardAndRetrieveBlock( target, backstep + 2 * s_defaultBlockSize )
                        : nullptr;
         }
