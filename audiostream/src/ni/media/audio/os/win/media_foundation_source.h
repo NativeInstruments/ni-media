@@ -103,7 +103,7 @@ private:
 
     auto consumeBlock() -> std::unique_ptr<MfBlock>;
     bool updateBuffer( std::unique_ptr<MfBlock> );
-    bool discardFadeinBlock();
+    bool discardFadeinBlock( offset_type );
 
     SyncronousByteStream<Source>* m_byteStream;
 };
@@ -645,8 +645,8 @@ auto media_foundation_source<Source>::searchAndRetrieveBlock( offset_type target
 {
     // We start by discarding the first data block if it contains a fade-in.
 
-    if ( !discardFadeinBlock() )
-        return nullptr;
+    if ( !discardFadeinBlock( target ) )
+        return searchBackwardAndRetrieveBlock( target, 2 * s_defaultBlockSize );
 
     // We then fetch the next block and check its timestamp to determine where we are in the audio stream, then move to
     // the target position.
@@ -695,8 +695,9 @@ auto media_foundation_source<Source>::searchBackwardAndRetrieveBlock( offset_typ
     auto correctedTarget = target >= backstep ? target - backstep : 0;
     if ( seekInternal( correctedTarget ) )
     {
-        if ( !discardFadeinBlock() )
-            return nullptr;
+        if ( !discardFadeinBlock( target ) )
+            return correctedTarget > 0 ? searchBackwardAndRetrieveBlock( target, backstep + 2 * s_defaultBlockSize )
+                                       : nullptr;
 
         auto block = consumeBlock();
         if ( !block )
@@ -772,18 +773,26 @@ bool media_foundation_source<Source>::updateBuffer( std::unique_ptr<MfBlock> blo
 //----------------------------------------------------------------------------------------------------------------------
 
 template <class Source>
-bool media_foundation_source<Source>::discardFadeinBlock()
+bool media_foundation_source<Source>::discardFadeinBlock( offset_type target )
 {
     // If this is the first fetch after a seek we need to discard the first frame, as WMF applies a fade-in
-    // effect to the first few samples that produces crackling when played back by Traktor.
+    // effect to the first few samples that produces crackling when played back by Traktor. Returns false if a discarded
+    // block reaches the target, as with codecs that decode large blocks (ALAC decodes 4096 frames at a time): the seek
+    // then has to start further back.
 
-    while ( m_fadeInBlocks > 0 )
+    for ( ; m_fadeInBlocks > 0; --m_fadeInBlocks )
     {
         auto frame = consumeBlock();
         if ( !frame )
+            break;
+
+        if ( frame->range.upper() > target )
+        {
+            m_fadeInBlocks = 0;
             return false;
-        --m_fadeInBlocks;
+        }
     }
 
+    m_fadeInBlocks = 0;
     return true;
 }
