@@ -103,7 +103,7 @@ private:
 
     auto consumeBlock() -> std::unique_ptr<MfBlock>;
     bool updateBuffer( std::unique_ptr<MfBlock> );
-    bool discardFadeinBlock();
+    bool discardFadeinBlock( offset_type );
 
     SyncronousByteStream<Source>* m_byteStream;
 };
@@ -238,8 +238,7 @@ auto retrieveAudioStreamsIndices( IMFSourceReader& reader ) -> std::vector<size_
 
 //----------------------------------------------------------------------------------------------------------------------
 
-template <class Source>
-size_t calcStreamIndex( IMFSourceReader& reader, size_t stream )
+inline size_t calcStreamIndex( const std::vector<size_t>& indices, size_t stream )
 {
     // The audio streams are indexed as follows:
     //
@@ -251,8 +250,6 @@ size_t calcStreamIndex( IMFSourceReader& reader, size_t stream )
     // ...
     // Stem N     0
 
-    auto indices = retrieveAudioStreamsIndices<Source>( reader );
-
     size_t minSize = stream + 1;
     if ( indices.size() < minSize )
     {
@@ -261,6 +258,252 @@ size_t calcStreamIndex( IMFSourceReader& reader, size_t stream )
     }
 
     return indices[indices.size() - stream - 1];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+struct EncoderDelay
+{
+    bool     declared = false;
+    uint64_t priming  = 0;
+    uint64_t padding  = 0;
+};
+
+inline EncoderDelay readItunesEncoderDelay( IMFSourceReader& reader, size_t streamIndex )
+{
+    EncoderDelay delay;
+    PROPVARIANT  var;
+    if ( SUCCEEDED( reader.GetPresentationAttribute( DWORD( streamIndex ), MF_SD_AUDIO_ENCODER_DELAY, &var ) ) )
+    {
+        delay.declared = SUCCEEDED( PropVariantToUInt64( var, &delay.priming ) );
+        PropVariantClear( &var );
+    }
+    if ( SUCCEEDED( reader.GetPresentationAttribute( DWORD( streamIndex ), MF_SD_AUDIO_ENCODER_PADDING, &var ) ) )
+    {
+        PropVariantToUInt64( var, &delay.padding );
+        PropVariantClear( &var );
+    }
+    return delay;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+inline uint64_t readBigEndian( const uint8_t* data, size_t numBytes )
+{
+    uint64_t value = 0;
+    while ( numBytes-- > 0 )
+        value = ( value << 8 ) | *data++;
+    return value;
+}
+
+struct Mp4Box
+{
+    const uint8_t* begin = nullptr;
+    const uint8_t* end   = nullptr;
+
+    size_t size() const
+    {
+        return size_t( end - begin );
+    }
+};
+
+// Calls visit( type, child ) for each child box, stopping at the first malformed one.
+template <class Visitor>
+void forEachMp4Box( Mp4Box parent, Visitor&& visit )
+{
+    auto pos = parent.begin;
+    while ( parent.end - pos >= 8 )
+    {
+        auto       size       = readBigEndian( pos, 4 );
+        const auto type       = uint32_t( readBigEndian( pos + 4, 4 ) );
+        size_t     headerSize = 8;
+        if ( size == 1 && parent.end - pos >= 16 )
+        {
+            size       = readBigEndian( pos + 8, 8 );
+            headerSize = 16;
+        }
+        if ( size < headerSize || size > uint64_t( parent.end - pos ) )
+            return;
+
+        visit( type, Mp4Box{pos + headerSize, pos + size} );
+        pos += size;
+    }
+}
+
+inline Mp4Box findMp4Box( Mp4Box parent, uint32_t type )
+{
+    Mp4Box found;
+    forEachMp4Box( parent, [&]( uint32_t childType, Mp4Box child ) {
+        if ( childType == type && !found.begin )
+            found = child;
+    } );
+    return found;
+}
+
+struct Mp4Movie
+{
+    bool                 hasItunesBrand = false;
+    std::vector<uint8_t> movieBox;
+};
+
+inline Mp4Movie readMp4Movie( IMFByteStream& stream )
+{
+    constexpr uint64_t maxFileTypeBoxSize = 4096;
+    constexpr uint64_t maxMovieBoxSize    = 64 << 20;
+
+    Mp4Movie             movie;
+    auto&                payload = movie.movieBox;
+    uint8_t              header[16];
+    ULONG                read     = 0;
+    QWORD                position = 0;
+    while ( SUCCEEDED( stream.Read( header, 8, &read ) ) && read == 8 )
+    {
+        auto   size       = readBigEndian( header, 4 );
+        size_t headerSize = 8;
+        if ( size == 1 )
+        {
+            if ( FAILED( stream.Read( header + 8, 8, &read ) ) || read != 8 )
+                break;
+            size       = readBigEndian( header + 8, 8 );
+            headerSize = 16;
+        }
+        // A size of 0 means the box runs to the end of the file, so no box can follow it.
+        if ( size < headerSize )
+            break;
+
+        const auto type = readBigEndian( header + 4, 4 );
+        if ( type == 'ftyp' && size - headerSize <= maxFileTypeBoxSize )
+        {
+            std::vector<uint8_t> brands( size_t( size - headerSize ) );
+            if ( FAILED( stream.Read( brands.data(), ULONG( brands.size() ), &read ) ) || read != brands.size() )
+                break;
+
+            // Layout: major brand (4 bytes), minor version (4), then the compatible brands.
+            for ( size_t i = 0; i + 4 <= brands.size(); i += i == 0 ? 8 : 4 )
+            {
+                const auto brand = readBigEndian( brands.data() + i, 4 );
+                if ( brand == 'M4A ' || brand == 'M4B ' )
+                    movie.hasItunesBrand = true;
+            }
+            continue;
+        }
+
+        if ( type == 'moov' )
+        {
+            if ( size - headerSize <= maxMovieBoxSize )
+            {
+                payload.resize( size_t( size - headerSize ) );
+                if ( FAILED( stream.Read( payload.data(), ULONG( payload.size() ), &read ) ) || read != payload.size() )
+                    payload.clear();
+            }
+            break;
+        }
+
+        if ( FAILED( stream.Seek( msoCurrent, LONGLONG( size - headerSize ), 0, &position ) ) )
+            break;
+    }
+
+    stream.SetCurrentPosition( 0 );
+    return movie;
+}
+
+struct Mp4SoundTrack
+{
+    // Times are in the track's timescale.
+    uint32_t timescale     = 0;
+    uint64_t mediaDuration = 0;
+    bool     hasEditList   = false;
+    uint64_t editListStart = 0;
+
+    // Counts the last packet in full, even when the time-to-sample table shortens it, as Core Audio does. Assumes every
+    // packet lasts as long as the first, as AAC's 1024-frame packets do.
+    uint64_t packetsDuration = 0;
+
+    bool hasRollGroup = false;
+};
+
+// Returns the media time at which the edit list starts playing the track's media.
+inline uint64_t readMp4EditListStart( Mp4Box elst )
+{
+    // Layout: version (1 byte), flags (3), entry count (4), then the entries.
+    constexpr size_t entriesOffset = 8;
+    if ( elst.size() < entriesOffset )
+        return 0;
+
+    // Each entry holds a duration, a media time and a rate (4 bytes). Version 1 stores the times in 8 bytes, version 0
+    // in 4.
+    const size_t timeSize  = elst.begin[0] == 1 ? 8 : 4;
+    const size_t entrySize = 2 * timeSize + 4;
+
+    const uint64_t emptyEdit = timeSize == 8 ? UINT64_MAX : UINT32_MAX;
+
+    for ( auto entry = elst.begin + entriesOffset; size_t( elst.end - entry ) >= entrySize; entry += entrySize )
+    {
+        // media time -1 marks an empty edit, which delays the track rather than skipping any of it, so it's ignored
+        const auto mediaTime = readBigEndian( entry + timeSize, timeSize );
+        if ( mediaTime != emptyEdit )
+            return mediaTime;
+    }
+    return 0;
+}
+
+// Returns the sound tracks in file order.
+inline std::vector<Mp4SoundTrack> readMp4SoundTracks( const std::vector<uint8_t>& movieBox )
+{
+    std::vector<Mp4SoundTrack> soundTracks;
+    forEachMp4Box( Mp4Box{movieBox.data(), movieBox.data() + movieBox.size()}, [&]( uint32_t type, Mp4Box trak ) {
+        if ( type != 'trak' )
+            return;
+
+        // Layout: version (1 byte), flags (3), pre-defined (4), then the handler type.
+        constexpr size_t handlerTypeOffset = 8;
+        const auto       mdia              = findMp4Box( trak, 'mdia' );
+        const auto       hdlr              = findMp4Box( mdia, 'hdlr' );
+        if ( hdlr.size() < handlerTypeOffset + 4 || readBigEndian( hdlr.begin + handlerTypeOffset, 4 ) != 'soun' )
+            return;
+
+        Mp4SoundTrack track;
+        const auto    elst  = findMp4Box( findMp4Box( trak, 'edts' ), 'elst' );
+        track.hasEditList   = elst.size() > 0;
+        track.editListStart = readMp4EditListStart( elst );
+
+        // Layout: version (1 byte), flags (3), creation and modification times (4 bytes each in version 0, 8 in
+        // version 1), the timescale (4), then the duration (4 bytes in version 0, 8 in version 1).
+        const auto   mdhd            = findMp4Box( mdia, 'mdhd' );
+        const bool   isMdhdVersion1  = mdhd.size() > 0 && mdhd.begin[0] == 1;
+        const size_t timescaleOffset = isMdhdVersion1 ? 4 + 2 * 8 : 4 + 2 * 4;
+        const size_t durationSize    = isMdhdVersion1 ? 8 : 4;
+        if ( mdhd.size() >= timescaleOffset + 4 + durationSize )
+        {
+            track.timescale     = uint32_t( readBigEndian( mdhd.begin + timescaleOffset, 4 ) );
+            track.mediaDuration = readBigEndian( mdhd.begin + timescaleOffset + 4, durationSize );
+        }
+
+        const auto stbl = findMp4Box( findMp4Box( mdia, 'minf' ), 'stbl' );
+
+        // Layout: version (1 byte), flags (3), sample size (4), then the sample count.
+        constexpr size_t packetCountOffset = 8;
+        const auto       stsz              = findMp4Box( stbl, 'stsz' );
+
+        // Layout: version (1 byte), flags (3), entry count (4), then pairs of sample count and sample duration.
+        constexpr size_t packetDurationOffset = 12;
+        const auto       stts                 = findMp4Box( stbl, 'stts' );
+
+        if ( stsz.size() >= packetCountOffset + 4 && stts.size() >= packetDurationOffset + 4 )
+            track.packetsDuration = readBigEndian( stsz.begin + packetCountOffset, 4 )
+                                    * readBigEndian( stts.begin + packetDurationOffset, 4 );
+
+        // Layout: version (1 byte), flags (3), then the grouping type.
+        constexpr size_t groupingTypeOffset = 4;
+        forEachMp4Box( stbl, [&]( uint32_t boxType, Mp4Box box ) {
+            if ( boxType == 'sgpd' && box.size() >= groupingTypeOffset + 4
+                 && readBigEndian( box.begin + groupingTypeOffset, 4 ) == 'roll' )
+                track.hasRollGroup = true;
+        } );
+
+        soundTracks.push_back( track );
+    } );
+    return soundTracks;
 }
 
 } // namespace
@@ -345,9 +588,6 @@ private:
     BYTE*      m_data = nullptr;
 };
 
-const auto defaultOffset = 0;
-const auto aacOfffset    = 2112;
-
 //----------------------------------------------------------------------------------------------------------------------
 
 template <class Source>
@@ -357,17 +597,18 @@ media_foundation_source<Source>::media_foundation_source( Source&&              
 : m_initializer( new MfInitializer )
 , m_byteStream( new SyncronousByteStream<Source>( std::move( source ) ) )
 {
+    using codec_type     = audio::ifstream_info::codec_type;
+    using container_type = audio::ifstream_info::container_type;
+
+    const auto movie       = container_type::mp4 == container ? readMp4Movie( *m_byteStream ) : Mp4Movie{};
+    const auto soundTracks = readMp4SoundTracks( movie.movieBox );
+
     m_reader = allocateOrThrow<Source>(
         [&]( IMFSourceReader** p ) { return MFCreateSourceReaderFromByteStream( m_byteStream, nullptr, p ); },
         "Could not open the audio file." );
 
-    using codec_type     = audio::ifstream_info::codec_type;
-    using container_type = audio::ifstream_info::container_type;
-
-    if ( container_type::mp4 == container )
-        m_readOffset = m_adjustedPos = aacOfffset;
-
-    m_streamIndex = calcStreamIndex<Source>( *m_reader, stream );
+    const auto audioStreams = retrieveAudioStreamsIndices<Source>( *m_reader );
+    m_streamIndex           = calcStreamIndex( audioStreams, stream );
     if ( FAILED( m_reader->SetStreamSelection( DWORD( MF_SOURCE_READER_ALL_STREAMS ), FALSE ) )
          || FAILED( m_reader->SetStreamSelection( DWORD( m_streamIndex ), TRUE ) ) )
     {
@@ -431,6 +672,16 @@ media_foundation_source<Source>::media_foundation_source( Source&&              
         m_info.sample_rate( sample_rate );
     }
 
+    // Media Foundation decodes the encoder priming and padding as audio and ignores edit lists.
+    offset_type          framesBeyondDuration = 0;
+    const Mp4SoundTrack* track                = nullptr;
+    // calcStreamIndex reverses Media Foundation's track order, so stream also indexes the sound tracks in file order.
+    if ( soundTracks.size() == audioStreams.size() && soundTracks[stream].timescale > 0 )
+        track = &soundTracks[stream];
+
+    const auto itunesDelay =
+        container_type::mp4 == container ? readItunesEncoderDelay( *m_reader, m_streamIndex ) : EncoderDelay{};
+
     {
         PROPVARIANT var;
         LONGLONG    length100ns = 0;
@@ -442,10 +693,41 @@ media_foundation_source<Source>::media_foundation_source( Source&&              
         }
 
         auto lengthFrames = time100nsToFrames<Source>( length100ns, m_info.sample_rate() );
-        if ( lengthFrames < m_readOffset )
+
+        // Chooses the priming as Core Audio does on macOS. An edit list starting past the end of the media is malformed.
+        const bool editListDeclaresPriming =
+            track && track->hasRollGroup && track->hasEditList
+            && ( track->packetsDuration == 0 || track->editListStart < track->packetsDuration );
+        const bool itunesTagDeclaresPriming = itunesDelay.declared && movie.hasItunesBrand;
+
+        if ( editListDeclaresPriming )
+        {
+            m_readOffset = offset_type( track->editListStart * m_info.sample_rate() / track->timescale );
+        }
+        else if ( itunesTagDeclaresPriming )
+        {
+            m_readOffset         = offset_type( itunesDelay.priming );
+            framesBeyondDuration = offset_type( itunesDelay.priming + itunesDelay.padding );
+
+            // The movie header's duration excludes the priming and padding when an edit list is also present. The
+            // media header's always includes them.
+            if ( track && track->mediaDuration > 0 )
+                lengthFrames = offset_type( track->mediaDuration * m_info.sample_rate() / track->timescale );
+        }
+        else if ( codec_type::aac == m_info.codec() )
+        {
+            constexpr offset_type defaultAacPriming = 2112;
+            m_readOffset                            = defaultAacPriming;
+            framesBeyondDuration                    = defaultAacPriming;
+            if ( track && track->packetsDuration > 0 )
+                lengthFrames = offset_type( track->packetsDuration * m_info.sample_rate() / track->timescale );
+        }
+        m_adjustedPos = m_readOffset;
+
+        if ( lengthFrames < framesBeyondDuration )
             throw std::runtime_error( "Empty File" );
 
-        m_info.num_frames( size_t( lengthFrames - m_readOffset ) );
+        m_info.num_frames( size_t( lengthFrames - framesBeyondDuration ) );
     }
 
     {
@@ -484,9 +766,6 @@ media_foundation_source<Source>::media_foundation_source( Source&&              
     {
         throw std::runtime_error( "Could not load uncompressed pcm decoder." );
     }
-
-    if ( m_readOffset != 0 && !setPosition( *m_reader, framesTo100ns<Source>( m_readOffset, m_info.sample_rate() ) ) )
-        throw std::runtime_error( "Could not reposition in media buffer." );
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -510,7 +789,7 @@ std::streampos media_foundation_source<Source>::seek( offset_type off, BOOST_IOS
     const auto nominalPos = absolute_position( m_nominalPos, begPos, endPos, off / frameSize, way );
 
     // The allowed range for the nominal offset  is [0, lengthInFrames[
-    // The allowed range for the adjusted offset is [aacReadOffset, lengthInFrames + aacReadOffset[
+    // The allowed range for the adjusted offset is [m_readOffset, lengthInFrames + m_readOffset[
 
     auto adjustedPos = nominalPos + m_readOffset;
 
@@ -564,14 +843,14 @@ template <class Source>
 bool media_foundation_source<Source>::seekInternal( offset_type adjustedPos )
 {
     // WMF applies a fade-in to the audio data fetched after a seek, which produces crackling. To avoid this, when
-    // doing a seek we jump one block back of the target, then discard it in the following fetch.
+    // doing a seek we jump one block back of the target, then discard it in the following fetch. Targets too close to
+    // the start are reached by decoding from the beginning of the stream, which includes any encoder priming.
     constexpr offset_type fadeInBlocks = 2;
     constexpr offset_type fadeInFrames = fadeInBlocks * s_defaultBlockSize;
 
-    static const auto minValue     = fadeInFrames + m_readOffset;
-    bool              removeFadein = adjustedPos >= minValue;
+    const bool removeFadein = adjustedPos >= fadeInFrames;
 
-    adjustedPos = removeFadein ? adjustedPos - fadeInFrames : m_readOffset;
+    adjustedPos = removeFadein ? adjustedPos - fadeInFrames : 0;
     if ( !setPosition( *m_reader, framesTo100ns<Source>( adjustedPos, m_info.sample_rate() ) ) )
         return false;
 
@@ -648,8 +927,8 @@ auto media_foundation_source<Source>::searchAndRetrieveBlock( offset_type target
 {
     // We start by discarding the first data block if it contains a fade-in.
 
-    if ( !discardFadeinBlock() )
-        return nullptr;
+    if ( !discardFadeinBlock( target ) )
+        return searchBackwardAndRetrieveBlock( target, 2 * s_defaultBlockSize );
 
     // We then fetch the next block and check its timestamp to determine where we are in the audio stream, then move to
     // the target position.
@@ -695,11 +974,12 @@ auto media_foundation_source<Source>::searchBackwardAndRetrieveBlock( offset_typ
     // If the target frame is behind the current position in the audio stream, we seek backwards recursively with an
     // increasing step until we reach it. If we overshoot, we simply move forward by consuming the excess blocks.
 
-    auto correctedTarget = target >= m_readOffset + backstep ? target - backstep : m_readOffset;
+    auto correctedTarget = target >= backstep ? target - backstep : 0;
     if ( seekInternal( correctedTarget ) )
     {
-        if ( !discardFadeinBlock() )
-            return nullptr;
+        if ( !discardFadeinBlock( target ) )
+            return correctedTarget > 0 ? searchBackwardAndRetrieveBlock( target, backstep + 2 * s_defaultBlockSize )
+                                       : nullptr;
 
         auto block = consumeBlock();
         if ( !block )
@@ -715,7 +995,7 @@ auto media_foundation_source<Source>::searchBackwardAndRetrieveBlock( offset_typ
             return searchForwardAndRetrieveBlock( target );
         else
         {
-            return correctedTarget > m_readOffset
+            return correctedTarget > 0
                        ? searchBackwardAndRetrieveBlock( target, backstep + 2 * s_defaultBlockSize )
                        : nullptr;
         }
@@ -775,18 +1055,26 @@ bool media_foundation_source<Source>::updateBuffer( std::unique_ptr<MfBlock> blo
 //----------------------------------------------------------------------------------------------------------------------
 
 template <class Source>
-bool media_foundation_source<Source>::discardFadeinBlock()
+bool media_foundation_source<Source>::discardFadeinBlock( offset_type target )
 {
     // If this is the first fetch after a seek we need to discard the first frame, as WMF applies a fade-in
-    // effect to the first few samples that produces crackling when played back by Traktor.
+    // effect to the first few samples that produces crackling when played back by Traktor. Returns false if a discarded
+    // block reaches the target, as with codecs that decode large blocks (ALAC decodes 4096 frames at a time): the seek
+    // then has to start further back.
 
-    while ( m_fadeInBlocks > 0 )
+    for ( ; m_fadeInBlocks > 0; --m_fadeInBlocks )
     {
         auto frame = consumeBlock();
         if ( !frame )
+            break;
+
+        if ( frame->range.upper() > target )
+        {
+            m_fadeInBlocks = 0;
             return false;
-        --m_fadeInBlocks;
+        }
     }
 
+    m_fadeInBlocks = 0;
     return true;
 }

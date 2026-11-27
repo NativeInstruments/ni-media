@@ -46,6 +46,10 @@
 DEFINE_MEDIATYPE_GUID( MFAudioFormat_ALAC, 0x6C61 );
 #endif
 
+// The encoder delay and padding attributes are only declared for windows10 and higher
+DEFINE_GUID( MF_SD_AUDIO_ENCODER_DELAY, 0x8e85422c, 0x73de, 0x403f, 0x9a, 0x35, 0x55, 0x0a, 0xd6, 0xe8, 0xb9, 0x51 );
+DEFINE_GUID( MF_SD_AUDIO_ENCODER_PADDING, 0x529c7f2c, 0xac4b, 0x4e3f, 0xbf, 0xc3, 0x09, 0x02, 0x19, 0x49, 0x82, 0xcb );
+
 // Flac is only defined in widows10 sdk and higher
 #ifndef MFAudioFormat_FLAC
 DEFINE_MEDIATYPE_GUID( MFAudioFormat_FLAC, 0xF1AC );
