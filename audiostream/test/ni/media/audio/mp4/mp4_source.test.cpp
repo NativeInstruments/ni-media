@@ -31,8 +31,10 @@
 #include <ni/media/statistics.h>
 #include <ni/media/test_helper.h>
 
+#include <boost/predef.h>
 #include <boost/range/algorithm/generate.hpp>
 
+#include <algorithm>
 #include <vector>
 
 
@@ -55,6 +57,36 @@ TEST_P( mp4_source_test, ifvectorstream )
     auto stream = open_file_as<audio::ifvectorstream>();
     reference_test( stream, file_name() );
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+#if BOOST_OS_WINDOWS
+
+// Media Foundation delivers the encoder priming as audio, so seeking relies on media_foundation_source skipping it.
+TEST_P( mp4_source_test, seek_matches_sequential_read )
+{
+    auto stream = open_file_as<audio::ifstream>();
+
+    const auto num_channels = stream.info().num_channels();
+    const auto num_frames   = stream.info().num_frames();
+
+    auto sequential = std::vector<float>( stream.info().num_samples() );
+    stream >> sequential;
+
+    const size_t block_frames = 1024;
+    for ( const size_t frame : {size_t( 0 ), size_t( 1 ), size_t( 3000 ), num_frames / 2, num_frames - block_frames} )
+    {
+        auto block = std::vector<float>( block_frames * num_channels );
+        stream.clear();
+        stream.frame_seekg( frame );
+        stream >> block;
+
+        const auto expected_begin = sequential.begin() + frame * num_channels;
+        EXPECT_TRUE( std::equal( block.begin(), block.end(), expected_begin ) ) << "seeking to frame " << frame;
+    }
+}
+
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------
 

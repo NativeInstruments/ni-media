@@ -81,7 +81,7 @@ endif()
 # audio/mp4
 
 if( NIMEDIA_ENABLE_MP4_DECODING )
-  add_src_file  (FILES_test_audio_mp4 "ni/media/audio/mp4/mp4_source.test.cpp" MAC)
+  add_src_file  (FILES_test_audio_mp4 "ni/media/audio/mp4/mp4_source.test.cpp")
   add_src_group (FILES_test_all test_audio_mp4 FILES_test_audio_mp4)
 endif()
 
